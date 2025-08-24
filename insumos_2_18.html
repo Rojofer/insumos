@@ -1,0 +1,2177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Cobertura de Inventario (Colaborativa)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        #auth-container, #app-container { transition: opacity 0.5s ease-in-out; }
+        .gantt-grid { display: grid; grid-template-columns: 16% 6% 6% 72%; }
+        .gantt-cell { display: flex; align-items: center; min-height: 140px; padding: 0.5rem; border-bottom: 1px solid #d1d5db; transition: background-color 0.2s; cursor: pointer; position: relative; }
+        .gantt-header-cell { font-weight: 600; color: #4b5563; height: 30px; border-bottom: 2px solid #9ca3af; padding: 0 0.5rem; }
+        .gantt-bar-container { position: relative; height: 100%; width: 100%; overflow: hidden; }
+        .gantt-bar { position: absolute; height: 22px; display: flex; align-items: center; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 2; }
+        .gantt-bar-new-order { height: 22px; z-index: 1; opacity: 0.9; }
+        .marker-line { position: absolute; top: 12px; bottom: 12px; z-index: 5; }
+        .marker-line-pedido { border-left: 3px solid #2563eb; }
+        .marker-line-seguridad { border-left: 2px dashed #f97316; }
+        .today-line { position: absolute; top: 0; bottom: 0; left: 0; border-left: 2px solid #ef4444; z-index: 6; pointer-events: none; }
+        .today-line-header { top: -30px; bottom: -100%; }
+        .month-bg { position: absolute; top: 0; bottom: 0; z-index: 0; opacity: 0.5; }
+        .month-odd { background-color: #f3f4f6; }
+        .tooltip { position: relative; display: inline-block; }
+        .tooltip .tooltiptext { visibility: hidden; width: 180px; background-color: #333; color: #fff; text-align: center; border-radius: 6px; padding: 8px; position: absolute; z-index: 10; bottom: 150%; left: 50%; margin-left: -90px; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+        .sort-button { background: none; border: none; cursor: pointer; opacity: 0.6; transition: opacity 0.2s; padding: 2px; }
+        .sort-button:hover { opacity: 1; }
+        .sort-button.active { opacity: 1; color: #2563eb; }
+        .table-sort-button { background: none; border: none; cursor: pointer; font-weight: 700; width: 100%; text-align: inherit; display: flex; align-items: center; justify-content: inherit; gap: 4px;}
+        .table-sort-button:hover { color: #2563eb; }
+        .table-sort-button.active { color: #2563eb; }
+        .sort-icon { width: 16px; height: 16px; transition: transform 0.2s ease-in-out; }
+        .sort-button.active.asc .sort-icon, .table-sort-button.active.asc .sort-icon { transform: rotate(180deg); }
+        .sort-button.active.desc .sort-icon, .table-sort-button.active.desc .sort-icon { transform: rotate(0deg); }
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+        .toast { padding: 12px 20px; border-radius: 8px; color: white; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15); opacity: 0; transform: translateX(100%); animation: slideIn 0.5s forwards, fadeOut 0.5s 4.5s forwards; }
+        .toast.success { background-color: #28a745; }
+        .toast.error { background-color: #dc3545; }
+        .toast.info { background-color: #17a2b8; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateX(100%); } }
+        .loader { border: 2px solid #f3f3f3; border-top: 2px solid #3498db; border-radius: 50%; width: 16px; height: 16px; animation: spin 1s linear infinite; display: inline-block; margin-right: 8px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content { display: none; position: absolute; right: 0; background-color: white; min-width: 240px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 20; border-radius: 8px; border: 1px solid #e5e7eb; padding: 8px 0; margin-top: 4px; }
+        .dropdown-content.show { display: block; }
+        .dropdown-content a, .dropdown-content button { color: #374151; padding: 10px 16px; text-decoration: none; display: flex; align-items:center; gap: 8px; font-size: 14px; font-weight: 500; transition: background-color 0.2s; width: 100%; text-align: left; background: none; border: none; cursor: pointer;}
+        .dropdown-content a:hover, .dropdown-content button:hover { background-color: #f3f4f6; }
+        .dropdown-divider { height: 1px; margin: 8px 0; overflow: hidden; background-color: #e5e7eb; }
+        .query-result-row { cursor: pointer; transition: background-color 0.2s; }
+        .query-result-row:hover { background-color: #f9fafb; }
+        .admin-tab { padding: 8px 16px; cursor: pointer; border-bottom: 2px solid transparent; }
+        .admin-tab.active { border-bottom-color: #3b82f6; color: #3b82f6; font-weight: 600; }
+        .online-indicator { display: inline-block; width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; margin-right: 8px; }
+        .btn-main-style {
+            background-color: white;
+            color: #374151;
+            font-weight: 600;
+            padding: 4px 12px;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-main-style:hover {
+            background-color: #f9fafb;
+            border-color: #9ca3af;
+        }
+        .nav-link { padding: 6px 12px; font-weight: 500; color: #4b5563; border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .nav-link:hover { color: #111827; }
+        .nav-link.active { color: #1d4ed8; border-bottom-color: #1d4ed8; }
+        .kpi-card { background-color: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease-in-out; }
+        .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); cursor: pointer; }
+        .favorite-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        .favorite-btn:hover {
+            background-color: rgba(252, 211, 77, 0.3);
+        }
+        .favorite-btn svg {
+            width: 20px;
+            height: 20px;
+            stroke: #f59e0b;
+            stroke-width: 1.5;
+        }
+        .favorite-btn.is-favorite svg {
+            fill: #f59e0b;
+        }
+        /* Estilos para la pestaña de Consumos */
+        .consumo-chart-wrapper { display: flex; height: 350px; padding-top: 20px; border-top: 1px solid #e5e7eb; }
+        .consumo-y-axis { display: flex; flex-direction: column; justify-content: space-between; height: 100%; padding-right: 10px; text-align: right; font-size: 12px; color: #6b7280; }
+        .consumo-chart-container { display: flex; align-items: flex-end; justify-content: space-around; height: 100%; flex-grow: 1; border-left: 1px solid #e5e7eb; }
+        .consumo-chart-bar-wrapper { display: flex; flex-direction: column; align-items: center; width: 8%; height: 100%; justify-content: flex-end; }
+        .consumo-chart-bar { width: 60%; background-color: #3b82f6; border-radius: 4px 4px 0 0; position: relative; display: flex; justify-content: center; align-items: flex-start; transition: height 0.3s ease-out; }
+        .consumo-chart-value { padding-top: 8px; color: white; font-weight: 600; font-size: 12px; }
+        .consumo-chart-label { margin-top: 8px; font-size: 12px; color: #6b7280; }
+        .consumo-kpi-card { background-color: #f9fafb; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+        /* Estilos para el gráfico modal */
+        .modal-chart-wrapper { display: flex; height: 250px; padding-top: 10px; }
+        .modal-y-axis { display: flex; flex-direction: column; justify-content: space-between; height: 100%; padding-right: 10px; text-align: right; font-size: 12px; color: #6b7280; }
+        .modal-chart-container { display: flex; align-items: flex-end; justify-content: space-around; height: 100%; flex-grow: 1; border-left: 1px solid #e5e7eb; }
+        .modal-chart-bar-wrapper { display: flex; flex-direction: column; align-items: center; width: 8%; height: 100%; justify-content: flex-end; }
+        .modal-chart-bar { width: 60%; background-color: #3b82f6; border-radius: 4px 4px 0 0; position: relative; display: flex; justify-content: center; align-items: flex-start; transition: height 0.3s ease-out; }
+        .modal-chart-value { padding-top: 8px; color: white; font-weight: 600; font-size: 12px; }
+        .modal-chart-label { margin-top: 8px; font-size: 12px; color: #6b7280; }
+        /* Estilos para historial de revisiones */
+        .history-table-container { max-height: 60vh; overflow: auto; }
+        .history-table th:first-child, .history-table td:first-child { 
+            position: sticky; 
+            left: 0; 
+            background-color: white; 
+            z-index: 1;
+            width: 120px;
+            min-width: 120px;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .history-table thead th { 
+            position: sticky; 
+            top: 0; 
+            background-color: #f9fafb; 
+            z-index: 2; 
+        }
+        .history-table th:not(:first-child),
+        .history-table td:not(:first-child) {
+            width: 70px;
+            min-width: 70px;
+            max-width: 70px;
+            padding: 8px 4px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div id="auth-container" class="hidden min-h-screen bg-gray-100 flex flex-col justify-center items-center p-4">
+        <div class="w-full max-w-sm">
+            <div class="text-center mb-8">
+                <div class="inline-block bg-white p-4 rounded-full shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path><path d="M20 9H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V11a2 2 0 0 0-2-2z"></path></svg>
+                </div>
+            </div>
+            
+            <div id="login-view" class="bg-white p-8 rounded-2xl shadow-lg hidden">
+                <h2 class="text-2xl font-bold text-center text-gray-800">Insumos</h2>
+                <p class="text-center text-sm text-gray-500 mt-1 mb-6">v2.18 - 23/08/2025</p>
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label for="login-email" class="text-sm font-medium text-gray-700">Email</label>
+                        <input id="login-email" type="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="login-password" class="text-sm font-medium text-gray-700">Contraseña</label>
+                        <input id="login-password" type="password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div id="login-error" class="text-red-500 text-sm text-center h-5"></div>
+                    <div><button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Iniciar Sesión</button></div>
+                </form>
+                <p class="mt-6 text-center text-sm">¿No tienes cuenta? <button id="show-register-view-btn" class="font-medium text-blue-600 hover:text-blue-500">Regístrate</button></p>
+            </div>
+            
+            <div id="register-view" class="bg-white p-8 rounded-2xl shadow-lg hidden">
+                <h2 class="text-2xl font-bold text-center text-gray-800">Crear Cuenta</h2>
+                <p id="register-subtitle" class="text-center text-sm text-gray-500 mt-1 mb-6">El primer usuario será Administrador.</p>
+                <form id="register-form" class="space-y-4">
+                    <div>
+                        <label for="register-email" class="text-sm font-medium text-gray-700">Email</label>
+                        <input id="register-email" type="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="register-password" class="text-sm font-medium text-gray-700">Contraseña</label>
+                        <input id="register-password" type="password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div id="register-error" class="text-red-500 text-sm text-center h-5"></div>
+                    <div><button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Registrar</button></div>
+                </form>
+                <p class="mt-6 text-center text-sm">¿Ya tienes cuenta? <button id="show-login-view-btn" class="font-medium text-blue-600 hover:text-blue-500">Inicia sesión</button></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" class="hidden">
+        <nav class="bg-white shadow-sm sticky top-0 z-20">
+            <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 flex items-center gap-2">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path><path d="M20 9H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V11a2 2 0 0 0-2-2z"></path></svg>
+                            <span class="font-bold text-xl text-gray-800">InventoryFlow</span>
+                            <span class="ml-2 text-xs font-semibold text-gray-400">v2.18</span>
+                        </div>
+                        <div class="hidden md:block">
+                            <div id="main-nav-links" class="ml-10 flex items-baseline space-x-4">
+                                <button data-view="dashboard" class="nav-link active">Dashboard</button>
+                                <button data-view="inventory" class="nav-link">Inventario</button>
+                                <button data-view="consumos" class="nav-link">Consumos</button>
+                                <button data-view="solpeds" class="nav-link">Solpeds</button>
+                                <button data-view="ocs" class="nav-link">Orden de Compra</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div id="db-info-container"></div>
+                        <div id="user-menu-container" class="relative">
+                            <button id="user-menu-button" class="flex items-center gap-2 p-2 rounded-full hover:bg-gray-100 disabled:cursor-default disabled:hover:bg-transparent">
+                                <div id="user-avatar" class="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold"></div>
+                                <span id="user-name" class="font-semibold text-sm hidden sm:block"></span>
+                            </button>
+                            <div id="user-dropdown-content" class="dropdown-content">
+                                <button id="admin-button-dropdown" class="hidden"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg><span>Configuración</span></button>
+                                <div class="dropdown-divider"></div>
+                                <button id="logout-button-dropdown"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg><span>Cerrar Sesión</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main>
+            <div id="dashboard-view" class="p-4 sm:p-6 lg:p-8">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <div class="flex items-baseline gap-4">
+                           <h1 class="text-3xl font-bold text-gray-900">Insumos Almacén</h1>
+                           <span id="dashboard-date" class="text-lg font-medium text-gray-500"></span>
+                        </div>
+                        <p class="mt-1 text-gray-600">Monitorea el estado de tu inventario en tiempo real.</p>
+                    </div>
+                    <div id="dashboard-actions" class="flex items-center gap-2">
+                        <button id="dashboard-preload-btn" class="btn-main-style">Precarga BD</button>
+                        <button id="dashboard-clear-btn" class="btn-main-style hover:bg-red-50 hover:text-red-700 hover:border-red-300">Limpiar BD</button>
+                    </div>
+                </div>
+
+                <div id="progress-bar-container" class="w-full hidden flex items-center gap-4 mb-6">
+                    <span id="week-number-display" class="text-2xl font-bold text-blue-700 whitespace-nowrap"></span>
+                    <div class="w-full bg-gray-200 rounded-full h-8 relative">
+                        <div id="progress-bar" class="bg-blue-600 h-8 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        <span id="progress-bar-text" class="absolute inset-0 flex items-center justify-center text-xl font-bold text-white" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">0%</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 lg:items-start gap-6">
+                    <div id="kpi-container" class="grid grid-cols-1 sm:grid-cols-2 gap-6"></div>
+                    <div id="review-container" class="bg-white rounded-lg shadow overflow-hidden hidden">
+                        <div class="p-4 flex justify-between items-center border-b">
+                            <div class="flex items-center gap-4">
+                                <h2 class="text-xl font-bold text-gray-900">Revisión Semanal</h2>
+                                <button id="show-history-btn" class="btn-main-style text-xs py-1">Historial</button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button id="save-review-btn" class="btn-main-style bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100">Guardar</button>
+                                <button id="clear-review-btn" class="btn-main-style bg-red-50 text-red-700 border-red-200 hover:bg-red-100">Limpiar</button>
+                            </div>
+                        </div>
+                        <div id="groups-review-list" class="max-h-96 overflow-y-auto">
+                            <!-- La lista de grupos se inyecta aquí -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="inventory-view" class="hidden">
+                <div id="visualization-area" class="bg-white shadow-lg p-4 rounded-lg">
+                    <div id="sticky-header" class="sticky top-16 bg-white z-10">
+                        <div class="flex items-center justify-between px-4 py-2 border-b">
+                            <div class="flex items-center gap-3">
+                                <div id="group-filter-container"></div>
+                                <div id="search-container"></div>
+                                <button id="favorites-filter-btn" class="btn-main-style">Favoritos</button>
+                                <button id="open-filters-modal-btn" class="btn-main-style">Filtros</button>
+                                <div id="active-filters-container"></div>
+                                <div id="query-filter-indicator"></div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="dropdown">
+                                    <button id="reports-button" class="btn-main-style">Reportes</button>
+                                    <div id="reports-dropdown-content" class="dropdown-content"></div>
+                                </div>
+                                <div class="dropdown">
+                                    <button id="queries-button" class="btn-main-style">Consultas</button>
+                                    <div id="queries-dropdown-content" class="dropdown-content"></div>
+                                </div>
+                                <div id="editor-action-buttons"></div>
+                            </div>
+                        </div>
+                        <div id="gantt-header-container" class="px-2"></div>
+                    </div>
+                    
+                    <div id="gantt-chart-container" class="overflow-y-auto px-2" style="max-height: 75vh;"></div>
+                    
+                    <div class="flex items-center justify-center gap-x-6 gap-y-2 flex-wrap mt-6 pt-4 border-t border-gray-200 text-sm text-gray-600">
+                        <div class="flex items-center gap-2"> <div class="w-4 h-4 rounded bg-yellow-50 border border-gray-300"></div> <span>Pedido Urgente</span> </div>
+                        <div class="flex items-center gap-2"> <div class="w-4 h-4 rounded bg-green-500 border"></div> <span>Cobertura Normal</span> </div>
+                        <div class="flex items-center gap-2"> <div class="w-4 h-4 rounded bg-yellow-400 border"></div> <span>Lead Time</span> </div>
+                        <div class="flex items-center gap-2"> <div class="w-4 h-4 rounded bg-red-500 border"></div> <span>Stock de Seguridad</span> </div>
+                        <div class="flex items-center gap-2"> <div class="w-4 h-4 rounded bg-sky-400 border"></div> <span>Pedido Demorado</span> </div>
+                        <div class="flex items-center gap-2"> <div class="w-4 h-4 rounded bg-purple-500 border"></div> <span>Nuevo Pedido</span> </div>
+                    </div>
+                </div>
+
+                <div id="dynamic-edit-area" class="bg-white p-6 rounded-xl shadow-lg mt-8 hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 id="selected-item-name" class="text-2xl font-bold text-gray-800"></h2>
+                        <button id="show-all-button" class="btn-main-style py-2 px-4">Mostrar Todos</button>
+                    </div>
+                    <div id="coverage-summary" class="mb-6"></div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
+                        <div>
+                            <div id="edit-form" class="grid grid-cols-4 gap-x-4 gap-y-6 items-end">
+                                <div>
+                                    <label for="edit-current-stock" class="block font-medium text-xs mb-1 text-gray-600">Stock Actual (Uds)</label>
+                                    <input type="text" id="edit-current-stock" inputmode="numeric" class="p-1.5 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm">
+                                </div>
+                                <div>
+                                    <label for="edit-monthly-consumption" class="block font-medium text-xs mb-1 text-gray-600">Consumo Mensual (Uds)</label>
+                                    <input type="text" id="edit-monthly-consumption" inputmode="numeric" class="p-1.5 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm">
+                                </div>
+                                <div>
+                                    <label class="block font-medium text-xs mb-1 text-gray-600">Ver consumos</label>
+                                    <button id="show-consumption-chart-btn" class="w-full p-1.5 border border-gray-300 rounded-md hover:bg-gray-100 flex justify-center items-center group">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors"><path d="M3 3v18h18"/><path d="M7 12v4"/><path d="M12 8v8"/><path d="M17 4v12"/></svg>
+                                    </button>
+                                </div>
+                                <div class="flex flex-col items-center justify-end h-full">
+                                    <label class="block font-medium text-xs mb-1 text-gray-600">Favorito</label>
+                                    <button id="edit-favorite-btn" class="favorite-btn p-1.5 border border-gray-300 rounded-md">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                                    </button>
+                                </div>
+                                <div>
+                                    <label for="edit-delayed-quantity" class="block font-medium text-xs mb-1 text-gray-600">Cant. Demorada (Uds)</label>
+                                    <input type="text" id="edit-delayed-quantity" inputmode="numeric" class="p-1.5 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition text-sm">
+                                </div>
+                                 <div>
+                                    <label for="edit-lead-time" class="block font-medium text-xs mb-1 text-gray-600">Lead Time (Días)</label>
+                                    <input type="text" id="edit-lead-time" inputmode="numeric" class="p-1.5 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm">
+                                </div>
+                                <div>
+                                    <label for="edit-safety-stock" class="block font-medium text-xs mb-1 text-gray-600">Stock Seguridad (Días)</label>
+                                    <input type="text" id="edit-safety-stock" inputmode="numeric" class="p-1.5 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="border-l pl-8">
+                            <div id="edit-orders-section">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-lg font-semibold text-gray-800">Simular Pedidos</h3>
+                                    <div class="flex items-center gap-2">
+                                         <button id="add-order-button" class="btn-main-style py-1.5 px-3 text-xs">Añadir</button>
+                                         <button id="restore-changes-button" class="btn-main-style py-1.5 px-3 text-xs">Restaurar</button>
+                                         <button id="cancel-changes-button" class="btn-main-style py-1.5 px-3 text-xs">Cancelar</button>
+                                         <button id="save-changes-button" class="btn-main-style py-1.5 px-3 text-xs">Guardar</button>
+                                    </div>
+                                </div>
+                                <div id="edit-orders-container" class="space-y-2"></div>
+                            </div>
+                            <div id="viewer-message" class="hidden h-full flex items-center justify-center">
+                                <p class="text-2xl text-black-500 font-semibold text-center">Siempre revisar stock por SAP</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="data-table-container" class="mt-8"></div>
+            </div>
+
+            <div id="consumos-view" class="hidden">
+                <div class="flex flex-col h-full">
+                    <div class="bg-white p-4 shadow-md z-10">
+                        <div class="flex items-start gap-4">
+                            <div id="primary-search-wrapper" class="flex-1">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center gap-2">
+                                        <div id="consumo-group-filter-container"></div>
+                                        <button id="consumo-favorites-filter-btn" data-type="primary" class="btn-main-style">Favoritos</button>
+                                    </div>
+                                    <button id="consumo-clear-filters-btn" class="btn-main-style">Limpiar Todo</button>
+                                </div>
+                                <div class="relative mt-2">
+                                    <input type="text" id="consumo-search-input" placeholder="Buscar producto 1..." class="w-full p-2 pl-10 border border-gray-300 rounded-lg">
+                                    <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                    <div id="consumo-search-results" class="absolute top-full left-0 right-0 bg-white border mt-1 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto"></div>
+                                </div>
+                            </div>
+                            <div id="comparison-search-wrapper" class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <div id="consumo-comparison-group-filter-container"></div>
+                                    <button id="consumo-comparison-favorites-filter-btn" data-type="comparison" class="btn-main-style">Favoritos</button>
+                                </div>
+                                <div class="relative mt-2">
+                                    <input type="text" id="consumo-comparison-search-input" placeholder="Buscar producto 2..." class="w-full p-2 pl-10 border border-gray-300 rounded-lg">
+                                    <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                    <div id="consumo-comparison-search-results" class="absolute top-full left-0 right-0 bg-white border mt-1 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="consumo-content-area" class="flex-grow flex">
+                        <!-- Contenido dinámico (2 paneles) -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="solpeds-view" class="hidden">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-900">Solicitudes de Pedido (Solpeds)</h2>
+                        <input type="text" id="solpeds-search-input" placeholder="Buscar en Solpeds..." class="w-1/3 p-2 border border-gray-300 rounded-lg">
+                    </div>
+                    <div id="solpeds-table-container" class="max-h-[80vh] overflow-y-auto">
+                        <!-- La tabla de Solpeds se inyectará aquí -->
+                    </div>
+                </div>
+            </div>
+            
+            <div id="ocs-view" class="hidden">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-4">
+                           <h2 class="text-xl font-bold text-gray-900">Órdenes de Compra (OC)</h2>
+                           <button id="ocs-delayed-filter-btn" class="btn-main-style">OC Demoradas</button>
+                        </div>
+                        <input type="text" id="ocs-search-input" placeholder="Buscar en Órdenes de Compra..." class="w-1/3 p-2 border border-gray-300 rounded-lg">
+                    </div>
+                    <div id="ocs-table-container" class="max-h-[80vh] overflow-y-auto">
+                        <!-- La tabla de OCs se inyectará aquí -->
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Modales -->
+        <div id="add-item-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-10 mx-auto p-5 border w-full max-w-6xl shadow-lg rounded-md bg-white">
+                <div class="bg-white p-6 rounded-xl">
+                    <div class="flex justify-between items-center mb-4"> <h2 class="text-2xl font-semibold text-gray-800">Añadir Nuevo Insumo</h2> <button id="close-add-modal-button" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button> </div>
+                    <form id="item-form" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="md:col-span-2"> <label for="item-name" class="font-medium text-sm mb-1 text-gray-600">Nombre del Insumo</label> <input type="text" id="item-name" placeholder="Ej: 12345 Tornillos XA-52" class="p-2 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"> </div>
+                            <div> <label for="current-stock" class="font-medium text-sm mb-1 text-gray-600">Stock Actual (Unidades)</label> <input type="number" id="current-stock" placeholder="10000" min="0" class="p-2 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"> </div>
+                            <div> <label for="monthly-consumption" class="font-medium text-sm mb-1 text-gray-600">Consumo Mensual (Uds.)</label> <input type="number" id="monthly-consumption" placeholder="1500" min="1" class="p-2 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"> </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                            <div> <label for="lead-time" class="font-medium text-sm mb-1 text-gray-600">Lead Time (Días)</label> <input type="number" id="lead-time" placeholder="10" min="0" class="p-2 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"> </div>
+                            <div> <label for="safety-stock" class="font-medium text-sm mb-1 text-gray-600">Stock Seguridad (Días)</label> <input type="number" id="safety-stock" placeholder="5" min="0" class="p-2 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"> </div>
+                            <div class="md:col-span-2 flex justify-end"> <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors shadow">Añadir</button> </div>
+                        </div>
+                    </form>
+                     <div id="error-message" class="text-red-500 mt-4 text-center font-medium"></div>
+                </div>
+            </div>
+        </div>
+        <div id="preload-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+                <div class="mt-3 text-center">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Precarga masiva de datos</h3>
+                    <div class="mt-2 px-7 py-3">
+                        <p class="text-sm text-gray-500 mb-4"> Selecciona un archivo <code class="text-xs">.xlsx</code>. Hojas requeridas:<br> <code class="text-xs bg-gray-100 p-1 rounded">Inventario</code>, <code class="text-xs bg-gray-100 p-1 rounded">Historial Consumo</code>, <code class="text-xs bg-gray-100 p-1 rounded">Solped</code>, <code class="text-xs bg-gray-100 p-1 rounded">OC</code></p>
+                        <input type="file" id="preload-file-input" accept=".xlsx" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                        <div id="preload-feedback" class="mt-4 text-sm h-5"></div>
+                    </div>
+                    <div class="items-center px-4 py-3">
+                        <button id="process-preload-data" class="flex items-center justify-center px-4 py-2 bg-blue-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"> <span id="process-preload-text">Procesar y Sincronizar Datos</span> <span id="process-preload-loader" class="loader hidden"></span> </button>
+                        <button id="close-preload-modal" class="mt-2 px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"> Cerrar </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="confirm-clear-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+                <div class="mt-3 text-center">
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100"> <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /> </svg> </div>
+                    <h3 id="confirm-modal-title" class="text-lg leading-6 font-medium text-gray-900 mt-4"></h3>
+                    <div class="mt-2 px-7 py-3"> <p id="confirm-modal-text" class="text-sm text-gray-500"></p> </div>
+                    <div class="items-center px-4 py-3 flex justify-center gap-4"> <button id="cancel-clear-button" class="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"> Cancelar </button> <button id="confirm-clear-button" class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">Sí, Continuar</button> </div>
+                </div>
+            </div>
+        </div>
+        <div id="query-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-10 mx-auto p-5 border w-full max-w-6xl shadow-lg rounded-md bg-white">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="query-modal-title" class="text-2xl font-semibold text-gray-800">Resultados de la Consulta</h2>
+                    <div class="flex items-center gap-4"> 
+                        <button id="visualize-query-btn" class="btn-main-style py-2 px-4">Visualizar</button> 
+                        <button id="export-query-btn" class="btn-main-style py-2 px-4">Exportar a Excel</button> 
+                        <button id="close-query-modal-button" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button> 
+                    </div>
+                </div>
+                <div id="query-modal-content" class="max-h-[70vh] overflow-y-auto"> </div>
+            </div>
+        </div>
+        <div id="admin-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-10 mx-auto p-5 border w-full max-w-5xl shadow-lg rounded-md bg-white">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-gray-800">Panel de Administración</h2>
+                    <button id="close-admin-modal-button" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
+                </div>
+                <div class="border-b border-gray-200">
+                    <nav class="flex -mb-px" id="admin-tabs">
+                        <button data-tab="permissions" class="admin-tab active">Usuarios y Permisos</button>
+                        <button data-tab="presence" class="admin-tab">Conectados Ahora</button>
+                    </nav>
+                </div>
+                <div id="admin-content-permissions" class="py-4">
+                    <p class="text-sm text-gray-600 mb-4">Gestiona los roles y etiquetas de los usuarios registrados. El rol "Propietario" no puede ser modificado.</p>
+                    <div id="permissions-list" class="max-h-[50vh] overflow-y-auto"></div>
+                </div>
+                <div id="admin-content-presence" class="py-4 hidden">
+                     <p class="text-sm text-gray-600 mb-4">Usuarios con la aplicación abierta en este momento.</p>
+                    <div id="presence-list" class="max-h-[50vh] overflow-y-auto"></div>
+                </div>
+            </div>
+        </div>
+        <div id="filters-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+                <div class="mt-3">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 text-center">Filtros Avanzados</h3>
+                    <div class="mt-4 px-7 py-3 space-y-4">
+                        <fieldset>
+                            <legend class="sr-only">Filtro de Consumo</legend>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="consumption-filter" value="all" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                    <span class="ml-2 text-sm text-gray-700">Todos los insumos</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="consumption-filter" value="with" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                    <span class="ml-2 text-sm text-gray-700">Insumos con consumo</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="consumption-filter" value="without" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                    <span class="ml-2 text-sm text-gray-700">Insumos sin consumo</span>
+                                </label>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="items-center px-4 py-3 flex justify-end gap-4">
+                        <button id="cancel-filters-button" class="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400">Cancelar</button>
+                        <button id="apply-filters-button" class="px-4 py-2 bg-blue-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Aplicar Filtros</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="consumption-chart-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-20 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="chart-modal-title" class="text-xl font-semibold text-gray-800">Historial de Consumo</h2>
+                    <button id="close-chart-modal-button" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
+                </div>
+                <div id="chart-modal-content"></div>
+            </div>
+        </div>
+        <div id="review-history-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-10 mx-auto p-5 border w-full max-w-6xl shadow-lg rounded-md bg-white">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Historial de Revisiones Semanales</h2>
+                    <button id="close-history-modal-button" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
+                </div>
+                <div id="history-modal-content" class="history-table-container"></div>
+            </div>
+        </div>
+        <div id="favorites-group-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Seleccionar Grupo de Favoritos</h3>
+                    <button id="close-favorites-modal-button" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
+                </div>
+                <div id="favorites-group-list" class="max-h-60 overflow-y-auto">
+                    <!-- Group list will be injected here -->
+                </div>
+            </div>
+        </div>
+        <div id="record-consumption-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-20 mx-auto p-5 border w-full max-w-xl shadow-lg rounded-md bg-white">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Insumos con Consumo Récord</h3>
+                    <button id="close-record-consumption-modal-button" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
+                </div>
+                <div id="record-consumption-item-list" class="max-h-60 overflow-y-auto">
+                    <!-- Item list will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="toast-container"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, writeBatch, getDocs, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- CONFIGURACIÓN GLOBAL ---
+        const GANTT_DAYS = 150;
+        
+        // --- ESTADO DE LA APLICACIÓN ---
+        let items = [];
+        let solpeds = [];
+        let ocs = [];
+        let selectedItemId = null;
+        let sortConfig = { key: 'name', direction: 'asc' };
+        let solpedsSortConfig = { key: 'fechaSolicitud', direction: 'desc' };
+        let ocsSortConfig = { key: 'proxFechaEntrega', direction: 'asc' };
+        let selectedGroup = 'all'; 
+        let searchTerm = '';
+        let tempEditItem = null;
+        let queryFilterIds = [];
+        let currentQueryData = { title: '', headers: [], items: [] };
+        let allUserPermissions = new Map();
+        let consumptionFilter = 'all'; // 'all', 'with', 'without'
+        let showOnlyFavorites = false;
+        let currentView = 'dashboard';
+        let isAuthReady = false;
+        let selectedConsumptionItemId = null;
+        let comparisonItemId = null;
+        let consumoSelectedGroup = 'all';
+        let consumoShowOnlyFavorites = false;
+        let consumoComparisonSelectedGroup = 'all';
+        let consumoComparisonShowOnlyFavorites = false;
+        let showOnlyDelayedOCs = false;
+        
+        // --- VARIABLES DE FIREBASE Y USUARIO ---
+        let app, db, auth, userId, appId;
+        let inventoryCollectionRef, permissionsCollectionRef, presenceCollectionRef, metadataDocRef, reviewHistoryCollectionRef, solpedsCollectionRef, ocsCollectionRef;
+        let unsubscribeInventory, unsubscribePermissions, unsubscribePresence, unsubscribeMetadata, unsubscribeSolpeds, unsubscribeOCs;
+        let currentUserRole = 'viewer'; 
+        let currentUserTags = [];
+        let presenceInterval;
+        
+        // --- CONFIGURACIÓN DE FIREBASE ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyCpEzBrL-Yi6kwPshw63UgwqnNOXWHH9eU",
+          authDomain: "gestion-inventario-app-a11d6.firebaseapp.com",
+          projectId: "gestion-inventario-app-a11d6",
+          storageBucket: "gestion-inventario-app-a11d6.appspot.com",
+          messagingSenderId: "817333595251",
+          appId: "1:817333595251:web:437b7b2f91bdae506f4e06"
+        };
+
+        // --- FUNCIONES DE UTILIDAD ---
+        function showToast(message, type = 'info') { const container = document.getElementById('toast-container'); const toast = document.createElement('div'); toast.className = `toast ${type}`; toast.textContent = message; container.appendChild(toast); setTimeout(() => { toast.remove(); }, 5000); }
+        function addDays(date, days) { const result = new Date(date); result.setDate(result.getDate() + days); return result; }
+        function formatDate(date) { if (!date || isNaN(new Date(date))) return ''; const d = new Date(date); return new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' }).format(d); }
+        function parseDateString(dateStr) {
+            if (!dateStr || typeof dateStr !== 'string') return null;
+            const trimmedStr = dateStr.trim();
+            const matchDMY = trimmedStr.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})$/);
+            if (matchDMY) {
+                const day = parseInt(matchDMY[1], 10);
+                const month = parseInt(matchDMY[2], 10) - 1;
+                const year = parseInt(matchDMY[3], 10);
+                if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                    const d = new Date(Date.UTC(year, month, day));
+                    if (d.getUTCFullYear() === year && d.getUTCMonth() === month && d.getUTCDate() === day) {
+                        return d;
+                    }
+                }
+            }
+            const isoDate = new Date(trimmedStr + 'T00:00:00Z');
+            if (!isNaN(isoDate.getTime())) {
+                return isoDate;
+            }
+            return null;
+        }
+        function getWeekId(d) {
+            const date = new Date(d.getTime());
+            date.setHours(0, 0, 0, 0);
+            date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+            const week1 = new Date(date.getFullYear(), 0, 4);
+            const weekNumber = 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+            return `${date.getFullYear()}-${String(weekNumber).padStart(2, '0')}`;
+        }
+        function daysBetween(date1, date2) { return Math.round((new Date(date2) - new Date(date1)) / (1000 * 60 * 60 * 24)); }
+        function formatNumber(num) { return new Intl.NumberFormat('es-AR').format(num); }
+        function validateInputs() { const name = document.getElementById('item-name').value; const stock = document.getElementById('current-stock').value; const consumption = document.getElementById('monthly-consumption').value; const leadTime = document.getElementById('lead-time').value; const safetyStock = document.getElementById('safety-stock').value; const errorMessage = document.getElementById('error-message'); if (!name || !stock || !consumption || !leadTime || !safetyStock) { errorMessage.textContent = 'Por favor, completa todos los campos.'; return false; } if (parseFloat(stock) < 0 || parseFloat(consumption) <= 0 || parseFloat(leadTime) < 0 || parseFloat(safetyStock) < 0) { errorMessage.textContent = 'Los valores numéricos no pueden ser negativos (consumo debe ser > 0).'; return false; } errorMessage.textContent = ''; return true; }
+
+        // --- LÓGICA DE AUTENTICACIÓN Y UI INICIAL ---
+        function handleAuthError(error, elementId) { const errorEl = document.getElementById(elementId); let message = "Ocurrió un error."; switch (error.code) { case 'auth/user-not-found': case 'auth/invalid-credential': message = "Credenciales incorrectas."; break; case 'auth/wrong-password': message = "Contraseña incorrecta."; break; case 'auth/email-already-in-use': message = "El email ya está registrado."; break; case 'auth/weak-password': message = "La contraseña debe tener al menos 6 caracteres."; break; case 'auth/invalid-email': message = "El formato del email no es válido."; break; } errorEl.textContent = message; }
+        async function handleLogin(e) { e.preventDefault(); const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; try { await signInWithEmailAndPassword(auth, email, password); } catch (error) { handleAuthError(error, 'login-error'); } }
+        async function handleRegister(e) {
+            e.preventDefault();
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                showToast('Cuenta creada. Serás redirigido.', 'success');
+            } catch (error) {
+                handleAuthError(error, 'register-error');
+            }
+        }
+        async function handleLogout() { try { await signOut(auth); window.location.reload(); } catch (error) { console.error("Error al cerrar sesión:", error); showToast('Error al cerrar sesión.', 'error'); } }
+        function switchAuthView(view) { document.getElementById('login-view').classList.add('hidden'); document.getElementById('register-view').classList.add('hidden'); if (document.getElementById(view)) { document.getElementById(view).classList.remove('hidden'); } }
+
+        // --- LÓGICA DE NAVEGACIÓN Y VISTAS ---
+        function switchMainView(view) {
+            currentView = view;
+            document.getElementById('dashboard-view').classList.toggle('hidden', view !== 'dashboard');
+            document.getElementById('inventory-view').classList.toggle('hidden', view !== 'inventory');
+            document.getElementById('consumos-view').classList.toggle('hidden', view !== 'consumos');
+            document.getElementById('solpeds-view').classList.toggle('hidden', view !== 'solpeds');
+            document.getElementById('ocs-view').classList.toggle('hidden', view !== 'ocs');
+            
+            document.querySelectorAll('#main-nav-links .nav-link').forEach(link => {
+                link.classList.toggle('active', link.dataset.view === view);
+            });
+
+            if (view === 'inventory') {
+                rerenderDynamicContent();
+            } else if (view === 'consumos') {
+                renderConsumosView();
+            } else if (view === 'solpeds') {
+                renderSolpedsView();
+            } else if (view === 'ocs') {
+                renderOCsView();
+            }
+        }
+
+        // --- LÓGICA DE PERMISOS Y UI ---
+        function adaptUiToRole(role, user) {
+            const isOwner = role === 'owner';
+            const isAdmin = isOwner || role === 'editor';
+            const userMenuButton = document.getElementById('user-menu-button');
+            const userDropdown = document.getElementById('user-dropdown-content');
+
+            document.getElementById('admin-button-dropdown').classList.toggle('hidden', !isOwner);
+            
+            if (!isOwner) {
+                userMenuButton.disabled = true;
+                userDropdown.classList.add('hidden');
+            } else {
+                 userMenuButton.disabled = false;
+            }
+            
+            document.getElementById('editor-action-buttons').innerHTML = isAdmin ? `<button id="open-add-modal-button" class="btn-main-style">Añadir</button>` : '';
+
+            const elementsToDisable = document.querySelectorAll('#dynamic-edit-area input, #dynamic-edit-area button:not(#show-all-button):not(#show-consumption-chart-btn)');
+            elementsToDisable.forEach(el => { el.disabled = !isAdmin; });
+            
+            document.getElementById('edit-orders-section').classList.toggle('hidden', !isAdmin);
+            document.getElementById('viewer-message').classList.toggle('hidden', isAdmin);
+
+            document.getElementById('review-container').classList.toggle('hidden', !isAdmin);
+            document.getElementById('progress-bar-container').classList.toggle('hidden', !isAdmin);
+            document.getElementById('dashboard-actions').classList.toggle('hidden', !isAdmin);
+
+
+            const userEmail = user.email || '';
+            const userName = userEmail.split('@')[0];
+            const userInitial = userName.charAt(0).toUpperCase();
+            document.getElementById('user-name').textContent = userName;
+            document.getElementById('user-avatar').textContent = userInitial;
+        }
+
+        // --- FUNCIONES DE FIREBASE ---
+        async function handleAddItem(e) { e.preventDefault(); if (!validateInputs() || !inventoryCollectionRef) return; const newItem = { group: 'General', name: document.getElementById('item-name').value, stock: parseFloat(document.getElementById('current-stock').value), monthlyConsumption: parseFloat(document.getElementById('monthly-consumption').value), delayedQuantity: 0, leadTimeDays: parseInt(document.getElementById('lead-time').value), safetyStockDays: parseInt(document.getElementById('safety-stock').value), orderQuantities: [], isModified: false, createdAt: new Date().toISOString(), consumos: [], isFavorite: false }; try { await addDoc(inventoryCollectionRef, newItem); showToast('Insumo añadido correctamente.', 'success'); document.getElementById('item-form').reset(); document.getElementById('add-item-modal').classList.add('hidden'); } catch (error) { console.error("Error al añadir documento: ", error); showToast('Error al guardar el insumo.', 'error'); } }
+        function handleClearAll() { 
+            document.getElementById('confirm-modal-title').textContent = 'Limpiar datos de inventario';
+            document.getElementById('confirm-modal-text').textContent = 'Se borrarán todos los insumos que no estén marcados como favoritos. Los favoritos se conservarán, pero su stock y pedidos se reiniciarán a cero. ¿Continuar?';
+            document.getElementById('confirm-clear-modal').classList.remove('hidden');
+            document.getElementById('confirm-clear-button').onclick = executeClearAll;
+        }
+        async function executeClearAll() { if (!db) return; showToast('Limpiando datos...', 'info'); try { const batch = writeBatch(db); const querySnapshot = await getDocs(inventoryCollectionRef); let favoritesKept = 0; let nonFavoritesDeleted = 0; querySnapshot.forEach((doc) => { if (doc.data().isFavorite) { batch.update(doc.ref, { stock: 0, monthlyConsumption: 0, delayedQuantity: 0, orderQuantities: [], isModified: false, consumos: [] }); favoritesKept++; } else { batch.delete(doc.ref); nonFavoritesDeleted++; } }); batch.delete(metadataDocRef); await batch.commit(); selectedItemId = null; selectedGroup = 'all'; queryFilterIds = []; showToast(`Limpieza completa: ${nonFavoritesDeleted} borrados, ${favoritesKept} conservados.`, 'success'); } catch (error) { console.error("Error al limpiar:", error); showToast('Error al limpiar los datos.', 'error'); } finally { document.getElementById('confirm-clear-modal').classList.add('hidden'); } }
+        async function handleSaveChanges() { if (!selectedItemId || !tempEditItem) return; const itemRef = doc(inventoryCollectionRef, selectedItemId); const dataToSave = { ...tempEditItem }; delete dataToSave.id; dataToSave.isModified = true; try { await setDoc(itemRef, dataToSave, { merge: true }); showToast('Cambios guardados.', 'success'); } catch (error) { console.error("Error al guardar:", error); showToast('Error al guardar.', 'error'); } }
+        async function handleToggleFavorite(itemId) { const itemRef = doc(inventoryCollectionRef, itemId); const currentItem = items.find(i => i.id === itemId); if (!currentItem) return; const newFavoriteStatus = !currentItem.isFavorite; try { await updateDoc(itemRef, { isFavorite: newFavoriteStatus }); showToast(newFavoriteStatus ? 'Añadido a favoritos.' : 'Quitado de favoritos.', 'success'); } catch (error) { console.error("Error al actualizar favorito:", error); showToast('Error al cambiar estado de favorito.', 'error'); } }
+        
+        // --- LÓGICA DE LA UI ---
+        function handleSelectRow(itemId) { if (itemId === null || selectedItemId === itemId) { selectedItemId = null; tempEditItem = null; } else { selectedItemId = itemId; const originalItem = items.find(i => i.id === itemId); if (originalItem) { tempEditItem = JSON.parse(JSON.stringify(originalItem)); } else { selectedItemId = null; tempEditItem = null; } } renderApp(); }
+        function handleCancelChanges() { selectedItemId = null; tempEditItem = null; renderApp(); }
+        function handleRestoreChanges() { if (!selectedItemId) return; const originalItem = items.find(i => i.id === selectedItemId); if (originalItem) { tempEditItem = JSON.parse(JSON.stringify(originalItem)); showToast('Datos restaurados.', 'info'); renderApp(); } }
+        function handleTempItemUpdate(field, value) { if (!tempEditItem) return; const cleanValue = String(value).replace(/\./g, '').replace(',', '.'); const numValue = (field.includes('Days')) ? (parseFloat(cleanValue) || 0) : (parseInt(cleanValue) || 0); if (!isNaN(numValue)) { tempEditItem[field] = numValue; rerenderDynamicContent(); } }
+        function handleOrderEdit(index, field, value) { if (tempEditItem) { if(!tempEditItem.orderQuantities[index]) return; tempEditItem.orderQuantities[index][field] = field === 'quantity' ? (parseFloat(value) || 0) : value; rerenderDynamicContent(); } }
+        function handleOrderQuantityInput(index, value) { if (!tempEditItem) return; if(!tempEditItem.orderQuantities[index]) return; const quantity = parseFloat(value) || 0; tempEditItem.orderQuantities[index].quantity = quantity; rerenderDynamicContent(); }
+        function handleAddOrder() { if (tempEditItem) { if (!tempEditItem.orderQuantities) tempEditItem.orderQuantities = []; tempEditItem.orderQuantities.push({ quantity: 0, date: '', esNuevo: true }); renderApp(); } }
+        function handleRemoveOrder(index) { if (tempEditItem) { tempEditItem.orderQuantities.splice(index, 1); renderApp(); } }
+        function handleSort(key) { if (sortConfig.key === key) { sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc'; } else { sortConfig.key = key; sortConfig.direction = 'asc'; } rerenderDynamicContent(); }
+        function handleGroupFilter(event) { selectedGroup = event.target.value; queryFilterIds = []; rerenderDynamicContent(); }
+        function handleSearch(event) { searchTerm = event.target.value.toLowerCase(); queryFilterIds = []; rerenderDynamicContent(); }
+        
+        // --- LÓGICA DE PRECARGA Y MODALES ---
+        function handleOpenPreloadModal() { document.getElementById('preload-modal').classList.remove('hidden'); document.getElementById('preload-feedback').textContent = ''; document.getElementById('preload-file-input').value = ''; }
+        function handleClosePreloadModal() { document.getElementById('preload-modal').classList.add('hidden'); }
+        function handleFileInputChange() { const fileInput = document.getElementById('preload-file-input'); const feedbackEl = document.getElementById('preload-feedback'); if (fileInput.files.length > 0) { feedbackEl.textContent = `Archivo: ${fileInput.files[0].name}`; } else { feedbackEl.textContent = ''; } }
+        async function handleProcessPreloadData() {
+            const processButton = document.getElementById('process-preload-data'), buttonText = document.getElementById('process-preload-text'), loader = document.getElementById('process-preload-loader'), fileInput = document.getElementById('preload-file-input');
+            if (fileInput.files.length === 0) { showToast('Selecciona un archivo.', 'error'); return; }
+            processButton.disabled = true; buttonText.classList.add('hidden'); loader.classList.remove('hidden');
+            
+            const favoritesMap = new Map();
+            const currentInventorySnapshot = await getDocs(inventoryCollectionRef);
+            currentInventorySnapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.isFavorite) {
+                    favoritesMap.set(data.code, true);
+                }
+            });
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                try {
+                    const workbook = XLSX.read(new Uint8Array(event.target.result), { type: 'array', cellDates: true });
+                    
+                    const { inventoryItems: newItemsFromExcel } = processInventorySheet(workbook);
+                    const { historyMap } = processHistorySheet(workbook);
+                    const { solpedsData } = processSolpedsSheet(workbook);
+                    const { ocsData } = processOCSheet(workbook);
+
+                    newItemsFromExcel.forEach(item => {
+                        item.consumos = historyMap.get(item.code) || [];
+                        if (favoritesMap.has(item.code)) {
+                            item.isFavorite = true;
+                        }
+                    });
+
+                    const batch = writeBatch(db);
+                    
+                    currentInventorySnapshot.forEach(doc => batch.delete(doc.ref));
+                    newItemsFromExcel.forEach(item => batch.set(doc(inventoryCollectionRef), item));
+
+                    const oldSolpedsSnapshot = await getDocs(solpedsCollectionRef);
+                    oldSolpedsSnapshot.forEach(doc => batch.delete(doc.ref));
+                    solpedsData.forEach(item => batch.set(doc(solpedsCollectionRef), item));
+
+                    const oldOCsSnapshot = await getDocs(ocsCollectionRef);
+                    oldOCsSnapshot.forEach(doc => batch.delete(doc.ref));
+                    ocsData.forEach(item => batch.set(doc(ocsCollectionRef), item));
+
+
+                    batch.set(metadataDocRef, { filename: file.name, lastUpdated: new Date().toISOString() });
+                    await batch.commit();
+                    showToast(`Sincronización completa. Favoritos conservados.`, 'success');
+                    setTimeout(handleClosePreloadModal, 2500);
+                } catch (e) { 
+                    console.error("Error procesando archivo:", e); 
+                    showToast('Error al procesar el archivo.', 'error');
+                } finally { 
+                    processButton.disabled = false; 
+                    buttonText.classList.remove('hidden'); 
+                    loader.classList.add('hidden'); 
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // --- LÓGICA DE CONSULTAS Y REPORTES ---
+        function exportToExcel(data, filename) { const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Reporte"); XLSX.writeFile(wb, filename); showToast('Reporte exportado.', 'success'); }
+        function handleExportQuery() { if (currentQueryData.items.length === 0) { showToast('No hay datos para exportar.', 'info'); return; } const reportData = currentQueryData.items.map(item => { const row = {}; currentQueryData.headers.forEach(header => { const value = header.key.split('.').reduce((o, k) => (o || {})[k], item); row[header.label] = header.formatter ? header.formatter(value, item) : value; }); return row; }); const filename = `${currentQueryData.title}_${new Date().toLocaleDateString('es-AR').replace(/\//g, '-')}.xlsx`; exportToExcel(reportData, filename); }
+        function showQueryModal(title, content) {
+            let finalTitle = title;
+            if (selectedGroup !== 'all') { finalTitle += ` (Grupo: ${selectedGroup.toUpperCase()})`; }
+            document.getElementById('query-modal-title').textContent = finalTitle;
+            document.getElementById('query-modal-content').innerHTML = content;
+            document.getElementById('query-modal').classList.remove('hidden');
+        }
+        function closeQueryModal() { document.getElementById('query-modal').classList.add('hidden'); }
+        function handleQueryRowClick(event) { const row = event.target.closest('tr'); if (!row || !row.dataset.itemId) return; const itemId = row.dataset.itemId; closeQueryModal(); switchMainView('inventory'); handleSelectRow(itemId); }
+        function handleVisualizeQueryResults() { const rows = document.querySelectorAll('#query-results-table tbody tr'); if (rows.length > 0) { queryFilterIds = Array.from(rows).map(row => row.dataset.itemId); showToast(`${queryFilterIds.length} insumos filtrados.`, 'info'); } else { queryFilterIds = []; } searchTerm = ''; selectedGroup = 'all'; closeQueryModal(); switchMainView('inventory'); renderApp(); }
+        function handleClearQueryFilter() { queryFilterIds = []; renderApp(); }
+        function createQueryTable(items, headers, description) { let tableHTML = `<p class="mb-4 text-sm text-gray-600">${description}</p>`; if (items.length === 0) { tableHTML += `<p class="text-center text-gray-500 py-4">No se encontraron insumos.</p>`; return tableHTML; } tableHTML += `<table class="w-full text-sm text-left text-gray-500" id="query-results-table"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>`; headers.forEach(header => { tableHTML += `<th scope="col" class="px-6 py-3 ${header.align === 'right' ? 'text-right' : ''}">${header.label}</th>`; }); tableHTML += `</tr></thead><tbody>`; items.forEach(item => { tableHTML += `<tr class="query-result-row border-b" data-item-id="${item.id}">`; headers.forEach(header => { const value = header.key.split('.').reduce((o, k) => (o || {})[k], item); const formattedValue = header.formatter ? header.formatter(value, item) : value; tableHTML += `<td class="px-6 py-4 ${header.align === 'right' ? 'text-right' : ''} ${header.class ? header.class : ''}">${formattedValue}</td>`; }); tableHTML += `</tr>`; }); tableHTML += `</tbody></table>`; return tableHTML; }
+        function handleLowStockQuery() { const processedItems = getProcessedItems(true); const lowStockItems = processedItems.filter(item => item.coverageDays <= (item.leadTimeDays + item.safetyStockDays)); const headers = [ { key: 'group', label: 'Grupo' }, { key: 'code', label: 'Código' }, { key: 'description', label: 'Insumo', class: 'font-medium text-gray-900' }, { key: 'coverageDays', label: 'Cobertura (Días)', align: 'right', class: 'font-bold text-red-600', formatter: (v) => Math.round(v) }, { key: 'reorderPointDays', label: 'Punto Pedido (Días)', align: 'right', formatter: (v, item) => item.leadTimeDays + item.safetyStockDays } ]; currentQueryData = { title: 'Insumos_Stock_Bajo', headers, items: lowStockItems }; const tableHTML = createQueryTable(lowStockItems, headers, 'Insumos con cobertura menor o igual a su punto de pedido.'); showQueryModal('Insumos con Stock Bajo', tableHTML); }
+        function handleLowStockNoOrderQuery() { const processedItems = getProcessedItems(true); const results = processedItems.filter(item => item.coverageDays <= (item.leadTimeDays + item.safetyStockDays) && (!item.orderQuantities || item.orderQuantities.every(o => o.quantity <= 0))); const headers = [ { key: 'group', label: 'Grupo' }, { key: 'code', label: 'Código' }, { key: 'description', label: 'Insumo', class: 'font-medium text-gray-900' }, { key: 'coverageDays', label: 'Cobertura (Días)', align: 'right', class: 'font-bold text-red-600', formatter: (v) => Math.round(v) } ]; currentQueryData = { title: 'Bajo_Stock_Sin_Pedido', headers, items: results }; const tableHTML = createQueryTable(results, headers, 'Insumos críticos sin pedido de reposición simulado.'); showQueryModal('Bajo Stock sin Pedido', tableHTML); }
+        function handleLowStockWithOrderQuery() { const processedItems = getProcessedItems(true); const results = processedItems.filter(item => item.coverageDays <= (item.leadTimeDays + item.safetyStockDays) && (item.orderQuantities && item.orderQuantities.some(o => o.quantity > 0))); const headers = [ { key: 'group', label: 'Grupo' }, { key: 'code', label: 'Código' }, { key: 'description', label: 'Insumo', class: 'font-medium text-gray-900' }, { key: 'coverageDays', label: 'Cobertura (Días)', align: 'right', class: 'font-bold text-yellow-600', formatter: (v) => Math.round(v) }, { key: 'totalOrderedQty', label: 'Cant. Pedida', align: 'right', class: 'font-semibold text-purple-700', formatter: (v) => formatNumber(v) }, { key: 'ordersCoverageDays', label: 'Cobertura Pedido (Días)', align: 'right', class: 'font-semibold text-purple-700', formatter: (v) => Math.round(v) } ]; currentQueryData = { title: 'Bajo_Stock_Con_Pedido', headers, items: results }; const tableHTML = createQueryTable(results, headers, 'Insumos críticos con al menos un pedido de reposición simulado.'); showQueryModal('Bajo Stock con Pedido', tableHTML); }
+        function handleLowStockWithDelayQuery() { const processedItems = getProcessedItems(true); const results = processedItems.filter(item => item.coverageDays <= (item.leadTimeDays + item.safetyStockDays) && item.delayedQuantity > 0); const headers = [ { key: 'group', label: 'Grupo' }, { key: 'code', label: 'Código' }, { key: 'description', label: 'Insumo', class: 'font-medium text-gray-900' }, { key: 'coverageDays', label: 'Cobertura (Días)', align: 'right', class: 'font-bold text-red-600', formatter: (v) => Math.round(v) }, { key: 'delayedQuantity', label: 'Cant. Demorada', align: 'right', class: 'font-bold text-sky-600', formatter: (v) => formatNumber(v) } ]; currentQueryData = { title: 'Bajo_Stock_Con_Demoras', headers, items: results }; const tableHTML = createQueryTable(results, headers, 'Insumos críticos que además tienen pedidos demorados.'); showQueryModal('Bajo Stock con Demoras', tableHTML); }
+        function handleWithDelayQuery() { const processedItems = getProcessedItems(true); const results = processedItems.filter(item => item.delayedQuantity > 0); const headers = [ { key: 'group', label: 'Grupo' }, { key: 'code', label: 'Código' }, { key: 'description', label: 'Insumo', class: 'font-medium text-gray-900' }, { key: 'delayedQuantity', label: 'Cant. Demorada', align: 'right', class: 'font-bold text-sky-600', formatter: (v) => formatNumber(v) }, { key: 'coverageDays', label: 'Cobertura Actual (Días)', align: 'right', formatter: (v) => Math.round(v) } ]; currentQueryData = { title: 'Insumos_Con_Demoras', headers, items: results }; const tableHTML = createQueryTable(results, headers, 'Todos los insumos que tienen cantidades demoradas.'); showQueryModal('Insumos con Demoras', tableHTML); }
+        function handleUpcomingOrdersQuery() { const processedItems = getProcessedItems(true); const sevenDaysFromNow = addDays(new Date(), 7); const upcomingOrderItems = processedItems.filter(item => new Date(item.reorderDate) <= sevenDaysFromNow && new Date(item.reorderDate) >= new Date()); const headers = [ { key: 'group', label: 'Grupo' }, { key: 'code', label: 'Código' }, { key: 'description', label: 'Insumo', class: 'font-medium text-gray-900' }, { key: 'reorderDate', label: 'Fecha de Pedido', align: 'right', class: 'font-bold text-blue-600', formatter: (v) => formatDate(v) } ]; currentQueryData = { title: 'Proximos_A_Pedir', headers, items: upcomingOrderItems }; const tableHTML = createQueryTable(upcomingOrderItems, headers, 'Insumos que necesitan ser pedidos en los próximos 7 días.'); showQueryModal('Próximos a Pedir (7 días)', tableHTML); }
+        function handleWeeklyArrivalsQuery() { const processedItems = getProcessedItems(true); const sevenDaysFromNow = addDays(new Date(), 7); let weeklyArrivals = []; processedItems.forEach(item => { if (item.orderQuantities) { item.orderQuantities.forEach(order => { const arrivalDate = new Date(order.date + 'T00:00:00Z'); if (arrivalDate >= new Date() && arrivalDate <= sevenDaysFromNow) { weeklyArrivals.push({ ...item, quantity: order.quantity, date: arrivalDate }); } }); } }); weeklyArrivals.sort((a, b) => a.date - b.date); const headers = [ { key: 'date', label: 'Fecha Ingreso', class: 'font-bold text-purple-600', formatter: (v) => formatDate(v) }, { key: 'group', label: 'Grupo' }, { key: 'code', label: 'Código' }, { key: 'description', label: 'Insumo', class: 'font-medium text-gray-900' }, { key: 'quantity', label: 'Cantidad', align: 'right', formatter: (v) => formatNumber(v) } ]; currentQueryData = { title: 'Ingresos_De_La_Semana', headers, items: weeklyArrivals }; const tableHTML = createQueryTable(weeklyArrivals, headers, 'Pedidos simulados que ingresarán en los próximos 7 días.'); showQueryModal('Ingresos de la Semana', tableHTML); }
+        
+        function processInventorySheet(workbook) { const sheetName = workbook.SheetNames[0]; if (!sheetName) return { inventoryItems: [], inventoryReport: { processedCount: 0, ignoredCount: 0 } }; const worksheet = workbook.Sheets[sheetName]; const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, defval: null }); const itemsMap = new Map(); const report = { processedCount: 0, ignoredCount: 0, reasons: {} }; const headerRow = rows[0].map(h => String(h).trim().toLowerCase().replace(/[\s_]+/g, '')); const colMap = { group: headerRow.indexOf('grupo'), code: headerRow.indexOf('código') !== -1 ? headerRow.indexOf('código') : headerRow.indexOf('cod'), name: headerRow.indexOf('nombre'), stock: headerRow.indexOf('stock'), monthlyConsumption: headerRow.indexOf('consumomensual'), delayedQuantity: headerRow.indexOf('demorados'), pedido: headerRow.indexOf('pedido'), fecha: headerRow.indexOf('fecha'), leadTimeDays: headerRow.indexOf('leadtime'), safetyStockDays: headerRow.indexOf('díasseguridad') }; const parseNumeric = (val) => { if (val === null || val === undefined || typeof val === 'string' && val.trim() === '' || val === '-') return 0; const cleanVal = String(val).replace(/\./g, '').replace(',', '.'); const num = parseFloat(cleanVal); return isNaN(num) ? 0 : num; }; const parseDate = (val) => { if (!val) return null; if (val instanceof Date && !isNaN(val)) { const d = val; d.setMinutes(d.getMinutes() + d.getTimezoneOffset()); return d.toISOString().split('T')[0]; } if (typeof val === 'string') { const trimmedVal = val.trim(); if (trimmedVal === '' || trimmedVal === '-') return null; let date; if (/^\d{4}-\d{2}-\d{2}$/.test(trimmedVal)) date = new Date(trimmedVal + 'T00:00:00Z'); else if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmedVal)) { const parts = trimmedVal.split('/'); date = new Date(Date.UTC(parts[2], parts[1] - 1, parts[0])); } if (date && !isNaN(date.getTime())) return date.toISOString().split('T')[0]; } return null; }; for (let i = 1; i < rows.length; i++) { const row = rows[i]; if (!row || row.length < 2 || row.every(cell => cell === null || cell === '')) continue; const code = String(row[colMap.code] || '').trim(); const name = String(row[colMap.name] || '').trim(); if (!code || !name) { report.ignoredCount++; report.reasons['Falta Código/Nombre'] = (report.reasons['Falta Código/Nombre'] || 0) + 1; continue; } let existingItem = itemsMap.get(code); if (!existingItem) { existingItem = { code: code, group: String(row[colMap.group] || 'General').trim(), name: `${code} ${name}`, stock: parseNumeric(row[colMap.stock]), monthlyConsumption: parseNumeric(row[colMap.monthlyConsumption]), delayedQuantity: parseNumeric(row[colMap.delayedQuantity]), leadTimeDays: parseNumeric(row[colMap.leadTimeDays]), safetyStockDays: parseNumeric(row[colMap.safetyStockDays]), orderQuantities: [], isModified: false, createdAt: new Date().toISOString(), isFavorite: false }; itemsMap.set(code, existingItem); } const pedido = parseNumeric(row[colMap.pedido]); const fecha = parseDate(row[colMap.fecha]); if (pedido > 0) { if (fecha) { existingItem.orderQuantities.push({ quantity: pedido, date: fecha }); } else { report.ignoredCount++; report.reasons['Pedido sin Fecha'] = (report.reasons['Pedido sin Fecha'] || 0) + 1; } } } report.processedCount = itemsMap.size; return { inventoryItems: Array.from(itemsMap.values()), inventoryReport: report }; }
+        function processHistorySheet(workbook) {
+            const sheetName = workbook.SheetNames[1];
+            if (!sheetName) return { historyMap: new Map(), historyReport: { processedCount: 0, ignoredCount: 0 } };
+            const worksheet = workbook.Sheets[sheetName];
+            const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, defval: null });
+            const historyMap = new Map();
+            const report = { processedCount: 0, ignoredCount: 0 };
+            const headerRow = rows[0].map(h => String(h).trim().toLowerCase());
+            const codeIndex = headerRow.indexOf('material') !== -1 ? headerRow.indexOf('material') : headerRow.indexOf('cod');
+            if (codeIndex === -1) {
+                console.error("No se encontró la columna 'material' o 'cod' en la Hoja2.");
+                return { historyMap, historyReport: report };
+            }
+            const parseNumeric = (val) => {
+                if (val === null || val === undefined || typeof val === 'string' && val.trim() === '' || val === '-') return 0;
+                const cleanVal = String(val).replace(/\./g, '').replace(',', '.');
+                const num = parseFloat(cleanVal);
+                return isNaN(num) ? 0 : num;
+            };
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || !row[codeIndex]) continue;
+                const code = String(row[codeIndex]).trim();
+                const consumos = row.slice(2).map(parseNumeric);
+                if (code) {
+                    historyMap.set(code, consumos);
+                } else {
+                    report.ignoredCount++;
+                }
+            }
+            report.processedCount = historyMap.size;
+            return { historyMap, historyReport: report };
+        }
+        function processSolpedsSheet(workbook) {
+            const sheetName = workbook.SheetNames.find(name => name.toLowerCase().includes('solped'));
+            if (!sheetName) {
+                console.warn("No se encontró la hoja 'Solped' en el archivo.");
+                return { solpedsData: [] };
+            }
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+            const solpedsData = jsonData.map(row => ({
+                solicitud: row['Solicitud de pedido'] || '',
+                cod: row['Cod'] || '',
+                descripcion: row['Texto breve'] || '',
+                cantidad: parseFloat(String(row['Cantidad solicitada']).replace(',', '.')) || 0,
+                fechaSolicitud: row['Fecha de solicitud'] || '',
+                creadoPor: row['Creado por'] || '',
+                status: row['Status'] || '',
+                fechaLiberacion: row['Fecha de liberación'] || ''
+            }));
+            return { solpedsData };
+        }
+        function processOCSheet(workbook) {
+            const sheetName = workbook.SheetNames.find(name => name.toLowerCase().includes('oc'));
+            if (!sheetName) {
+                console.warn("No se encontró la hoja 'OC' en el archivo.");
+                return { ocsData: [] };
+            }
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+            const ocsData = jsonData.map(row => ({
+                solped: row['Solped'] || '',
+                ordenDeCompra: row['Orden de compra'] || '',
+                posicion: row['Posición'] || '',
+                proxFechaEntrega: row['Próxima fecha de entrega'] || '',
+                cantEntregaSiguiente: parseFloat(String(row['Cantidad de entrega siguiente']).replace(',', '.')) || 0,
+                codigo: row['Codigo'] || '',
+                denominacion: row['Denominación de material'] || '',
+                cantPedido: parseFloat(String(row['Cantidad de pedido']).replace(',', '.')) || 0,
+                grupoDeCompras: row['Grupo de compras'] || '',
+                status: row['Status de la orden'] || ''
+            }));
+            return { ocsData };
+        }
+        
+        // --- LÓGICA DEL PANEL DE ADMINISTRACIÓN ---
+        async function openAdminModal() { document.getElementById('admin-modal').classList.remove('hidden'); allUserPermissions.clear(); const querySnapshot = await getDocs(permissionsCollectionRef); querySnapshot.forEach(doc => { allUserPermissions.set(doc.id, doc.data().email || doc.id); }); renderPermissionsList(); renderPresenceList(); }
+        function closeAdminModal() { document.getElementById('admin-modal').classList.add('hidden'); }
+        async function renderPermissionsList() { const listEl = document.getElementById('permissions-list'); listEl.innerHTML = '<div class="flex justify-center p-4"><div class="loader"></div></div>'; const querySnapshot = await getDocs(permissionsCollectionRef); const permissions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); listEl.innerHTML = `<table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-4 py-2">Usuario</th><th class="px-4 py-2">Rol</th><th class="px-4 py-2">Grupos Editables</th><th class="px-4 py-2">Etiquetas</th></tr></thead><tbody>${permissions.map(p => `<tr class="border-b"><td class="px-4 py-2 font-mono text-xs">${p.email || p.id} ${p.id === userId ? '<span class="text-indigo-600 font-bold">(Tú)</span>' : ''}</td><td class="px-4 py-2"><select data-userid="${p.id}" class="role-select bg-gray-50 border rounded p-1" ${p.role === 'owner' || currentUserRole !== 'owner' ? 'disabled' : ''}><option value="owner" ${p.role === 'owner' ? 'selected' : ''} disabled>Propietario</option><option value="editor" ${p.role === 'editor' ? 'selected' : ''}>Editor</option><option value="viewer" ${p.role === 'viewer' ? 'selected' : ''}>Visor</option></select></td><td class="px-4 py-2"><input type="text" data-userid="${p.id}" class="groups-input w-full p-1 border rounded" value="${(p.editableGroups || []).join(',')}" ${p.role !== 'editor' || currentUserRole !== 'owner' ? 'disabled' : ''}></td><td class="px-4 py-2"><input type="text" data-userid="${p.id}" class="tags-input w-full p-1 border rounded" placeholder="Ej: Proveedor A" value="${(p.tags || []).join(',')}" ${currentUserRole !== 'owner' ? 'disabled' : ''}></td></tr>`).join('')}</tbody></table>`; }
+        async function renderPresenceList() { const listEl = document.getElementById('presence-list'); listEl.innerHTML = ''; const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString(); if (unsubscribePresence) unsubscribePresence(); unsubscribePresence = onSnapshot(presenceCollectionRef, (snapshot) => { listEl.innerHTML = ''; snapshot.forEach(doc => { const data = doc.data(); if (data.lastSeen > fiveMinutesAgo) { const userEmail = allUserPermissions.get(doc.id) || doc.id; const userEl = document.createElement('div'); userEl.className = 'flex items-center p-2 border-b'; userEl.innerHTML = `<span class="online-indicator"></span> <span class="font-mono text-xs">${userEmail} ${doc.id === userId ? '(Tú)' : ''}</span>`; listEl.appendChild(userEl); } }); if(listEl.innerHTML === '') { listEl.innerHTML = '<p class="text-gray-500 text-center p-4">Nadie más está conectado.</p>'; } }); }
+        async function updateUserPermissions(targetUserId, role, groups, tags) { const userPermRef = doc(permissionsCollectionRef, targetUserId); const editableGroups = groups.split(',').map(g => g.trim()).filter(Boolean); const tagsArray = tags.split(',').map(t => t.trim()).filter(Boolean); try { await updateDoc(userPermRef, { role, editableGroups, tags: tagsArray }); showToast(`Permisos actualizados.`, 'success'); } catch (error) { showToast('Error al actualizar permisos.', 'error'); console.error(error); } }
+
+        // --- LÓGICA DE RENDERIZADO PRINCIPAL ---
+        function renderApp() {
+            if (!isAuthReady) return;
+            renderDashboard();
+            renderInventoryControls();
+            rerenderDynamicContent();
+            renderDynamicEditor();
+        }
+        function rerenderDynamicContent() { const processedItems = getProcessedItems(); const itemsForGantt = selectedItemId ? processedItems.filter(item => item.id === selectedItemId) : processedItems; renderGanttChart(itemsForGantt); const itemsForTable = selectedItemId ? processedItems.filter(item => item.id === selectedItemId) : []; renderDataTable(itemsForTable); if (selectedItemId) { updateEditorSummary(); } }
+        function renderInventoryControls() {
+            const queryFilterIndicator = document.getElementById('query-filter-indicator'); 
+            if (queryFilterIds.length > 0) { 
+                queryFilterIndicator.innerHTML = `<div class="btn-main-style bg-blue-100 text-blue-800 border-blue-200 font-bold"><span>FILTRO ACTIVO (${queryFilterIds.length})</span><button id="clear-query-filter-btn" class="ml-2 bg-blue-200 hover:bg-blue-300 text-blue-900 rounded-full w-4 h-4 flex items-center justify-center font-black text-xs">&times;</button></div>`;
+                document.getElementById('clear-query-filter-btn').addEventListener('click', handleClearQueryFilter); 
+            } else { 
+                queryFilterIndicator.innerHTML = ''; 
+            }
+
+            document.getElementById('search-container').innerHTML = `<input type="text" id="search-input" placeholder="Buscar..." class="p-2 border border-gray-300 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500">`; document.getElementById('search-input').value = searchTerm; document.getElementById('search-input').oninput = handleSearch;
+            const groupFilterContainer = document.getElementById('group-filter-container'); const uniqueGroups = [...new Set(items.map(item => item.group))].sort(); if (uniqueGroups.length > 0) { let filterHTML = `<select id="group-filter" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2"><option value="all">TODOS</option>`; uniqueGroups.forEach(group => { const selected = group === selectedGroup ? 'selected' : ''; filterHTML += `<option value="${group}" ${selected}>${group}</option>`; }); filterHTML += `</select>`; groupFilterContainer.innerHTML = filterHTML; document.getElementById('group-filter').value = selectedGroup; document.getElementById('group-filter').onchange = handleGroupFilter; } else { groupFilterContainer.innerHTML = ''; }
+            
+            const favoritesFilterBtn = document.getElementById('favorites-filter-btn');
+            if (favoritesFilterBtn) { favoritesFilterBtn.classList.toggle('bg-yellow-200', showOnlyFavorites); favoritesFilterBtn.classList.toggle('border-yellow-400', showOnlyFavorites); favoritesFilterBtn.classList.toggle('text-yellow-800', showOnlyFavorites); }
+
+            const activeFiltersContainer = document.getElementById('active-filters-container');
+            let filterText = '';
+            if (consumptionFilter === 'with') {
+                filterText = 'Solo con consumo';
+            } else if (consumptionFilter === 'without') {
+                filterText = 'Solo sin consumo';
+            }
+
+            if (filterText) {
+                activeFiltersContainer.innerHTML = `<div class="btn-main-style bg-yellow-200 border-yellow-400 text-yellow-800 font-bold uppercase flex items-center gap-2"><span>${filterText}</span><button id="remove-consumption-filter" class="bg-yellow-300 hover:bg-yellow-400 text-yellow-900 rounded-full w-4 h-4 flex items-center justify-center font-black text-xs">&times;</button></div>`;
+                document.getElementById('remove-consumption-filter').addEventListener('click', () => { consumptionFilter = 'all'; renderApp(); });
+            } else { activeFiltersContainer.innerHTML = ''; }
+            
+            document.getElementById('reports-dropdown-content').innerHTML = `
+                <a href="#" id="report-general-status">Todos los insumos</a>
+                <a href="#" id="report-critical-items">Insumos críticos</a>
+                <a href="#" id="report-income-projection">Proyección de ingresos</a>
+                <a href="#" id="report-new-orders">Nuevos pedidos (simulados)</a>`;
+            document.getElementById('queries-dropdown-content').innerHTML = `
+                <a href="#" id="query-low-stock">Insumos con Stock Bajo</a>
+                <a href="#" id="query-low-stock-no-order">Bajo Stock sin Pedido</a>
+                <a href="#" id="query-low-stock-with-order">Bajo Stock con Pedido</a>
+                <a href="#" id="query-low-stock-with-delay">Bajo Stock con Demoras</a>
+                <div class="dropdown-divider"></div>
+                <a href="#" id="query-with-delay">Insumos con Demoras</a>
+                <a href="#" id="query-upcoming-orders">Próximos a Pedir</a>
+                <a href="#" id="query-weekly-arrivals">Ingresos de la Semana</a>`;
+        }
+        function updateEditorSummary() { if (!tempEditItem) { document.getElementById('coverage-summary').innerHTML = ''; return; } const dailyConsumption = tempEditItem.monthlyConsumption > 0 ? tempEditItem.monthlyConsumption / 30 : 0; const currentCoverageDays = dailyConsumption > 0 ? Math.floor(tempEditItem.stock / dailyConsumption) : 0; const delayedCoverageDays = dailyConsumption > 0 ? Math.floor((tempEditItem.delayedQuantity || 0) / dailyConsumption) : 0; const totalOrderedQty = tempEditItem.orderQuantities?.reduce((total, order) => total + (order.quantity || 0), 0) || 0; const ordersCoverageDays = dailyConsumption > 0 ? Math.floor(totalOrderedQty / dailyConsumption) : 0; const totalCoverageDays = currentCoverageDays + delayedCoverageDays + ordersCoverageDays; document.getElementById('coverage-summary').innerHTML = `<div class="grid grid-cols-4 gap-4 text-center p-4 bg-gray-50 rounded-lg"><div><div class="text-xs font-bold text-gray-500 uppercase">Stock Actual</div><div class="text-3xl font-bold text-gray-800">${(currentCoverageDays / 30).toFixed(1)}</div></div><div><div class="text-xs font-bold text-sky-500 uppercase">Demorado</div><div class="text-3xl font-bold text-sky-600">${(delayedCoverageDays / 30).toFixed(1)}</div></div><div><div class="text-xs font-bold text-purple-500 uppercase">Pedidos</div><div class="text-3xl font-bold text-purple-700">${(ordersCoverageDays / 30).toFixed(1)}</div></div><div><div class="text-xs font-bold text-gray-600 uppercase">Total (Meses)</div><div class="text-3xl font-extrabold text-gray-900">${(totalCoverageDays / 30).toFixed(1)}</div></div></div>`; }
+        function getProcessedItems(ignoreStandardFilters = false) { 
+            let baseItems = items; 
+            if (showOnlyFavorites && !ignoreStandardFilters) { baseItems = baseItems.filter(item => item.isFavorite === true); }
+            if (consumptionFilter === 'with' && !ignoreStandardFilters) {
+                baseItems = baseItems.filter(item => item.monthlyConsumption > 0);
+            } else if (consumptionFilter === 'without' && !ignoreStandardFilters) {
+                baseItems = baseItems.filter(item => item.monthlyConsumption <= 0);
+            }
+
+            let calculatedItems = baseItems.map(item => { const sourceItem = (selectedItemId && item.id === selectedItemId && tempEditItem) ? tempEditItem : item; const dailyConsumption = sourceItem.monthlyConsumption > 0 ? sourceItem.monthlyConsumption / 30 : 0; const coverageDays = dailyConsumption > 0 ? Math.floor(sourceItem.stock / dailyConsumption) : 0; const delayedCoverageDays = dailyConsumption > 0 ? Math.floor((sourceItem.delayedQuantity || 0) / dailyConsumption) : 0; const totalOrderedQty = sourceItem.orderQuantities?.reduce((acc, order) => acc + (order.quantity || 0), 0) || 0; const ordersCoverageDays = dailyConsumption > 0 ? Math.floor(totalOrderedQty / dailyConsumption) : 0; const totalCoverageDays = coverageDays + delayedCoverageDays + ordersCoverageDays; const depletionDate = addDays(new Date(), coverageDays + delayedCoverageDays); const safetyStockUnits = dailyConsumption * sourceItem.safetyStockDays; const reorderPointUnits = (dailyConsumption * sourceItem.leadTimeDays) + safetyStockUnits; const safetyStockStartDate = addDays(depletionDate, -sourceItem.safetyStockDays); let reorderDate = null; const effectiveStock = sourceItem.stock + (sourceItem.delayedQuantity || 0); if (effectiveStock > reorderPointUnits) { const daysUntilReorder = dailyConsumption > 0 ? Math.floor((effectiveStock - reorderPointUnits) / dailyConsumption) : 0; reorderDate = addDays(new Date(), daysUntilReorder); } else { reorderDate = new Date(); } const nameParts = sourceItem.name.split(' '); const code = nameParts.shift(); const description = nameParts.join(' '); return { ...item, ...sourceItem, dailyConsumption, coverageDays, delayedCoverageDays, ordersCoverageDays, totalOrderedQty, totalCoverageDays, depletionDate, reorderDate, safetyStockStartDate, code, description }; }); let finalItems; if (queryFilterIds.length > 0 && !ignoreStandardFilters) { finalItems = calculatedItems.filter(item => queryFilterIds.includes(item.id)); } else { const filteredByGroup = selectedGroup === 'all' || !selectedGroup ? calculatedItems : calculatedItems.filter(item => item.group === selectedGroup); finalItems = searchTerm ? filteredByGroup.filter(item => item.name.toLowerCase().includes(searchTerm)) : filteredByGroup; } finalItems.sort((a, b) => { let valA, valB; switch (sortConfig.key) { case 'name': valA = a.name.toLowerCase(); valB = b.name.toLowerCase(); break; case 'totalCoverage': valA = a.totalCoverageDays; valB = b.totalCoverageDays; break; case 'coverage': default: valA = a.coverageDays; valB = b.coverageDays; break; } if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1; if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1; return 0; }); return finalItems; }
+        function renderGanttChart(itemsToRender) { const ganttHeaderContainer = document.getElementById('gantt-header-container'); const chartContainer = document.getElementById('gantt-chart-container'); chartContainer.innerHTML = ''; ganttHeaderContainer.innerHTML = ''; if (!db) { chartContainer.innerHTML = `<p class="text-center text-gray-500 py-10">Conectando...</p>`; return; } if (items.length === 0) { chartContainer.innerHTML = `<p class="text-center text-gray-500 py-10">No hay datos. Añade un insumo o precarga un archivo.</p>`; return; } if (itemsToRender.length === 0 && (queryFilterIds.length > 0 || searchTerm || selectedGroup !== 'all' || consumptionFilter !== 'all' || showOnlyFavorites)) { chartContainer.innerHTML = `<p class="text-center text-gray-500 py-10">No hay insumos para los filtros actuales.</p>`; return; } const headerGrid = document.createElement('div'); headerGrid.className = 'gantt-grid'; const sortIconSVG = `<svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`; const nameHeader = document.createElement('div'); nameHeader.className = 'gantt-cell gantt-header-cell border-r'; nameHeader.innerHTML = `<div class="flex items-center justify-between w-full px-2"><span>Insumo</span><button class="sort-button" data-sort="name">${sortIconSVG}</button></div>`; const coverageHeader = document.createElement('div'); coverageHeader.className = 'gantt-cell gantt-header-cell justify-center border-r p-0'; coverageHeader.innerHTML = `<button class="sort-button flex items-center justify-center w-full h-full gap-1" data-sort="coverage"><span class="text-center leading-tight text-xs">COBERTURA<br>HOY</span>${sortIconSVG}</button>`; const totalCoverageHeader = document.createElement('div'); totalCoverageHeader.className = 'gantt-cell gantt-header-cell justify-center border-r p-0'; totalCoverageHeader.innerHTML = `<button class="sort-button flex items-center justify-center w-full h-full gap-1" data-sort="totalCoverage"><span class="text-center leading-tight text-xs">COB.<br>PROYECTADA</span>${sortIconSVG}</button>`; const timelineHeader = document.createElement('div'); timelineHeader.className = 'gantt-cell gantt-header-cell relative overflow-hidden'; let currentDate = new Date(); let currentMonth = currentDate.getMonth(); let monthStartDay = 0; let isOddMonth = true; for (let i = 0; i <= GANTT_DAYS; i++) { let loopDate = addDays(new Date(), i); if (loopDate.getMonth() !== currentMonth || i === GANTT_DAYS) { const monthEndDay = (i === GANTT_DAYS) ? GANTT_DAYS : i; if (isOddMonth) { const bgDiv = document.createElement('div'); bgDiv.className = 'month-bg month-odd'; bgDiv.style.left = `${(monthStartDay / GANTT_DAYS) * 100}%`; bgDiv.style.width = `${((monthEndDay - monthStartDay) / GANTT_DAYS) * 100}%`; timelineHeader.appendChild(bgDiv); } monthStartDay = i; currentMonth = loopDate.getMonth(); isOddMonth = !isOddMonth; } } let lastMonthLabel = -1; for (let i = 0; i <= GANTT_DAYS; i += 7) { const weekDate = addDays(new Date(), i); const weekNumber = getWeekId(weekDate).split('-')[1]; const position = (i / GANTT_DAYS) * 100; timelineHeader.innerHTML += `<div class="absolute top-0 bottom-0 border-l border-gray-200 z-10" style="left: ${position}%;"></div>`; const currentMonthLabel = weekDate.getMonth(); if (currentMonthLabel !== lastMonthLabel) { timelineHeader.innerHTML += `<div class="absolute text-xs text-gray-700 font-bold z-10" style="left: ${position + 0.5}%; top: 5px;">${weekDate.toLocaleString('es-AR', { month: 'short' }).toUpperCase().replace('.','')}</div>`; lastMonthLabel = currentMonthLabel; } let transform = 'translateX(-50%)'; if (i === 0) transform = 'translateX(0%)'; timelineHeader.innerHTML += `<div class="absolute text-xs text-gray-500 font-semibold z-10" style="left: ${position}%; transform: ${transform}; bottom: 5px;"><span>${weekNumber}</span></div>`; } timelineHeader.appendChild(document.createElement('div')).className = 'today-line today-line-header'; headerGrid.appendChild(nameHeader); headerGrid.appendChild(coverageHeader); headerGrid.appendChild(totalCoverageHeader); headerGrid.appendChild(timelineHeader); ganttHeaderContainer.appendChild(headerGrid); ganttHeaderContainer.querySelectorAll('.sort-button').forEach(btn => { if (btn.dataset.sort === sortConfig.key) { btn.classList.add('active', sortConfig.direction); } }); const bodyContainer = document.createElement('div'); itemsToRender.forEach((item, index) => { const isSelected = item.id === selectedItemId; const daysUntilReorder = daysBetween(new Date(), new Date(item.reorderDate)); let rowBgColor = index % 2 === 0 ? 'bg-white' : 'bg-gray-50'; if (daysUntilReorder >= 0 && daysUntilReorder <= 7) rowBgColor = 'bg-yellow-50'; const finalBgColor = isSelected ? 'bg-blue-200' : rowBgColor; const rowGrid = document.createElement('div'); rowGrid.className = 'gantt-grid'; rowGrid.onclick = () => handleSelectRow(item.id); const nameCol = document.createElement('div'); nameCol.className = `gantt-cell border-r ${finalBgColor} items-start`; if (item.isModified && !isSelected) nameCol.style.borderLeft = '6px solid #a855f7'; const iconsContainer = document.createElement('div'); iconsContainer.className = 'flex flex-col items-center mr-2'; const favoriteBtn = document.createElement('button'); favoriteBtn.className = `favorite-btn ${item.isFavorite ? 'is-favorite' : ''}`; favoriteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>`; favoriteBtn.addEventListener('click', (e) => { e.stopPropagation(); handleToggleFavorite(item.id); }); iconsContainer.appendChild(favoriteBtn); nameCol.appendChild(iconsContainer); const itemInfoDiv = document.createElement('div'); itemInfoDiv.className = 'flex flex-col justify-between h-full w-full py-1'; itemInfoDiv.innerHTML = `<div><div class="text-sm text-gray-500 font-medium">${item.code}</div><div class="font-semibold text-base text-gray-800 leading-tight">${item.description}</div></div><div class="flex items-stretch mt-1 pt-1 border-t border-gray-400 w-full"><div class="text-center flex-1 py-1"><div class="text-xs font-bold text-gray-600">PEDIDO</div><div class="text-lg font-semibold text-blue-600">${formatDate(item.reorderDate)}</div></div><div class="border-l border-gray-400"></div><div class="text-center flex-1 py-1"><div class="text-xs font-bold text-gray-600">S. SEGURIDAD</div><div class="text-lg font-semibold text-orange-500">${formatDate(item.safetyStockStartDate)}</div></div></div>`; nameCol.appendChild(itemInfoDiv); const coverageCol = document.createElement('div'); coverageCol.className = `gantt-cell border-r justify-center text-center ${finalBgColor}`; const coverageMonths = (item.coverageDays / 30).toFixed(1); const isLowStock = parseFloat(coverageMonths) < 1.0; const individualCoverageColorClass = isLowStock ? 'text-red-600' : 'text-gray-800'; coverageCol.innerHTML = `<div><div class="text-3xl font-bold ${individualCoverageColorClass}">${coverageMonths}</div><div class="text-xs text-gray-500 -mt-1">meses</div></div>`; const totalCoverageCol = document.createElement('div'); totalCoverageCol.className = `gantt-cell border-r justify-center text-center ${finalBgColor}`; const totalCoverageMonths = (item.totalCoverageDays / 30).toFixed(1); totalCoverageCol.innerHTML = `<div><div class="text-3xl font-bold text-blue-700">${totalCoverageMonths}</div><div class="text-xs text-gray-500 -mt-1">meses</div></div>`; const barCol = document.createElement('div'); barCol.className = `gantt-cell ${finalBgColor}`; const barContainer = document.createElement('div'); barContainer.className = 'gantt-bar-container'; barContainer.appendChild(document.createElement('div')).className = 'today-line'; let rowCurrentDate = new Date(); let rowCurrentMonth = rowCurrentDate.getMonth(); let rowMonthStartDay = 0; let rowIsOddMonth = true; for (let i = 0; i <= GANTT_DAYS; i++) { let loopDate = addDays(new Date(), i); if (loopDate.getMonth() !== currentMonth || i === GANTT_DAYS) { const monthEndDay = (i === GANTT_DAYS) ? GANTT_DAYS : i; if (rowIsOddMonth) { const bgDiv = document.createElement('div'); bgDiv.className = 'month-bg month-odd'; bgDiv.style.left = `${(rowMonthStartDay / GANTT_DAYS) * 100}%`; bgDiv.style.width = `${((monthEndDay - rowMonthStartDay) / GANTT_DAYS) * 100}%`; barContainer.appendChild(bgDiv); } rowMonthStartDay = i; rowCurrentMonth = loopDate.getMonth(); rowIsOddMonth = !isOddMonth; } }
+            
+            let currentBarTop = 15; const barHeight = 22; const barMargin = 4;
+            const bar = document.createElement('div'); bar.className = 'gantt-bar'; bar.style.top = `${currentBarTop}px`; bar.style.height = `${barHeight}px`; const barWidth = Math.min(100, (item.coverageDays / GANTT_DAYS) * 100); bar.style.width = `${barWidth}%`; const totalBarDays = item.coverageDays; const normalDays = Math.max(0, totalBarDays - item.safetyStockDays - item.leadTimeDays); if (normalDays > 0) { const greenSegment = document.createElement('div'); greenSegment.className = 'h-full bg-green-500 hover:bg-green-600 tooltip'; greenSegment.style.width = `${(normalDays / totalBarDays) * 100}%`; greenSegment.innerHTML = `<span class="tooltiptext">Cobertura Normal: ${Math.round(normalDays)} día(s)</span>`; bar.appendChild(greenSegment); } if (item.leadTimeDays > 0 && totalBarDays > normalDays) { const yellowSegment = document.createElement('div'); yellowSegment.className = 'h-full bg-yellow-400 hover:bg-yellow-500 tooltip'; yellowSegment.style.width = `${(item.leadTimeDays / totalBarDays) * 100}%`; yellowSegment.innerHTML = `<span class="tooltiptext">Lead Time: ${item.leadTimeDays} día(s).</span>`; bar.appendChild(yellowSegment); } if (item.safetyStockDays > 0 && totalBarDays > (normalDays + item.leadTimeDays)) { const redSegment = document.createElement('div'); redSegment.className = 'h-full bg-red-500 hover:bg-red-600 tooltip'; redSegment.style.width = `${(item.safetyStockDays / totalBarDays) * 100}%`; redSegment.innerHTML = `<span class="tooltiptext">Stock Seguridad: ${item.safetyStockDays} día(s)</span>`; bar.appendChild(redSegment); } barContainer.appendChild(bar);
+            currentBarTop += barHeight + barMargin;
+            
+            if (item.delayedQuantity > 0 && item.dailyConsumption > 0) { const delayedBar = document.createElement('div'); delayedBar.className = 'gantt-bar bg-sky-400 hover:bg-sky-500 tooltip flex items-center justify-center'; delayedBar.style.top = `${currentBarTop}px`; delayedBar.style.height = `${barHeight}px`; delayedBar.style.left = '0%'; delayedBar.style.width = `${Math.min(100, (item.delayedCoverageDays / GANTT_DAYS) * 100)}%`; delayedBar.innerHTML = `<div class="text-white text-sm font-bold px-1 whitespace-nowrap">${formatNumber(item.delayedQuantity)}</div><span class="tooltiptext">Demorado: ${formatNumber(item.delayedQuantity)} uds. (${Math.round(item.delayedCoverageDays)} días)</span>`; barContainer.appendChild(delayedBar); currentBarTop += barHeight + barMargin; }
+            
+            const ordersToRender = item.orderQuantities ? item.orderQuantities.filter(o => o.quantity > 0 && o.date) : [];
+            const numOrders = ordersToRender.length;
+            if (numOrders > 0) { const availableHeight = 140 - currentBarTop; const requiredHeight = (numOrders * barHeight) + ((numOrders - 1) * barMargin); let step = barHeight + barMargin; if (requiredHeight > availableHeight && numOrders > 1) { step = availableHeight / numOrders; } ordersToRender.forEach((order) => { if (item.dailyConsumption > 0) { const newOrderCoverageDays = Math.floor(order.quantity / item.dailyConsumption); const arrivalDate = new Date(order.date + 'T00:00:00Z'); const coverageStartDay = daysBetween(new Date(), arrivalDate); if (coverageStartDay >= 0) { const shortDate = arrivalDate.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', timeZone: 'UTC' }); const newBar = document.createElement('div'); newBar.className = `gantt-bar gantt-bar-new-order bg-purple-500 hover:bg-purple-600 tooltip flex items-center justify-center`; newBar.style.top = `${currentBarTop}px`; newBar.style.height = `${barHeight}px`; newBar.style.left = `${(coverageStartDay / GANTT_DAYS) * 100}%`; newBar.style.width = `${Math.min(100 - (coverageStartDay / GANTT_DAYS) * 100, (newOrderCoverageDays / GANTT_DAYS) * 100)}%`; newBar.innerHTML = `<div class="text-white text-sm font-bold px-1 whitespace-nowrap">P=(${shortDate})</div><span class="tooltiptext">Pedido: ${formatNumber(order.quantity)} uds. (${newOrderCoverageDays} días) - Llega: ${formatDate(arrivalDate)}</span>`; barContainer.appendChild(newBar); currentBarTop += step; } } }); }
+            
+            const reorderDays = daysBetween(new Date(), new Date(item.reorderDate)); if (reorderDays >= 0 && reorderDays <= GANTT_DAYS) { const reorderPosition = (reorderDays / GANTT_DAYS) * 100; const reorderLine = document.createElement('div'); reorderLine.className = 'marker-line marker-line-pedido tooltip'; reorderLine.style.left = `${reorderPosition}%`; reorderLine.innerHTML = `<span class="tooltiptext">Fecha Pedido: ${formatDate(item.reorderDate)}</span>`; barContainer.appendChild(reorderLine); } const safetyDays = daysBetween(new Date(), new Date(item.safetyStockStartDate)); if (safetyDays >= 0 && safetyDays <= GANTT_DAYS) { const safetyPosition = (safetyDays / GANTT_DAYS) * 100; const safetyLine = document.createElement('div'); safetyLine.className = 'marker-line marker-line-seguridad tooltip'; safetyLine.style.left = `${safetyPosition}%`; safetyLine.innerHTML = `<span class="tooltiptext">Inicio S. Seg.: ${formatDate(item.safetyStockStartDate)}</span>`; barContainer.appendChild(safetyLine); } barCol.appendChild(barContainer); rowGrid.appendChild(nameCol); rowGrid.appendChild(coverageCol); rowGrid.appendChild(totalCoverageCol); rowGrid.appendChild(barCol); bodyContainer.appendChild(rowGrid); }); chartContainer.appendChild(bodyContainer); }
+        function renderDataTable(itemsToRender) { const dataTableContainer = document.getElementById('data-table-container'); dataTableContainer.innerHTML = ''; if (itemsToRender.length === 0) return; const item = itemsToRender[0]; const table = document.createElement('table'); table.className = 'w-full mt-8 text-sm text-left text-gray-500'; let thead = '<thead><tr class="text-xs text-gray-700 uppercase bg-gray-50">'; thead += '<th scope="col" class="px-4 py-3">Concepto</th>'; for(let i=0; i<5; i++) { const monthDate = new Date(new Date().getFullYear(), new Date().getMonth() + i, 1); const monthName = monthDate.toLocaleString('es-AR', { month: 'long' }); thead += `<th scope="col" class="px-4 py-3 text-right">${monthName.charAt(0).toUpperCase() + monthName.slice(1)}</th>`; } thead += '</tr></thead>'; let tbody = '<tbody>'; const concepts = ['Stock Inicial', 'Ingresos', 'Consumo', 'Stock Final']; let monthlyData = []; let currentStock = item.stock + (item.delayedQuantity || 0); for (let i = 0; i < 5; i++) { const monthStartDate = new Date(new Date().getFullYear(), new Date().getMonth() + i, 1); const monthEndDate = new Date(new Date().getFullYear(), new Date().getMonth() + i + 1, 0); let daysInMonth = (i === 0) ? monthEndDate.getDate() - new Date().getDate() + 1 : monthEndDate.getDate(); const initialStock = (i === 0) ? currentStock : monthlyData[i-1].finalStock; const monthlyConsumption = item.dailyConsumption * daysInMonth; let ordersInMonth = 0; if(item.orderQuantities) { item.orderQuantities.forEach(order => { if(order.date) { const orderDate = new Date(order.date + 'T00:00:00Z'); if(orderDate.getUTCFullYear() === monthStartDate.getFullYear() && orderDate.getUTCMonth() === monthStartDate.getMonth()) { ordersInMonth += order.quantity; } } }); } const finalStock = initialStock + ordersInMonth - monthlyConsumption; monthlyData.push({ initialStock, ordersInMonth, monthlyConsumption, finalStock }); } concepts.forEach(concept => { tbody += `<tr class="border-b">`; tbody += `<td class="px-4 py-4 font-medium text-gray-900 whitespace-nowrap">${concept}</td>`; monthlyData.forEach(data => { let value, styleClass = ''; switch(concept) { case 'Stock Inicial': value = data.initialStock; break; case 'Ingresos': value = data.ordersInMonth; styleClass = 'text-green-600'; break; case 'Consumo': value = data.monthlyConsumption; styleClass = 'text-red-600'; break; case 'Stock Final': value = data.finalStock; styleClass = `font-bold ${data.finalStock < (item.safetyStockDays * item.dailyConsumption) ? 'text-red-700' : 'text-gray-800'}`; break; } tbody += `<td class="px-4 py-4 text-right ${styleClass}">${formatNumber(Math.round(value))}</td>`; }); tbody += `</tr>`; }); tbody += '</tbody>'; table.innerHTML = thead + tbody; dataTableContainer.appendChild(table); }
+        function renderDynamicEditor() {
+            const editorArea = document.getElementById('dynamic-edit-area');
+            if (!selectedItemId || !tempEditItem) { editorArea.classList.add('hidden'); return; }
+            const nameParts = tempEditItem.name.split(' ');
+            const code = nameParts.shift();
+            const name = nameParts.join(' ');
+            document.getElementById('selected-item-name').innerHTML = `<span class="font-semibold">${code}</span> <span class="font-semibold">${name}</span>`;
+            document.getElementById('edit-current-stock').value = formatNumber(Math.round(tempEditItem.stock));
+            document.getElementById('edit-delayed-quantity').value = formatNumber(Math.round(tempEditItem.delayedQuantity || 0));
+            document.getElementById('edit-monthly-consumption').value = formatNumber(Math.round(tempEditItem.monthlyConsumption));
+            document.getElementById('edit-lead-time').value = tempEditItem.leadTimeDays;
+            document.getElementById('edit-safety-stock').value = tempEditItem.safetyStockDays;
+            
+            const currentItemFromMasterList = items.find(i => i.id === selectedItemId);
+            const editFavoriteBtn = document.getElementById('edit-favorite-btn');
+            if (editFavoriteBtn && currentItemFromMasterList) { editFavoriteBtn.classList.toggle('is-favorite', currentItemFromMasterList.isFavorite || false); }
+
+            const ordersContainer = document.getElementById('edit-orders-container');
+            ordersContainer.innerHTML = '';
+            if (!tempEditItem.orderQuantities) tempEditItem.orderQuantities = [];
+            const dailyConsumption = tempEditItem.monthlyConsumption > 0 ? tempEditItem.monthlyConsumption / 30 : 0;
+            tempEditItem.orderQuantities.forEach((order, index) => {
+                const orderCoverageDays = dailyConsumption > 0 ? Math.floor(order.quantity / dailyConsumption) : 0;
+                const orderCoverageMonths = (orderCoverageDays / 30).toFixed(1);
+                const orderInputDiv = document.createElement('div');
+                orderInputDiv.className = 'flex items-end gap-3 pt-2 mt-2 border-t';
+                orderInputDiv.innerHTML = `<div class="font-bold text-gray-700 text-sm w-20">Pedido ${index + 1}</div><div class="flex-1"><label class="font-medium text-xs text-gray-600">Fecha Ingreso</label><input type="date" value="${order.date || ''}" data-index="${index}" data-field="date" class="order-input p-1.5 border rounded-md w-full text-sm"></div><div class="w-24"><label class="font-medium text-xs text-gray-600">Cantidad</label><input type="number" value="${order.quantity || ''}" data-index="${index}" data-field="quantity" class="order-input p-1.5 border rounded-md w-full text-sm"></div><div class="text-center w-20"><div class="text-lg font-bold text-purple-600">${orderCoverageMonths}</div><div class="text-xs text-gray-500 -mt-1">meses</div></div><button data-remove-order-index="${index}" class="remove-order-btn text-red-500 hover:text-red-700 font-bold text-2xl mb-1">&times;</button>`;
+                ordersContainer.appendChild(orderInputDiv);
+            });
+            editorArea.classList.remove('hidden');
+        }
+        async function renderDashboard() {
+            const kpiContainer = document.getElementById('kpi-container');
+            if (!kpiContainer) return;
+
+            const dashboardDateEl = document.getElementById('dashboard-date');
+            if (dashboardDateEl) {
+                const today = new Date();
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                dashboardDateEl.textContent = today.toLocaleDateString('es-AR', options);
+            }
+
+            const processedItems = getProcessedItems(true);
+            const totalProducts = processedItems.length;
+            const favoriteCount = processedItems.filter(item => item.isFavorite).length;
+            const uniqueGroups = [...new Set(processedItems.map(item => item.group))].length;
+            
+            const recordConsumptionItems = processedItems.filter(item => {
+                if (item.consumos && item.consumos.length > 1) {
+                    const currentMonthConsumption = item.consumos[item.consumos.length - 1];
+                    const historicalConsumptions = item.consumos.slice(0, -1);
+                    if (historicalConsumptions.length > 0) {
+                        const peakHistoricalConsumption = Math.max(...historicalConsumptions);
+                        return currentMonthConsumption > peakHistoricalConsumption;
+                    }
+                }
+                return false;
+            });
+            const recordConsumptionCount = recordConsumptionItems.length;
+
+            const kpis = [
+                { type: 'total', title: 'Productos Totales', value: totalProducts, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>', color: 'blue' },
+                { type: 'favorites', title: 'Favoritos', value: favoriteCount, subtitle: 'Insumos destacados', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>', color: 'yellow' },
+                { type: 'groups', title: 'Total de Grupos', value: uniqueGroups, subtitle: 'Categorías activas', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>', color: 'green' },
+                { type: 'consumption-peak', title: 'Consumo Récord', value: recordConsumptionCount, subtitle: 'Superando pico histórico', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>', color: 'red' }
+            ];
+            
+            const colorClasses = { blue: { bg: 'bg-blue-100', text: 'text-blue-600' }, yellow: { bg: 'bg-yellow-100', text: 'text-yellow-600' }, green: { bg: 'bg-green-100', text: 'text-green-600' }, red: { bg: 'bg-red-100', text: 'text-red-600' } };
+
+            kpiContainer.innerHTML = kpis.map(kpi => `
+                <div class="kpi-card" data-kpi="${kpi.type}">
+                    <div class="flex justify-between items-start">
+                        <div><p class="text-sm font-medium text-gray-500 truncate">${kpi.title}</p><p class="mt-1 text-4xl font-bold text-gray-900">${kpi.value}</p></div>
+                        <div class="p-3 rounded-full ${colorClasses[kpi.color].bg} ${colorClasses[kpi.color].text}">${kpi.icon}</div>
+                    </div>
+                    ${kpi.subtitle ? `<p class="text-sm text-gray-500 mt-2">${kpi.subtitle}</p>` : ''}
+                </div>`).join('');
+            
+            if (currentUserRole !== 'viewer') {
+                renderReviewTable();
+            }
+        }
+
+        function renderReviewTable() {
+            const groupsReviewContainer = document.getElementById('groups-review-list');
+            if (!groupsReviewContainer) return;
+
+            groupsReviewContainer.innerHTML = '<div class="p-6 text-center text-gray-500"><div class="loader inline-block"></div> Cargando...</div>';
+
+            const groups = items.reduce((acc, item) => {
+                const group = item.group || 'General';
+                acc[group] = (acc[group] || 0) + 1;
+                return acc;
+            }, {});
+            const sortedGroups = Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
+
+            if (sortedGroups.length > 0) {
+                groupsReviewContainer.innerHTML = `<ul role="list" class="divide-y divide-gray-200">${sortedGroups.map(([groupName, count]) => `
+                    <li class="p-4 flex items-center justify-between hover:bg-gray-50">
+                        <div class="group-item-name flex-1 min-w-0 cursor-pointer" data-group-name="${groupName}">
+                            <p class="text-lg font-medium text-blue-600 truncate">${groupName}</p>
+                            <p class="text-sm text-gray-500">${count} insumos</p>
+                        </div>
+                        <div class="ml-4 flex-shrink-0">
+                            <label class="flex items-center space-x-2 cursor-pointer p-2 rounded-md hover:bg-gray-200">
+                                <input type="checkbox" data-group-name="${groupName}" class="review-checkbox h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm text-gray-600 hidden sm:inline">Revisado</span>
+                            </label>
+                        </div>
+                    </li>`).join('')}</ul>`;
+                loadCurrentWeekReview();
+            } else {
+                groupsReviewContainer.innerHTML = `<div class="p-6 text-center text-gray-500">No hay grupos para mostrar.</div>`;
+            }
+        }
+
+        function handleKpiClick(kpiType) {
+            if (kpiType === 'favorites') {
+                openFavoritesGroupModal();
+            } else if (kpiType === 'consumption-peak') {
+                openRecordConsumptionModal();
+            } else {
+                queryFilterIds = [];
+                searchTerm = '';
+                selectedGroup = 'all';
+                showOnlyFavorites = false;
+                switchMainView('inventory');
+            }
+        }
+        
+        function openFavoritesGroupModal() {
+            const modal = document.getElementById('favorites-group-modal');
+            const listEl = document.getElementById('favorites-group-list');
+            
+            const favoriteItems = items.filter(item => item.isFavorite);
+            if (favoriteItems.length === 0) {
+                showToast('No tienes insumos marcados como favoritos.', 'info');
+                return;
+            }
+            
+            const favoriteGroups = [...new Set(favoriteItems.map(item => item.group || 'General'))].sort();
+            
+            listEl.innerHTML = favoriteGroups.map(group => 
+                `<div class="p-3 hover:bg-gray-100 cursor-pointer border-b favorite-group-item" data-group-name="${group}">${group}</div>`
+            ).join('');
+            
+            modal.classList.remove('hidden');
+        }
+
+        function openRecordConsumptionModal() {
+            const recordConsumptionItems = getProcessedItems(true).filter(item => {
+                if (item.consumos && item.consumos.length > 1) {
+                    const currentMonthConsumption = item.consumos[item.consumos.length - 1];
+                    const historicalConsumptions = item.consumos.slice(0, -1);
+                    if (historicalConsumptions.length > 0) {
+                        const peakHistoricalConsumption = Math.max(...historicalConsumptions);
+                        return currentMonthConsumption > peakHistoricalConsumption;
+                    }
+                }
+                return false;
+            });
+
+            if (recordConsumptionItems.length === 0) {
+                showToast('No hay insumos con consumo récord este mes.', 'info');
+                return;
+            }
+            
+            if (recordConsumptionItems.length === 1) {
+                switchMainView('inventory');
+                handleSelectRow(recordConsumptionItems[0].id);
+                return;
+            }
+            
+            const modal = document.getElementById('record-consumption-modal');
+            const listEl = document.getElementById('record-consumption-item-list');
+            
+            listEl.innerHTML = recordConsumptionItems.map(item => 
+                `<div class="p-3 hover:bg-gray-100 cursor-pointer border-b record-consumption-item" data-item-id="${item.id}">${item.name}</div>`
+            ).join('');
+            
+            modal.classList.remove('hidden');
+        }
+
+        // --- LÓGICA DE REVISIÓN SEMANAL (FIRESTORE) ---
+        async function handleSaveReview() {
+            if (!userId || !reviewHistoryCollectionRef) return;
+            const reviewedGroups = Array.from(document.querySelectorAll('.review-checkbox:checked')).map(cb => cb.dataset.groupName);
+            
+            const weekId = getWeekId(new Date());
+            const reviewDocRef = doc(reviewHistoryCollectionRef, weekId);
+            try {
+                await setDoc(reviewDocRef, { 
+                    reviewedGroups, 
+                    lastUpdatedBy: userId, 
+                    weekId, 
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+                showToast('Revisión guardada en la base de datos.', 'success');
+            } catch (error) {
+                console.error("Error al guardar la revisión: ", error);
+                showToast('Error al guardar la revisión.', 'error');
+            }
+        }
+
+        async function handleClearReview() {
+            document.querySelectorAll('.review-checkbox').forEach(cb => {
+                cb.checked = false;
+            });
+            updateReviewProgressBar();
+            
+            const weekId = getWeekId(new Date());
+            const reviewDocRef = doc(reviewHistoryCollectionRef, weekId);
+            try {
+                await setDoc(reviewDocRef, { reviewedGroups: [], lastUpdatedBy: userId, updatedAt: serverTimestamp() }, { merge: true });
+                showToast('Revisión limpiada.', 'info');
+            } catch (error) {
+                console.error("Error al limpiar la revisión: ", error);
+                showToast('Error al limpiar la revisión.', 'error');
+            }
+        }
+
+
+        function handleReviewCheckboxChange(event) {
+            if (!event.target.matches('.review-checkbox')) return;
+            updateReviewProgressBar();
+        }
+
+        function updateReviewProgressBar() {
+            const checkboxes = document.querySelectorAll('.review-checkbox');
+            const total = checkboxes.length;
+            if (total === 0) return;
+            
+            const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+            const percentage = Math.round((checkedCount / total) * 100);
+            
+            const progressBar = document.getElementById('progress-bar');
+            const progressBarText = document.getElementById('progress-bar-text');
+            
+            progressBar.style.width = `${percentage}%`;
+            progressBarText.textContent = `${percentage}%`;
+
+            const weekId = getWeekId(new Date());
+            const weekNumber = weekId.split('-')[1];
+            const weekDisplay = document.getElementById('week-number-display');
+            if(weekDisplay) {
+                weekDisplay.textContent = `Semana ${weekNumber}`;
+            }
+        }
+
+        async function loadCurrentWeekReview() {
+            if (!reviewHistoryCollectionRef) return;
+            const currentWeekId = getWeekId(new Date());
+            const reviewDocRef = doc(reviewHistoryCollectionRef, currentWeekId);
+            
+            try {
+                const docSnap = await getDoc(reviewDocRef);
+                if (docSnap.exists()) {
+                    const { reviewedGroups } = docSnap.data();
+                    if (reviewedGroups && Array.isArray(reviewedGroups)) {
+                        reviewedGroups.forEach(groupName => {
+                            const checkbox = document.querySelector(`.review-checkbox[data-group-name="${groupName}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error("Error al cargar la revisión semanal:", error);
+            } finally {
+                updateReviewProgressBar();
+            }
+        }
+
+        async function showReviewHistory() {
+            const modal = document.getElementById('review-history-modal');
+            const contentEl = document.getElementById('history-modal-content');
+            modal.classList.remove('hidden');
+            contentEl.innerHTML = '<div class="flex justify-center p-8"><div class="loader"></div></div>';
+
+            try {
+                const querySnapshot = await getDocs(query(collection(db, `artifacts/${appId}/users/${userId}/reviewHistory`)));
+                const history = querySnapshot.docs.map(doc => doc.data());
+                
+                const allGroups = [...new Set(items.map(item => item.group || 'General'))].sort();
+                const allWeeks = [...new Set(history.map(h => h.weekId))].sort().reverse();
+
+                if (history.length === 0) {
+                    contentEl.innerHTML = '<p class="text-center text-gray-500 p-8">No hay historial de revisiones.</p>';
+                    return;
+                }
+
+                const historyMatrix = {};
+                history.forEach(record => {
+                    historyMatrix[record.weekId] = new Set(record.reviewedGroups);
+                });
+
+                let tableHTML = `<table class="w-full text-sm text-left text-gray-500 history-table"><thead class="text-xs text-gray-700 uppercase bg-gray-100"><tr><th class="px-2 py-2 font-bold">Grupo</th>`;
+                allWeeks.forEach(weekId => {
+                    const weekNum = weekId.split('-')[1];
+                    tableHTML += `<th class="px-1 py-2 text-center">${weekNum}</th>`;
+                });
+                tableHTML += `</tr></thead><tbody>`;
+
+                allGroups.forEach(groupName => {
+                    tableHTML += `<tr class="border-b"><td class="px-2 py-2 font-medium text-gray-900 whitespace-nowrap">${groupName}</td>`;
+                    allWeeks.forEach(weekId => {
+                        const isChecked = historyMatrix[weekId] && historyMatrix[weekId].has(groupName);
+                        tableHTML += `<td class="px-1 py-2 text-center text-green-500 font-bold">${isChecked ? '✓' : ''}</td>`;
+                    });
+                    tableHTML += `</tr>`;
+                });
+
+                tableHTML += `</tbody></table>`;
+                contentEl.innerHTML = tableHTML;
+
+            } catch (error) {
+                console.error("Error fetching review history:", error);
+                contentEl.innerHTML = '<p class="text-center text-red-500 p-8">No se pudo cargar el historial.</p>';
+            }
+        }
+
+
+        // --- LÓGICA DE LA PESTAÑA CONSUMOS ---
+        function renderConsumosView() {
+            renderConsumoFilters('primary');
+            renderConsumoFilters('comparison');
+            renderConsumosContent();
+        }
+
+        function renderConsumoFilters(type) {
+            const prefix = type === 'primary' ? '' : '-comparison';
+            const groupFilterContainer = document.getElementById(`consumo${prefix}-group-filter-container`);
+            const favoritesBtn = document.getElementById(`consumo${prefix}-favorites-filter-btn`);
+            const selectedGroup = type === 'primary' ? consumoSelectedGroup : consumoComparisonSelectedGroup;
+            const showFavorites = type === 'primary' ? consumoShowOnlyFavorites : consumoComparisonShowOnlyFavorites;
+
+            const uniqueGroups = [...new Set(items.map(item => item.group))].sort();
+            if (uniqueGroups.length > 0) {
+                let filterHTML = `<select id="consumo${prefix}-group-filter" data-type="${type}" class="consumo-group-filter bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2"><option value="all">TODOS</option>`;
+                uniqueGroups.forEach(group => {
+                    const selected = group === selectedGroup ? 'selected' : '';
+                    filterHTML += `<option value="${group}" ${selected}>${group}</option>`;
+                });
+                filterHTML += `</select>`;
+                groupFilterContainer.innerHTML = filterHTML;
+            } else {
+                groupFilterContainer.innerHTML = '';
+            }
+            
+            favoritesBtn.classList.toggle('bg-yellow-200', showFavorites);
+            favoritesBtn.classList.toggle('border-yellow-400', showFavorites);
+            favoritesBtn.classList.toggle('text-yellow-800', showFavorites);
+        }
+        
+        function renderConsumosContent() {
+            const contentArea = document.getElementById('consumo-content-area');
+            contentArea.innerHTML = `
+                <div id="consumo-panel-primary" class="w-1/2 bg-white overflow-y-auto"></div>
+                <div class="w-px bg-gray-200"></div>
+                <div id="consumo-panel-comparison" class="w-1/2 bg-white overflow-y-auto"></div>
+            `;
+            renderSingleConsumoPanel(selectedConsumptionItemId, 'primary');
+            renderSingleConsumoPanel(comparisonItemId, 'comparison');
+        }
+
+        function renderSingleConsumoPanel(itemId, type) {
+            const panel = document.getElementById(`consumo-panel-${type}`);
+            if (!panel) return;
+
+            panel.innerHTML = `
+            <div class="p-4">
+                <div class="flex justify-between items-center">
+                    <h3 id="consumo-kpi-name-${type}" class="text-lg font-bold text-gray-900">-</h3>
+                    <button id="consumo-edit-btn-${type}" data-item-id="${itemId || ''}" class="btn-main-style text-xs py-1 hidden">Editar</button>
+                </div>
+                <div id="consumo-chart-${type}" class="consumo-chart-wrapper">
+                    <p class="text-gray-500 m-auto">Seleccione un producto.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                     <div class="consumo-kpi-card text-center"> <p class="text-xs font-medium text-gray-500">STOCK ACTUAL</p> <p id="consumo-kpi-stock-${type}" class="text-3xl font-bold text-gray-900 mt-1">-</p> </div>
+                     <div class="consumo-kpi-card text-center"> <p class="text-xs font-medium text-gray-500">PROMEDIO</p> <p id="consumo-kpi-avg-${type}" class="text-3xl font-bold text-blue-600 mt-1">-</p> </div>
+                     <div class="consumo-kpi-card text-center"> <p class="text-xs font-medium text-gray-500">COBERTURA HOY (MESES)</p> <p id="consumo-kpi-coverage-today-${type}" class="text-3xl font-bold text-gray-900 mt-1">-</p> </div>
+                     <div class="consumo-kpi-card text-center"> <p class="text-xs font-medium text-gray-500">CONSUMO MENSUAL</p> <p id="consumo-kpi-monthly-consumption-${type}" class="text-3xl font-bold text-gray-900 mt-1">-</p> </div>
+                     <div class="consumo-kpi-card text-center"> <p class="text-xs font-medium text-gray-500">COBERTURA PROYECTADA (MESES)</p> <p id="consumo-kpi-coverage-projected-${type}" class="text-3xl font-bold text-blue-700 mt-1">-</p> </div>
+                     <div class="consumo-kpi-card text-center"> <p class="text-xs font-medium text-gray-500">FECHA ENTREGA PEDIDO</p> <p id="consumo-kpi-next-arrival-${type}" class="text-lg font-bold text-gray-900 mt-2 flex flex-col items-center justify-center">-</p> </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mt-4 border-t pt-4">
+                    <div class="consumo-kpi-card text-center"> <p class="text-xs font-medium text-gray-500">ÚLTIMA SOLPED</p> <p id="consumo-kpi-solicitud-${type}" class="text-lg font-bold text-gray-900 mt-2 flex flex-col items-center justify-center">-</p> </div>
+                    <div class="consumo-kpi-card text-center"> <p class="text-xs font-medium text-gray-500">CANT. Y LIBERACIÓN</p> <p id="consumo-kpi-liberacion-${type}" class="text-lg font-bold text-gray-900 mt-2 flex flex-col items-center justify-center">-</p> </div>
+                </div>
+                <div id="consumo-ocs-kpi-container-${type}" class="mt-4"></div>
+            </div>
+            `;
+            
+            const editBtn = document.getElementById(`consumo-edit-btn-${type}`);
+            editBtn.onclick = () => { if (itemId) { switchMainView('inventory'); handleSelectRow(itemId); } };
+
+            const item = items.find(i => i.id === itemId);
+            const processedItem = getProcessedItems(true).find(i => i.id === itemId);
+
+            if (!item || !processedItem) return;
+
+            editBtn.classList.remove('hidden');
+            
+            document.getElementById(`consumo-kpi-name-${type}`).textContent = item.name;
+            document.getElementById(`consumo-kpi-stock-${type}`).textContent = formatNumber(item.stock);
+            const consumos = item.consumos || [];
+            const avgConsumption = consumos.length > 0 ? consumos.reduce((a, b) => a + b, 0) / consumos.length : 0;
+            document.getElementById(`consumo-kpi-avg-${type}`).textContent = formatNumber(Math.round(avgConsumption));
+            document.getElementById(`consumo-kpi-monthly-consumption-${type}`).textContent = formatNumber(Math.round(item.monthlyConsumption));
+            document.getElementById(`consumo-kpi-coverage-today-${type}`).textContent = (processedItem.coverageDays / 30).toFixed(1);
+            document.getElementById(`consumo-kpi-coverage-projected-${type}`).textContent = (processedItem.totalCoverageDays / 30).toFixed(1);
+
+            let nextArrivalInfo = '-';
+            if (item.orderQuantities && item.orderQuantities.length > 0) {
+                const futureOrders = item.orderQuantities.filter(o => o.date && new Date(o.date + 'T00:00:00Z') >= new Date()).sort((a, b) => new Date(a.date) - new Date(b.date));
+                if (futureOrders.length > 0) {
+                    const nextOrder = futureOrders[0];
+                    nextArrivalInfo = `${formatDate(nextOrder.date)} <span class="text-sm font-medium text-gray-500">(${formatNumber(nextOrder.quantity)} Uds)</span>`;
+                }
+            }
+            document.getElementById(`consumo-kpi-next-arrival-${type}`).innerHTML = nextArrivalInfo;
+
+            const itemSolpeds = solpeds.filter(s => s.cod == item.code).sort((a, b) => new Date(b.fechaSolicitud) - new Date(a.fechaSolicitud));
+            if (itemSolpeds.length > 0) {
+                const latestSolped = itemSolpeds[0];
+                document.getElementById(`consumo-kpi-solicitud-${type}`).innerHTML = `${latestSolped.solicitud} <span class="text-sm font-medium text-gray-500">(${latestSolped.fechaSolicitud})</span>`;
+                document.getElementById(`consumo-kpi-liberacion-${type}`).innerHTML = `${formatNumber(latestSolped.cantidad)} <span class="text-sm font-medium text-gray-500">(${latestSolped.fechaLiberacion})</span>`;
+            } else {
+                 document.getElementById(`consumo-kpi-solicitud-${type}`).innerHTML = '-';
+                 document.getElementById(`consumo-kpi-liberacion-${type}`).innerHTML = '-';
+            }
+
+            const itemOCs = ocs.filter(oc => oc.codigo == item.code);
+            const ocsContainer = document.getElementById(`consumo-ocs-kpi-container-${type}`);
+            if(itemOCs.length > 0){
+                ocsContainer.innerHTML = `<h3 class="text-sm font-bold text-gray-600 uppercase col-span-2 text-center border-t pt-4">Órdenes de Compra</h3><div class="grid grid-cols-2 gap-4 mt-2">${itemOCs.map(oc => `
+                    <div class="consumo-kpi-card text-center">
+                        <p class="text-xs font-medium text-gray-500">OC ${oc.ordenDeCompra} / ${oc.posicion}</p>
+                        <p class="text-lg font-bold text-gray-900 mt-2 flex flex-col items-center justify-center">${oc.proxFechaEntrega}</p>
+                        <p class="text-sm font-medium text-gray-500">${formatNumber(oc.cantEntregaSiguiente)} Uds.</p>
+                    </div>
+                `).join('')}</div>`;
+            } else {
+                ocsContainer.innerHTML = '';
+            }
+            
+            const chartWrapper = document.getElementById(`consumo-chart-${type}`);
+            if (!consumos || consumos.length === 0) {
+                chartWrapper.innerHTML = '<p class="text-gray-500 m-auto">Este producto no tiene historial de consumo.</p>';
+                return;
+            }
+
+            const getNiceMaxValue = (max) => { if (max <= 0) return 10; const power = Math.floor(Math.log10(max)); const magnitude = Math.pow(10, power); return Math.ceil(max / magnitude) * magnitude; };
+            const peakConsumption = Math.max(...consumos);
+            const maxValue = getNiceMaxValue(peakConsumption);
+            const yAxisLabels = [0, maxValue * 0.25, maxValue * 0.5, maxValue * 0.75, maxValue];
+            let yAxisHtml = '<div class="consumo-y-axis">';
+            yAxisLabels.reverse().forEach(label => { yAxisHtml += `<span>${formatNumber(Math.round(label))}</span>`; });
+            yAxisHtml += '</div>';
+
+            const monthNames = ["Mes 1", "Mes 2", "Mes 3", "Mes 4", "Mes 5", "Mes 6", "Mes 7", "Mes 8", "Mes 9", "Mes 10", "Mes 11", "Mes 12"];
+            let barsHtml = '<div class="consumo-chart-container">';
+            barsHtml += consumos.map((value, index) => {
+                const barHeight = maxValue > 0 ? (value / maxValue) * 100 : 0;
+                const displayValue = value > 0 ? formatNumber(value) : '';
+                return `<div class="consumo-chart-bar-wrapper"><div class="consumo-chart-bar" style="height: ${barHeight}%;"><div class="consumo-chart-value">${displayValue}</div></div><div class="consumo-chart-label">${monthNames[index % 12]}</div></div>`;
+            }).join('');
+            barsHtml += '</div>';
+            chartWrapper.innerHTML = yAxisHtml + barsHtml;
+        }
+
+        function handleConsumosFilterChange(event) {
+            const type = event.target.dataset.type;
+            if (type === 'primary') {
+                consumoSelectedGroup = event.target.value;
+            } else {
+                consumoComparisonSelectedGroup = event.target.value;
+            }
+            handleConsumosSearch({ target: { value: document.getElementById(`consumo${type === 'primary' ? '' : '-comparison'}-search-input`).value } }, type);
+        }
+
+        function handleConsumosFavoritesToggle(event) {
+            const type = event.target.dataset.type;
+            if (type === 'primary') {
+                consumoShowOnlyFavorites = !consumoShowOnlyFavorites;
+            } else {
+                consumoComparisonShowOnlyFavorites = !consumoComparisonShowOnlyFavorites;
+            }
+            renderConsumoFilters(type);
+            handleConsumosSearch({ target: { value: document.getElementById(`consumo${type === 'primary' ? '' : '-comparison'}-search-input`).value } }, type);
+        }
+
+        function handleClearConsumosFilters() {
+            selectedConsumptionItemId = null;
+            comparisonItemId = null;
+            consumoSelectedGroup = 'all';
+            consumoShowOnlyFavorites = false;
+            consumoComparisonSelectedGroup = 'all';
+            consumoComparisonShowOnlyFavorites = false;
+            document.getElementById('consumo-search-input').value = '';
+            document.getElementById('consumo-search-results').innerHTML = '';
+            document.getElementById('consumo-comparison-search-input').value = '';
+            document.getElementById('consumo-comparison-search-results').innerHTML = '';
+            renderConsumosView();
+        }
+
+        function handleConsumosSearch(event, type) {
+            const searchTerm = event.target.value.toLowerCase();
+            const prefix = type === 'primary' ? '' : '-comparison';
+            const resultsContainer = document.getElementById(`consumo${prefix}-search-results`);
+            const selectedGroup = type === 'primary' ? consumoSelectedGroup : consumoComparisonSelectedGroup;
+            const showFavorites = type === 'primary' ? consumoShowOnlyFavorites : consumoComparisonShowOnlyFavorites;
+            
+            let filteredItems = items.filter(item => item.consumos && item.consumos.length > 0);
+
+            if (selectedGroup !== 'all') {
+                filteredItems = filteredItems.filter(item => item.group === selectedGroup);
+            }
+            if (showFavorites) {
+                filteredItems = filteredItems.filter(item => item.isFavorite);
+            }
+            if (searchTerm.length >= 2) {
+                filteredItems = filteredItems.filter(item => item.name.toLowerCase().includes(searchTerm));
+            }
+
+            if (searchTerm.length < 2 && selectedGroup === 'all' && !showFavorites) {
+                 resultsContainer.innerHTML = '';
+                 return;
+            }
+            
+            if (filteredItems.length > 0) {
+                resultsContainer.innerHTML = filteredItems
+                    .map(item => `<div class="p-2 hover:bg-gray-100 cursor-pointer" data-item-id="${item.id}" data-type="${type}">${item.name}</div>`)
+                    .join('');
+            } else {
+                resultsContainer.innerHTML = '<div class="p-2 text-gray-500">No se encontraron productos.</div>';
+            }
+        }
+
+        function handleSelectConsumosItem(event) {
+            const target = event.target.closest('[data-item-id]');
+            if (target) {
+                const { itemId, type } = target.dataset;
+                const prefix = type === 'primary' ? '' : '-comparison';
+                if (type === 'primary') {
+                    selectedConsumptionItemId = itemId;
+                } else {
+                    comparisonItemId = itemId;
+                }
+                document.getElementById(`consumo${prefix}-search-input`).value = target.textContent;
+                document.getElementById(`consumo${prefix}-search-results`).innerHTML = '';
+                renderSingleConsumoPanel(itemId, type);
+            }
+        }
+
+        // --- LÓGICA DE LA PESTAÑA SOLPEDS Y OCs ---
+        function handleSolpedsSort(key) {
+            if (solpedsSortConfig.key === key) {
+                solpedsSortConfig.direction = solpedsSortConfig.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                solpedsSortConfig.key = key;
+                solpedsSortConfig.direction = 'asc';
+            }
+            renderSolpedsView();
+        }
+        function handleOCsSort(key) {
+            if (ocsSortConfig.key === key) {
+                ocsSortConfig.direction = ocsSortConfig.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                ocsSortConfig.key = key;
+                ocsSortConfig.direction = 'asc';
+            }
+            renderOCsView();
+        }
+        function renderSolpedsView() {
+            const container = document.getElementById('solpeds-table-container');
+            const searchInput = document.getElementById('solpeds-search-input');
+            const searchTerm = searchInput.value.toLowerCase();
+
+            if (solpeds.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 py-10">No hay datos de Solpeds. Precarga un archivo para visualizarlos.</p>';
+                return;
+            }
+
+            let filteredSolpeds = solpeds.filter(s => {
+                return (s.solicitud.toString().toLowerCase().includes(searchTerm) || s.cod.toString().toLowerCase().includes(searchTerm) || s.descripcion.toLowerCase().includes(searchTerm) || s.creadoPor.toLowerCase().includes(searchTerm));
+            });
+
+            filteredSolpeds.sort((a, b) => {
+                const key = solpedsSortConfig.key;
+                const dir = solpedsSortConfig.direction === 'asc' ? 1 : -1;
+                let valA = a[key] ?? '';
+                let valB = b[key] ?? '';
+                if (key === 'cantidad') {
+                    valA = parseFloat(valA) || 0;
+                    valB = parseFloat(valB) || 0;
+                } else if (key === 'fechaSolicitud' || key === 'fechaLiberacion') {
+                    valA = parseDateString(valA)?.getTime() || 0;
+                    valB = parseDateString(valB)?.getTime() || 0;
+                } else {
+                    valA = String(valA).toLowerCase();
+                    valB = String(valB).toLowerCase();
+                }
+                if (valA < valB) return -1 * dir;
+                if (valA > valB) return 1 * dir;
+                return 0;
+            });
+
+            if (filteredSolpeds.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 py-10">No se encontraron resultados para tu búsqueda.</p>';
+                return;
+            }
+            
+            const sortIconSVG = `<svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+            const headers = [
+                { key: 'diasDesdeCreacion', label: 'Días Activa', noSort: true, class: 'text-center' },
+                { key: 'creadoPor', label: 'Creado Por' }, { key: 'solicitud', label: 'Solicitud' },
+                { key: 'fechaSolicitud', label: 'Fecha Sol.' }, { key: 'status', label: 'Status', noSort: true, class: 'text-center' },
+                { key: 'cod', label: 'Código' }, { key: 'descripcion', label: 'Descripción' },
+                { key: 'cantidad', label: 'Cantidad', class: 'justify-end' }, { key: 'fechaLiberacion', label: 'Fecha Liberación' }
+            ];
+            
+            let tableHTML = `<table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0"><tr>`;
+            headers.forEach(h => {
+                const thClass = `px-4 py-2 ${h.class && !h.noSort ? 'text-left' : h.class || ''}`;
+                if (h.noSort) {
+                    tableHTML += `<th scope="col" class="${thClass}">${h.label}</th>`;
+                } else {
+                    tableHTML += `<th scope="col" class="${thClass}"><button class="table-sort-button ${h.class || ''}" data-sort="${h.key}">${h.label}</button></th>`;
+                }
+            });
+            tableHTML += `</tr></thead><tbody>`;
+
+            filteredSolpeds.forEach(s => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const creationDate = parseDateString(s.fechaSolicitud);
+                let daysActive = '';
+                if (creationDate) {
+                    daysActive = daysBetween(creationDate, today);
+                }
+                tableHTML += `<tr class="border-b hover:bg-gray-50">
+                    <td class="px-4 py-2 text-center font-bold">${daysActive}</td>
+                    <td class="px-4 py-2">${s.creadoPor}</td>
+                    <td class="px-4 py-2 font-medium text-gray-900">${s.solicitud}</td>
+                    <td class="px-4 py-2">${s.fechaSolicitud}</td>
+                    <td class="px-4 py-2 text-center">${s.status}</td>
+                    <td class="px-4 py-2">${s.cod}</td>
+                    <td class="px-4 py-2">${s.descripcion}</td>
+                    <td class="px-4 py-2 text-right">${formatNumber(s.cantidad)}</td>
+                    <td class="px-4 py-2">${s.fechaLiberacion}</td>
+                </tr>`;
+            });
+
+            tableHTML += `</tbody></table>`;
+            container.innerHTML = tableHTML;
+            
+            const activeButton = container.querySelector(`.table-sort-button[data-sort="${solpedsSortConfig.key}"]`);
+            if (activeButton) {
+                activeButton.classList.add('active', solpedsSortConfig.direction);
+                activeButton.innerHTML += sortIconSVG;
+            }
+        }
+
+        function renderOCsView() {
+            const container = document.getElementById('ocs-table-container');
+            const searchInput = document.getElementById('ocs-search-input');
+            const searchTerm = searchInput.value.toLowerCase();
+            const delayedFilterBtn = document.getElementById('ocs-delayed-filter-btn');
+            delayedFilterBtn.classList.toggle('bg-red-200', showOnlyDelayedOCs);
+            delayedFilterBtn.classList.toggle('border-red-400', showOnlyDelayedOCs);
+            delayedFilterBtn.classList.toggle('text-red-800', showOnlyDelayedOCs);
+
+            if (ocs.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 py-10">No hay datos de Órdenes de Compra. Precarga un archivo para visualizarlos.</p>';
+                return;
+            }
+
+            let filteredOCs = ocs.filter(oc => {
+                return (oc.solped.toString().toLowerCase().includes(searchTerm) || 
+                        oc.ordenDeCompra.toString().toLowerCase().includes(searchTerm) || 
+                        oc.codigo.toString().toLowerCase().includes(searchTerm) || 
+                        oc.denominacion.toLowerCase().includes(searchTerm) ||
+                        (oc.grupoDeCompras || '').toLowerCase().includes(searchTerm) ||
+                        (oc.status || '').toLowerCase().includes(searchTerm)
+                );
+            });
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (showOnlyDelayedOCs) {
+                filteredOCs = filteredOCs.filter(oc => {
+                    const deliveryDate = parseDateString(oc.proxFechaEntrega);
+                    return deliveryDate && deliveryDate < today;
+                });
+            }
+            
+            filteredOCs.sort((a, b) => {
+                const key = ocsSortConfig.key;
+                const dir = ocsSortConfig.direction === 'asc' ? 1 : -1;
+                let valA = a[key] ?? '';
+                let valB = b[key] ?? '';
+
+                if (['cantEntregaSiguiente', 'cantPedido', 'posicion'].includes(key)) {
+                    valA = parseFloat(valA) || 0;
+                    valB = parseFloat(valB) || 0;
+                } else if (key === 'proxFechaEntrega') {
+                    valA = parseDateString(valA)?.getTime() || 0;
+                    valB = parseDateString(valB)?.getTime() || 0;
+                } else {
+                    valA = String(valA).toLowerCase();
+                    valB = String(valB).toLowerCase();
+                }
+                if (valA < valB) return -1 * dir;
+                if (valA > valB) return 1 * dir;
+                return 0;
+            });
+
+
+            if (filteredOCs.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 py-10">No se encontraron resultados para tu búsqueda.</p>';
+                return;
+            }
+            
+            const sortIconSVG = `<svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+            const headers = [
+                { key: 'diasParaEntrega', label: 'Días Entrega', noSort: true, class: 'text-center' },
+                { key: 'solped', label: 'Solped' }, { key: 'ordenDeCompra', label: 'Orden de Compra' },
+                { key: 'posicion', label: 'Pos.' }, { key: 'proxFechaEntrega', label: 'Próx. Entrega' },
+                { key: 'cantEntregaSiguiente', label: 'Cant. Entrega', class: 'justify-end' }, { key: 'codigo', label: 'Código' },
+                { key: 'denominacion', label: 'Denominación' }, { key: 'cantPedido', label: 'Cant. Pedido', class: 'justify-end' },
+                { key: 'grupoDeCompras', label: 'Grupo Compras' }, { key: 'status', label: 'Status' }
+            ];
+
+            let tableHTML = `<table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0"><tr>`;
+            headers.forEach(h => {
+                const thClass = `px-4 py-2 ${h.class && !h.noSort ? 'text-left' : h.class || ''}`;
+                tableHTML += `<th scope="col" class="${thClass}"><button class="table-sort-button ${h.class || ''}" data-sort="${h.key}">${h.label}</button></th>`;
+            });
+            tableHTML += `</tr></thead><tbody>`;
+
+            filteredOCs.forEach(oc => {
+                const deliveryDate = parseDateString(oc.proxFechaEntrega);
+                let daysToDelivery = '';
+                let daysClass = '';
+                 if (deliveryDate) {
+                     const diff = daysBetween(today, deliveryDate);
+                     daysToDelivery = diff;
+                     if (diff < 0) {
+                         daysClass = 'text-red-600'; // Delayed
+                     } else if (diff <= 7) {
+                         daysClass = 'text-yellow-600'; // Upcoming
+                     }
+                 }
+                const isDelayed = deliveryDate && deliveryDate < today;
+                const dateClass = isDelayed ? 'text-red-600 font-bold' : '';
+
+                let rowClass = 'hover:bg-gray-50';
+                if (oc.status && oc.status.toLowerCase().includes('en proceso de autorización')) {
+                    rowClass = 'bg-yellow-100 hover:bg-yellow-200';
+                }
+                if (oc.status && oc.status.toLowerCase().includes('rechazado')) {
+                    rowClass = 'bg-red-100 hover:bg-red-200 text-red-900';
+                }
+
+                tableHTML += `<tr class="border-b ${rowClass}">
+                    <td class="px-4 py-2 text-center font-bold ${daysClass}">${daysToDelivery}</td>
+                    <td class="px-4 py-2">${oc.solped}</td>
+                    <td class="px-4 py-2 font-medium">${oc.ordenDeCompra}</td>
+                    <td class="px-4 py-2">${oc.posicion}</td>
+                    <td class="px-4 py-2 ${dateClass}">${oc.proxFechaEntrega}</td>
+                    <td class="px-4 py-2 text-right">${formatNumber(oc.cantEntregaSiguiente)}</td>
+                    <td class="px-4 py-2">${oc.codigo}</td>
+                    <td class="px-4 py-2">${oc.denominacion}</td>
+                    <td class="px-4 py-2 text-right">${formatNumber(oc.cantPedido)}</td>
+                    <td class="px-4 py-2">${oc.grupoDeCompras}</td>
+                    <td class="px-4 py-2">${oc.status}</td>
+                </tr>`;
+            });
+
+            tableHTML += `</tbody></table>`;
+            container.innerHTML = tableHTML;
+            
+            const activeButton = container.querySelector(`.table-sort-button[data-sort="${ocsSortConfig.key}"]`);
+            if (activeButton) {
+                activeButton.classList.add('active', ocsSortConfig.direction);
+                activeButton.innerHTML += sortIconSVG;
+            }
+        }
+
+
+        // --- INICIALIZACIÓN ---
+        async function initializeAppFlow() {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                appId = firebaseConfig.projectId;
+
+                permissionsCollectionRef = collection(db, `artifacts/${appId}/public/data/permissions`);
+                
+                onAuthStateChanged(auth, async (user) => {
+                    if (unsubscribeInventory) unsubscribeInventory();
+                    if (unsubscribePermissions) unsubscribePermissions();
+                    if (unsubscribeMetadata) unsubscribeMetadata();
+                    if (unsubscribePresence) unsubscribePresence();
+                    if (unsubscribeSolpeds) unsubscribeSolpeds();
+                    if (unsubscribeOCs) unsubscribeOCs();
+                    isAuthReady = false;
+
+                    if (user) {
+                        userId = user.uid;
+                        await checkUserPermissions(user);
+                    } else {
+                        document.getElementById('app-container').classList.add('hidden');
+                        document.getElementById('auth-container').classList.remove('hidden');
+                        switchAuthView('login-view');
+                    }
+                });
+            } catch (e) {
+                console.error("Error al inicializar Firebase:", e);
+                showToast("No se pudo conectar a la base de datos.", "error");
+            }
+        }
+
+        async function checkUserPermissions(user) {
+            const permissionsDocRef = doc(permissionsCollectionRef, user.uid);
+            try {
+                const docSnap = await getDoc(permissionsDocRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    currentUserRole = data.role || 'viewer';
+                    currentUserTags = data.tags || [];
+                    isAuthReady = true;
+                    
+                    document.getElementById('auth-container').classList.add('hidden');
+                    document.getElementById('app-container').classList.remove('hidden');
+                    adaptUiToRole(currentUserRole, user);
+                    activateDataListeners();
+                } else {
+                    await createInitialPermissions(user);
+                    await checkUserPermissions(user);
+                }
+            } catch (error) {
+                console.error("FirebaseError checking permissions:", error);
+                showToast("No se pudieron verificar sus permisos de acceso.", "error");
+                await signOut(auth);
+            }
+        }
+
+        async function createInitialPermissions(user) {
+            const appConfigRef = doc(db, `artifacts/${appId}/public/data/metadata`, 'appConfig');
+            const userPermRef = doc(permissionsCollectionRef, user.uid);
+            try {
+                await runTransaction(db, async (transaction) => {
+                    const appConfigDoc = await transaction.get(appConfigRef);
+                    let role = 'viewer';
+                    if (!appConfigDoc.exists() || !appConfigDoc.data().ownerAssigned) {
+                        role = 'owner';
+                        transaction.set(appConfigRef, { ownerAssigned: true }, { merge: true });
+                    }
+                    transaction.set(userPermRef, { 
+                        email: user.email, 
+                        role: role, 
+                        editableGroups: role === 'owner' ? ['*'] : [], 
+                        tags: []
+                    });
+                });
+            } catch (error) {
+                 console.error("Error creating initial permissions:", error);
+                 throw error;
+            }
+        }
+
+        function activateDataListeners() {
+            if (!isAuthReady || !userId) {
+                console.warn("Attempted to activate data listeners before auth was ready. Aborting.");
+                return;
+            }
+            if (unsubscribeInventory) unsubscribeInventory();
+            if (unsubscribePresence) unsubscribePresence();
+            if (unsubscribeMetadata) unsubscribeMetadata();
+            if (unsubscribeSolpeds) unsubscribeSolpeds();
+            if (unsubscribeOCs) unsubscribeOCs();
+
+            inventoryCollectionRef = collection(db, `artifacts/${appId}/public/data/inventory`);
+            presenceCollectionRef = collection(db, `artifacts/${appId}/public/data/presence`);
+            reviewHistoryCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/reviewHistory`);
+            metadataDocRef = doc(db, `artifacts/${appId}/public/data/metadata`, 'dataSource');
+            solpedsCollectionRef = collection(db, `artifacts/${appId}/public/data/solpeds`);
+            ocsCollectionRef = collection(db, `artifacts/${appId}/public/data/ocs`);
+
+            unsubscribeInventory = onSnapshot(inventoryCollectionRef, (snap) => {
+                items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderApp();
+            }, (error) => { console.error("Error de permisos:", error); showToast('No tienes permiso para ver el inventario.', 'error'); });
+            
+            unsubscribeSolpeds = onSnapshot(solpedsCollectionRef, (snap) => {
+                solpeds = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if (currentView === 'solpeds') {
+                    renderSolpedsView();
+                }
+            }, (error) => { console.error("Error de permisos en Solpeds:", error); showToast('No tienes permiso para ver las Solpeds.', 'error'); });
+
+            unsubscribeOCs = onSnapshot(ocsCollectionRef, (snap) => {
+                ocs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if (currentView === 'ocs') {
+                    renderOCsView();
+                }
+            }, (error) => { console.error("Error de permisos en OCs:", error); showToast('No tienes permiso para ver las OCs.', 'error'); });
+
+            unsubscribeMetadata = onSnapshot(metadataDocRef, (docSnap) => {
+                const dbInfoContainer = document.getElementById('db-info-container');
+                if (dbInfoContainer) {
+                    let dbName = "Sin Datos";
+                    if (docSnap.exists()) { dbName = docSnap.data().filename.split('.').slice(0, -1).join('.') || docSnap.data().filename; }
+                    dbInfoContainer.innerHTML = `<div class="btn-main-style bg-green-100 text-green-800 border-green-200 font-bold text-xs">DB: ${dbName}</div>`;
+                }
+            });
+
+            const presenceRef = doc(presenceCollectionRef, userId);
+            setDoc(presenceRef, { lastSeen: new Date().toISOString() });
+            presenceInterval = setInterval(() => { if(auth.currentUser) setDoc(presenceRef, { lastSeen: new Date().toISOString() }); }, 30000); 
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeAppFlow();
+            
+            document.getElementById('login-form')?.addEventListener('submit', handleLogin);
+            document.getElementById('register-form')?.addEventListener('submit', handleRegister);
+            document.getElementById('show-register-view-btn')?.addEventListener('click', () => switchAuthView('register-view'));
+            document.getElementById('show-login-view-btn')?.addEventListener('click', () => switchAuthView('login-view'));
+            document.getElementById('main-nav-links')?.addEventListener('click', (e) => { if (e.target.matches('.nav-link')) { switchMainView(e.target.dataset.view); } });
+            
+            const userMenuButton = document.getElementById('user-menu-button');
+            const userDropdown = document.getElementById('user-dropdown-content');
+            userMenuButton?.addEventListener('click', (e) => { 
+                if (!userMenuButton.disabled) {
+                    e.stopPropagation(); 
+                    userDropdown.classList.toggle('show'); 
+                }
+            });
+            document.getElementById('logout-button-dropdown')?.addEventListener('click', handleLogout);
+            document.getElementById('admin-button-dropdown')?.addEventListener('click', openAdminModal);
+
+            document.getElementById('dashboard-view')?.addEventListener('click', (e) => {
+                const kpiCard = e.target.closest('.kpi-card');
+                if (kpiCard) handleKpiClick(kpiCard.dataset.kpi);
+                
+                const groupItem = e.target.closest('.group-item-name');
+                if (groupItem) {
+                    const groupName = groupItem.dataset.groupName;
+                    selectedGroup = groupName;
+                    switchMainView('inventory');
+                }
+            });
+
+            document.getElementById('save-review-btn')?.addEventListener('click', handleSaveReview);
+            document.getElementById('clear-review-btn')?.addEventListener('click', handleClearReview);
+            document.getElementById('groups-review-list')?.addEventListener('change', handleReviewCheckboxChange);
+            document.getElementById('show-history-btn')?.addEventListener('click', showReviewHistory);
+            document.getElementById('close-history-modal-button')?.addEventListener('click', () => document.getElementById('review-history-modal').classList.add('hidden'));
+
+            document.getElementById('consumo-search-input')?.addEventListener('input', (e) => handleConsumosSearch(e, 'primary'));
+            document.getElementById('consumo-comparison-search-input')?.addEventListener('input', (e) => handleConsumosSearch(e, 'comparison'));
+            document.getElementById('consumo-search-results')?.addEventListener('click', handleSelectConsumosItem);
+            document.getElementById('consumo-comparison-search-results')?.addEventListener('click', handleSelectConsumosItem);
+            document.getElementById('consumo-favorites-filter-btn')?.addEventListener('click', (e) => handleConsumosFavoritesToggle(e));
+            document.getElementById('consumo-comparison-favorites-filter-btn')?.addEventListener('click', (e) => handleConsumosFavoritesToggle(e));
+            document.getElementById('consumo-clear-filters-btn')?.addEventListener('click', handleClearConsumosFilters);
+            document.getElementById('consumos-view').addEventListener('change', (e) => { if (e.target.matches('.consumo-group-filter')) { handleConsumosFilterChange(e); } });
+
+            document.getElementById('solpeds-search-input')?.addEventListener('input', renderSolpedsView);
+            document.getElementById('solpeds-table-container')?.addEventListener('click', (e) => { const btn = e.target.closest('.table-sort-button'); if (btn) handleSolpedsSort(btn.dataset.sort); });
+            document.getElementById('ocs-search-input')?.addEventListener('input', renderOCsView);
+            document.getElementById('ocs-table-container')?.addEventListener('click', (e) => { const btn = e.target.closest('.table-sort-button'); if (btn) handleOCsSort(btn.dataset.sort); });
+            document.getElementById('ocs-delayed-filter-btn')?.addEventListener('click', () => { showOnlyDelayedOCs = !showOnlyDelayedOCs; renderOCsView(); });
+
+            document.getElementById('visualization-area')?.addEventListener('click', (e) => {
+                const sortButton = e.target.closest('.sort-button');
+                if (sortButton) handleSort(sortButton.dataset.sort);
+                if (e.target.id === 'open-add-modal-button') document.getElementById('add-item-modal').classList.remove('hidden');
+                if (e.target.id === 'favorites-filter-btn') { showOnlyFavorites = !showOnlyFavorites; renderApp(); }
+            });
+
+            document.getElementById('dynamic-edit-area')?.addEventListener('input', (e) => {
+                if (e.target.matches('#edit-form input')) {
+                    const fieldMap = { 'edit-current-stock': 'stock', 'edit-monthly-consumption': 'monthlyConsumption', 'edit-delayed-quantity': 'delayedQuantity', 'edit-lead-time': 'leadTimeDays', 'edit-safety-stock': 'safetyStockDays' };
+                    handleTempItemUpdate(fieldMap[e.target.id], e.target.value);
+                } else if (e.target.matches('.order-input')) {
+                    const { index, field } = e.target.dataset;
+                    handleOrderEdit(parseInt(index), field, e.target.value);
+                }
+            });
+            
+            document.getElementById('dynamic-edit-area')?.addEventListener('click', (e) => {
+                if (e.target.id === 'save-changes-button') handleSaveChanges();
+                if (e.target.id === 'cancel-changes-button') handleCancelChanges();
+                if (e.target.id === 'restore-changes-button') handleRestoreChanges();
+                if (e.target.id === 'add-order-button') handleAddOrder();
+                if (e.target.id === 'show-all-button') handleSelectRow(null);
+                if (e.target.id === 'show-consumption-chart-btn') {
+                    const item = items.find(i => i.id === selectedItemId);
+                    if (item) {
+                        const modal = document.getElementById('consumption-chart-modal');
+                        const content = document.getElementById('chart-modal-content');
+                        document.getElementById('chart-modal-title').textContent = `Historial de Consumo: ${item.name}`;
+                        
+                        const consumos = item.consumos || [];
+                        if (consumos.length === 0) {
+                            content.innerHTML = '<p class="text-center p-4 text-gray-500">No hay datos de consumo para este producto.</p>';
+                        } else {
+                            const getNiceMaxValue = (max) => { if (max <= 0) return 10; const power = Math.floor(Math.log10(max)); const magnitude = Math.pow(10, power); return Math.ceil(max / magnitude) * magnitude; };
+                            const peakConsumption = Math.max(...consumos);
+                            const maxValue = getNiceMaxValue(peakConsumption);
+                            const yAxisLabels = [0, maxValue * 0.25, maxValue * 0.5, maxValue * 0.75, maxValue];
+                            
+                            let chartHTML = '<div class="modal-chart-wrapper"><div class="modal-y-axis">';
+                            yAxisLabels.reverse().forEach(label => { chartHTML += `<span>${formatNumber(Math.round(label))}</span>`; });
+                            chartHTML += '</div><div class="modal-chart-container">';
+                            const monthNames = ["Mes 1", "Mes 2", "Mes 3", "Mes 4", "Mes 5", "Mes 6", "Mes 7", "Mes 8", "Mes 9", "Mes 10", "Mes 11", "Mes 12"];
+                            chartHTML += consumos.map((value, index) => {
+                                const barHeight = maxValue > 0 ? (value / maxValue) * 100 : 0;
+                                const displayValue = value > 0 ? formatNumber(value) : '';
+                                return `<div class="modal-chart-bar-wrapper"><div class="modal-chart-bar" style="height: ${barHeight}%;"><div class="modal-chart-value">${displayValue}</div></div><div class="modal-chart-label">${monthNames[index % 12]}</div></div>`;
+                            }).join('');
+                            chartHTML += '</div></div>';
+                            content.innerHTML = chartHTML;
+                        }
+                        
+                        modal.classList.remove('hidden');
+                    }
+                }
+                const removeBtn = e.target.closest('.remove-order-btn');
+                if (removeBtn) {
+                    handleRemoveOrder(parseInt(removeBtn.dataset.removeOrderIndex));
+                }
+                const favBtn = e.target.closest('#edit-favorite-btn');
+                if (favBtn) {
+                    handleToggleFavorite(selectedItemId);
+                }
+            });
+
+            document.getElementById('item-form')?.addEventListener('submit', handleAddItem);
+            document.getElementById('dashboard-preload-btn')?.addEventListener('click', handleOpenPreloadModal);
+            document.getElementById('dashboard-clear-btn')?.addEventListener('click', handleClearAll);
+            document.getElementById('close-add-modal-button')?.addEventListener('click', () => document.getElementById('add-item-modal').classList.add('hidden'));
+            document.getElementById('close-preload-modal')?.addEventListener('click', handleClosePreloadModal);
+            document.getElementById('process-preload-data')?.addEventListener('click', handleProcessPreloadData);
+            document.getElementById('preload-file-input')?.addEventListener('change', handleFileInputChange);
+            document.getElementById('cancel-clear-button')?.addEventListener('click', () => document.getElementById('confirm-clear-modal').classList.add('hidden'));
+            
+            document.getElementById('queries-dropdown-content')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                const idMap = { 'query-low-stock': handleLowStockQuery, 'query-low-stock-no-order': handleLowStockNoOrderQuery, 'query-low-stock-with-order': handleLowStockWithOrderQuery, 'query-low-stock-with-delay': handleLowStockWithDelayQuery, 'query-with-delay': handleWithDelayQuery, 'query-upcoming-orders': handleUpcomingOrdersQuery, 'query-weekly-arrivals': handleWeeklyArrivalsQuery };
+                if (idMap[e.target.id]) idMap[e.target.id]();
+            });
+            document.getElementById('close-query-modal-button')?.addEventListener('click', closeQueryModal);
+            document.getElementById('export-query-btn')?.addEventListener('click', handleExportQuery);
+            document.getElementById('visualize-query-btn')?.addEventListener('click', handleVisualizeQueryResults);
+            document.getElementById('query-modal-content')?.addEventListener('click', handleQueryRowClick);
+
+            document.getElementById('admin-tabs')?.addEventListener('click', (e) => {
+                const tab = e.target.dataset.tab;
+                if (!tab) return;
+                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                e.target.classList.add('active');
+                document.getElementById('admin-content-permissions').classList.toggle('hidden', tab !== 'permissions');
+                document.getElementById('admin-content-presence').classList.toggle('hidden', tab !== 'presence');
+            });
+            document.getElementById('admin-content-permissions')?.addEventListener('change', (e) => {
+                if (e.target.matches('.role-select, .groups-input, .tags-input')) {
+                    const userId = e.target.dataset.userid;
+                    const row = e.target.closest('tr');
+                    const role = row.querySelector('.role-select').value;
+                    const groups = row.querySelector('.groups-input').value;
+                    const tags = row.querySelector('.tags-input').value;
+                    updateUserPermissions(userId, role, groups, tags);
+                }
+            });
+            document.getElementById('close-admin-modal-button')?.addEventListener('click', closeAdminModal);
+            
+            document.getElementById('open-filters-modal-btn')?.addEventListener('click', () => {
+                document.querySelector(`input[name="consumption-filter"][value="${consumptionFilter}"]`).checked = true;
+                document.getElementById('filters-modal').classList.remove('hidden');
+            });
+            document.getElementById('cancel-filters-button')?.addEventListener('click', () => document.getElementById('filters-modal').classList.add('hidden'));
+            document.getElementById('apply-filters-button')?.addEventListener('click', () => {
+                consumptionFilter = document.querySelector('input[name="consumption-filter"]:checked').value;
+                document.getElementById('filters-modal').classList.add('hidden');
+                renderApp();
+            });
+            document.getElementById('close-chart-modal-button')?.addEventListener('click', () => document.getElementById('consumption-chart-modal').classList.add('hidden'));
+
+            document.getElementById('favorites-group-modal')?.addEventListener('click', (e) => {
+                const groupItem = e.target.closest('.favorite-group-item');
+                if (groupItem) {
+                    const groupName = groupItem.dataset.groupName;
+                    selectedGroup = groupName;
+                    showOnlyFavorites = true;
+                    switchMainView('inventory');
+                    document.getElementById('favorites-group-modal').classList.add('hidden');
+                }
+            });
+            document.getElementById('close-favorites-modal-button')?.addEventListener('click', () => document.getElementById('favorites-group-modal').classList.add('hidden'));
+
+            document.getElementById('record-consumption-modal')?.addEventListener('click', (e) => {
+                const itemEl = e.target.closest('.record-consumption-item');
+                if (itemEl) {
+                    const itemId = itemEl.dataset.itemId;
+                    switchMainView('inventory');
+                    handleSelectRow(itemId);
+                    document.getElementById('record-consumption-modal').classList.add('hidden');
+                }
+            });
+            document.getElementById('close-record-consumption-modal-button')?.addEventListener('click', () => document.getElementById('record-consumption-modal').classList.add('hidden'));
+
+            window.addEventListener('click', (e) => {
+                if (!e.target.closest('.dropdown') && !e.target.closest('#user-menu-button')) {
+                    document.querySelectorAll('.dropdown-content.show').forEach(d => d.classList.remove('show'));
+                }
+                if(e.target.matches('#reports-button')) {
+                    document.getElementById('reports-dropdown-content').classList.toggle('show');
+                }
+                if(e.target.matches('#queries-button')) {
+                    document.getElementById('queries-dropdown-content').classList.toggle('show');
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
