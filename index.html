@@ -200,8 +200,8 @@
                     <div class="flex items-center">
                         <div class="flex-shrink-0 flex items-center gap-2">
                              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path><path d="M20 9H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V11a2 2 0 0 0-2-2z"></path></svg>
-                            <span class="font-bold text-xl text-gray-800">InventoryFlow</span>
-                            <span class="ml-2 text-xs font-semibold text-gray-400">v2.18</span>
+                            <span class="font-bold text-xl text-blue-800">Almacen</span>
+                            <span class="ml-2 text-xs font-semibold text-gray-400">v2.21</span>
                         </div>
                         <div class="hidden md:block">
                             <div id="main-nav-links" class="ml-10 flex items-baseline space-x-4">
@@ -420,7 +420,11 @@
                 <div class="bg-white p-6 rounded-lg shadow">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-xl font-bold text-gray-900">Solicitudes de Pedido (Solpeds)</h2>
-                        <input type="text" id="solpeds-search-input" placeholder="Buscar en Solpeds..." class="w-1/3 p-2 border border-gray-300 rounded-lg">
+                        <div class="flex items-center gap-4">
+                            <button id="solpeds-delayed-filter-btn" class="btn-main-style">SP Demoradas</button>
+                            <button id="export-solpeds-btn" class="btn-main-style">Exportar a Excel</button>
+                            <input type="text" id="solpeds-search-input" placeholder="Buscar en Solpeds..." class="w-80 p-2 border border-gray-300 rounded-lg">
+                        </div>
                     </div>
                     <div id="solpeds-table-container" class="max-h-[80vh] overflow-y-auto">
                         <!-- La tabla de Solpeds se inyectará aquí -->
@@ -431,11 +435,12 @@
             <div id="ocs-view" class="hidden">
                 <div class="bg-white p-6 rounded-lg shadow">
                     <div class="flex justify-between items-center mb-4">
+                       <h2 class="text-xl font-bold text-gray-900">Órdenes de Compra (OC)</h2>
                         <div class="flex items-center gap-4">
-                           <h2 class="text-xl font-bold text-gray-900">Órdenes de Compra (OC)</h2>
                            <button id="ocs-delayed-filter-btn" class="btn-main-style">OC Demoradas</button>
+                           <button id="export-ocs-btn" class="btn-main-style">Exportar a Excel</button>
+                            <input type="text" id="ocs-search-input" placeholder="Buscar en Órdenes de Compra..." class="w-80 p-2 border border-gray-300 rounded-lg">
                         </div>
-                        <input type="text" id="ocs-search-input" placeholder="Buscar en Órdenes de Compra..." class="w-1/3 p-2 border border-gray-300 rounded-lg">
                     </div>
                     <div id="ocs-table-container" class="max-h-[80vh] overflow-y-auto">
                         <!-- La tabla de OCs se inyectará aquí -->
@@ -577,10 +582,10 @@
         <div id="favorites-group-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
             <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">Seleccionar Grupo de Favoritos</h3>
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Favoritos x Grupo</h3>
                     <button id="close-favorites-modal-button" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
                 </div>
-                <div id="favorites-group-list" class="max-h-60 overflow-y-auto">
+                <div id="favorites-group-list" class="max-h-80 overflow-y-auto">
                     <!-- Group list will be injected here -->
                 </div>
             </div>
@@ -591,7 +596,7 @@
                     <h3 class="text-lg leading-6 font-medium text-gray-900">Insumos con Consumo Récord</h3>
                     <button id="close-record-consumption-modal-button" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
                 </div>
-                <div id="record-consumption-item-list" class="max-h-60 overflow-y-auto">
+                <div id="record-consumption-item-list" class="max-h-80 overflow-y-auto">
                     <!-- Item list will be injected here -->
                 </div>
             </div>
@@ -633,6 +638,7 @@
         let consumoComparisonSelectedGroup = 'all';
         let consumoComparisonShowOnlyFavorites = false;
         let showOnlyDelayedOCs = false;
+        let showOnlyDelayedSolpeds = false; // Nuevo estado para Solpeds demoradas
         
         // --- VARIABLES DE FIREBASE Y USUARIO ---
         let app, db, auth, userId, appId;
@@ -1619,7 +1625,12 @@
         function renderSolpedsView() {
             const container = document.getElementById('solpeds-table-container');
             const searchInput = document.getElementById('solpeds-search-input');
+            const delayedFilterBtn = document.getElementById('solpeds-delayed-filter-btn');
             const searchTerm = searchInput.value.toLowerCase();
+
+            delayedFilterBtn.classList.toggle('bg-red-200', showOnlyDelayedSolpeds);
+            delayedFilterBtn.classList.toggle('border-red-400', showOnlyDelayedSolpeds);
+            delayedFilterBtn.classList.toggle('text-red-800', showOnlyDelayedSolpeds);
 
             if (solpeds.length === 0) {
                 container.innerHTML = '<p class="text-center text-gray-500 py-10">No hay datos de Solpeds. Precarga un archivo para visualizarlos.</p>';
@@ -1634,6 +1645,16 @@
                         (s.grupoDeCompras || '').toLowerCase().includes(searchTerm)
                 );
             });
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (showOnlyDelayedSolpeds) {
+                filteredSolpeds = filteredSolpeds.filter(s => {
+                    const releaseDate = parseDateString(s.fechaLiberacion);
+                    return releaseDate && releaseDate <= today;
+                });
+            }
 
             filteredSolpeds.sort((a, b) => {
                 const key = solpedsSortConfig.key;
@@ -1683,8 +1704,7 @@
             tableHTML += `</tr></thead><tbody>`;
 
             filteredSolpeds.forEach(s => {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
+                
                 const creationDate = parseDateString(s.fechaSolicitud);
                 let daysActive = '';
                 if (creationDate) {
@@ -1692,7 +1712,7 @@
                 }
                 
                 const releaseDate = parseDateString(s.fechaLiberacion);
-                const isDelayed = releaseDate && releaseDate < today;
+                const isDelayed = releaseDate && releaseDate <= today;
                 const rowClass = isDelayed ? 'bg-red-100 hover:bg-red-200 text-red-900' : 'hover:bg-gray-50';
                 const dateClass = isDelayed ? 'font-bold' : '';
 
@@ -1803,13 +1823,13 @@
                 let daysToDelivery = '';
                 let daysClass = '';
                  if (deliveryDate) {
-                     const diff = daysBetween(today, deliveryDate);
-                     daysToDelivery = diff;
-                     if (diff < 0) {
-                         daysClass = 'text-red-600'; // Delayed
-                     } else if (diff <= 7) {
-                         daysClass = 'text-yellow-600'; // Upcoming
-                     }
+                      const diff = daysBetween(today, deliveryDate);
+                      daysToDelivery = diff;
+                      if (diff < 0) {
+                          daysClass = 'text-red-600'; // Delayed
+                      } else if (diff <= 7) {
+                          daysClass = 'text-yellow-600'; // Upcoming
+                      }
                  }
                 const isDelayed = deliveryDate && deliveryDate < today;
                 const dateClass = isDelayed ? 'text-red-600 font-bold' : '';
@@ -1845,6 +1865,83 @@
                 activeButton.classList.add('active', ocsSortConfig.direction);
                 activeButton.innerHTML += sortIconSVG;
             }
+        }
+
+        // --- LÓGICA DE EXPORTACIÓN ---
+        function handleExportSolpeds() {
+            const searchInput = document.getElementById('solpeds-search-input');
+            const searchTerm = searchInput.value.toLowerCase();
+            let dataToExport = solpeds.filter(s => 
+                (s.solicitud.toString().toLowerCase().includes(searchTerm) || 
+                 s.cod.toString().toLowerCase().includes(searchTerm) || 
+                 s.descripcion.toLowerCase().includes(searchTerm) || 
+                 s.creadoPor.toLowerCase().includes(searchTerm) ||
+                 (s.grupoDeCompras || '').toLowerCase().includes(searchTerm))
+            );
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (showOnlyDelayedSolpeds) {
+                dataToExport = dataToExport.filter(s => {
+                    const releaseDate = parseDateString(s.fechaLiberacion);
+                    return releaseDate && releaseDate <= today;
+                });
+            }
+            if(dataToExport.length === 0) {
+                showToast('No hay datos para exportar.', 'info');
+                return;
+            }
+            const formattedData = dataToExport.map(s => ({
+                'Días Activa': s.fechaSolicitud ? daysBetween(parseDateString(s.fechaSolicitud), today) : '',
+                'Creado Por': s.creadoPor,
+                'Solicitud': s.solicitud,
+                'Fecha Solicitud': s.fechaSolicitud,
+                'Status': s.status,
+                'Código': s.cod,
+                'Descripción': s.descripcion,
+                'Cantidad': s.cantidad,
+                'Grupo Compras': s.grupoDeCompras,
+                'Fecha Liberación': s.fechaLiberacion
+            }));
+            exportToExcel(formattedData, 'solpeds.xlsx');
+        }
+
+        function handleExportOCs() {
+            const searchInput = document.getElementById('ocs-search-input');
+            const searchTerm = searchInput.value.toLowerCase();
+            let dataToExport = ocs.filter(oc => 
+                (oc.solped.toString().toLowerCase().includes(searchTerm) || 
+                 oc.ordenDeCompra.toString().toLowerCase().includes(searchTerm) || 
+                 oc.codigo.toString().toLowerCase().includes(searchTerm) || 
+                 oc.denominacion.toLowerCase().includes(searchTerm) ||
+                 (oc.grupoDeCompras || '').toLowerCase().includes(searchTerm) ||
+                 (oc.status || '').toLowerCase().includes(searchTerm))
+            );
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (showOnlyDelayedOCs) {
+                dataToExport = dataToExport.filter(oc => {
+                    const deliveryDate = parseDateString(oc.proxFechaEntrega);
+                    return deliveryDate && deliveryDate < today;
+                });
+            }
+            if(dataToExport.length === 0) {
+                showToast('No hay datos para exportar.', 'info');
+                return;
+            }
+            const formattedData = dataToExport.map(oc => ({
+                'Días Para Entrega': oc.proxFechaEntrega ? daysBetween(today, parseDateString(oc.proxFechaEntrega)) : '',
+                'Solped': oc.solped,
+                'Orden de Compra': oc.ordenDeCompra,
+                'Posición': oc.posicion,
+                'Próxima Entrega': oc.proxFechaEntrega,
+                'Cant. Entrega': oc.cantEntregaSiguiente,
+                'Código': oc.codigo,
+                'Denominación': oc.denominacion,
+                'Cant. Pedido': oc.cantPedido,
+                'Grupo Compras': oc.grupoDeCompras,
+                'Status': oc.status
+            }));
+            exportToExcel(formattedData, 'ordenes_de_compra.xlsx');
         }
 
 
@@ -2031,9 +2128,14 @@
 
             document.getElementById('solpeds-search-input')?.addEventListener('input', renderSolpedsView);
             document.getElementById('solpeds-table-container')?.addEventListener('click', (e) => { const btn = e.target.closest('.table-sort-button'); if (btn) handleSolpedsSort(btn.dataset.sort); });
+            document.getElementById('solpeds-delayed-filter-btn')?.addEventListener('click', () => { showOnlyDelayedSolpeds = !showOnlyDelayedSolpeds; renderSolpedsView(); });
+            document.getElementById('export-solpeds-btn')?.addEventListener('click', handleExportSolpeds);
+            
             document.getElementById('ocs-search-input')?.addEventListener('input', renderOCsView);
             document.getElementById('ocs-table-container')?.addEventListener('click', (e) => { const btn = e.target.closest('.table-sort-button'); if (btn) handleOCsSort(btn.dataset.sort); });
             document.getElementById('ocs-delayed-filter-btn')?.addEventListener('click', () => { showOnlyDelayedOCs = !showOnlyDelayedOCs; renderOCsView(); });
+            document.getElementById('export-ocs-btn')?.addEventListener('click', handleExportOCs);
+
 
             document.getElementById('visualization-area')?.addEventListener('click', (e) => {
                 const sortButton = e.target.closest('.sort-button');
