@@ -276,7 +276,7 @@
                 <div class="flex flex-col h-full">
                     <div class="bg-white p-4 shadow-md z-10">
                         <div class="flex items-start gap-4">
-                            <div id="primary-search-wrapper" class="flex-1">
+                            <div id="primary-search-wrapper" class="w-[55%]">
                                 <div class="flex justify-between items-center">
                                     <div class="flex items-center gap-2">
                                         <div id="consumo-group-filter-container"></div>
@@ -286,11 +286,11 @@
                                 </div>
                                 <div class="relative mt-2">
                                     <input type="text" id="consumo-search-input" placeholder="Buscar producto 1..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg">
-                                    <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                    <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                                     <div id="consumo-search-results" class="absolute top-full left-0 right-0 bg-white border mt-1 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto"></div>
                                 </div>
                             </div>
-                            <div id="comparison-search-wrapper" class="flex-1">
+                            <div id="comparison-search-wrapper" class="w-[45%]">
                                 <div class="flex items-center gap-2">
                                     <div id="consumo-comparison-group-filter-container"></div>
                                     <button id="consumo-comparison-favorites-filter-btn" data-type="comparison" class="btn-main-style">Favoritos</button>
@@ -1755,9 +1755,9 @@
         function renderConsumosContent() {
             const contentArea = document.getElementById('consumo-content-area');
             contentArea.innerHTML = `
-                <div id="consumo-panel-primary" class="w-1/2 bg-white overflow-y-auto"></div>
-                <div class="w-px bg-slate-200"></div>
-                <div id="consumo-panel-comparison" class="w-1/2 bg-white overflow-y-auto"></div>
+                <div id="consumo-panel-primary" class="w-[55%] bg-white overflow-y-auto"></div>
+                <div class="w-px bg-slate-300"></div>
+                <div id="consumo-panel-comparison" class="w-[45%] bg-white overflow-y-auto"></div>
             `;
             renderSingleConsumoPanel(selectedConsumptionItemId, 'primary');
             renderSingleConsumoPanel(comparisonItemId, 'comparison');
@@ -1889,7 +1889,7 @@
             if(itemSolpeds.length > 0) {
                 const today = new Date();
                 today.setHours(0,0,0,0);
-                solpedsTableHTML += `<div class="max-h-32 overflow-y-auto rounded-lg border border-slate-200"><table class="w-full text-sm table-fixed">
+                solpedsTableHTML += `<div class="max-h-60 overflow-y-auto rounded-lg border border-slate-200"><table class="w-full text-sm table-fixed">
                     <thead class="bg-slate-50 sticky top-0"><tr class="border-b border-slate-200"><th class="px-3 py-2 text-left w-[30%] font-semibold text-slate-600">N° Solped</th><th class="px-3 py-2 text-right w-[30%] font-semibold text-slate-600">Cantidad</th><th class="px-3 py-2 text-left w-[40%] font-semibold text-slate-600">F. Lib.</th></tr></thead><tbody class="divide-y divide-slate-100">`;
                 itemSolpeds.forEach(s => {
                     const releaseDate = parseDateString(s.fechaLiberacion);
@@ -1917,7 +1917,7 @@
             if(itemOCs.length > 0) {
                 const today = new Date();
                 today.setHours(0,0,0,0);
-                ocsTableHTML += `<div class="max-h-32 overflow-y-auto rounded-lg border border-slate-200"><table class="w-full text-sm table-fixed">
+                ocsTableHTML += `<div class="max-h-60 overflow-y-auto rounded-lg border border-slate-200"><table class="w-full text-sm table-fixed">
                     <thead class="bg-slate-50 sticky top-0"><tr class="border-b border-slate-200"><th class="px-3 py-2 text-left w-[20%] font-semibold text-slate-600">N° O/C</th><th class="px-3 py-2 text-left w-[35%] font-semibold text-slate-600">Status</th><th class="px-3 py-2 text-right w-[15%] font-semibold text-slate-600">Cant.</th><th class="px-3 py-2 text-left w-[30%] font-semibold text-slate-600">Entrega</th></tr></thead><tbody class="divide-y divide-slate-100">`;
                 itemOCs.forEach(oc => {
                     const deliveryDate = parseDateString(oc.proxFechaEntrega);
@@ -3066,5 +3066,5 @@
     </script>
 </body>
 </html>
-Fernando A - 01/09/2025 - 
+    F.A. - 01/09/2025 - 
 
