@@ -58,9 +58,8 @@
         .nav-link { padding: 6px 12px; font-weight: 500; color: #475569; border-bottom: 3px solid transparent; transition: all 0.2s; }
         .nav-link:hover { color: #0f172a; }
         .nav-link.active { color: #3730a3; border-bottom-color: #3730a3; }
-        .kpi-card { background-color: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease-in-out; }
+        .kpi-card { background-color: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); transition: all 0.2s ease-in-out; }
         .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); cursor: pointer; }
-        .consumo-kpi-card { background-color: #f8fafc; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
         .favorite-btn {
             background: none;
             border: none;
@@ -71,6 +70,13 @@
         }
         .favorite-btn:hover {
             background-color: rgba(252, 211, 77, 0.3);
+        }
+        .favorite-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .favorite-btn:disabled:hover {
+            background-color: transparent;
         }
         .favorite-btn svg {
             width: 24px;
@@ -120,7 +126,7 @@
             
             <div id="login-view" class="bg-white p-8 rounded-2xl shadow-lg hidden">
                 <h2 class="text-2xl font-bold text-center text-slate-800">Insumos</h2>
-                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v4.20 - 01/09/2025</p>
+                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v4.30 - 02/09/2025</p>
                 <form id="login-form" class="space-y-4">
                     <div>
                         <label for="login-email" class="text-sm font-medium text-slate-700">Email</label>
@@ -162,9 +168,9 @@
                 <div class="flex items-center justify-between h-16">
                     <div class="flex items-center">
                         <div class="flex-shrink-0 flex items-center gap-2">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path><path d="M20 9H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V11a2 2 0 0 0-2-2z"></path></svg>
-                            <span class="font-bold text-xl text-slate-800">INSUMOS ALMACEN</span>
-                            <span class="ml-2 text-xs font-semibold text-slate-400">v4.20</span>
+                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M12.89 1.45l8 4A2 2 0 0 1 22 7.24v9.53a2 2 0 0 1-1.11 1.79l-8 4a2 2 0 0 1-1.79 0l-8-4A2 2 0 0 1 2 16.76V7.24a2 2 0 0 1 1.11-1.79l8-4a2 2 0 0 1 1.78 0z"></path><polyline points="2,8 12,13 22,8"></polyline><line x1="12" y1="22.45" x2="12" y2="13"></line></svg>
+                            <span class="font-bold text-xl text-slate-800">ALMACEN</span>
+                            <span class="ml-2 text-xs font-semibold text-slate-400">v4.30</span>
                         </div>
                         <div class="hidden md:block">
                             <div id="main-nav-links" class="ml-10 flex items-baseline space-x-4">
@@ -190,7 +196,7 @@
                         </div>
                         <div id="user-menu-container" class="relative">
                             <button id="user-menu-button" class="flex items-center gap-2 p-2 rounded-full hover:bg-slate-100 disabled:cursor-default disabled:hover:bg-transparent">
-                                <div id="user-avatar" class="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold"></div>
+                                <div id="user-avatar" class="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center"></div>
                                 <span id="user-name" class="font-semibold text-sm hidden sm:block"></span>
                             </button>
                             <div id="user-dropdown-content" class="dropdown-content">
@@ -199,7 +205,7 @@
                                 <div class="dropdown-divider hidden" id="admin-actions-divider"></div>
                                 <button id="dashboard-preload-btn-dropdown" class="hidden"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Precarga BD</span></button>
                                 <button id="dashboard-clear-btn-dropdown" class="hidden"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg><span>Limpiar BD</span></button>
-                                <div class="dropdown-divider"></div>
+                                <div id="logout-divider" class="dropdown-divider"></div>
                                 <button id="logout-button-dropdown"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg><span>Cerrar Sesión</span></button>
                             </div>
                         </div>
@@ -264,6 +270,7 @@
                             <div class="h-6 border-l border-slate-300 mx-2"></div>
                             <button id="indice-favorites-filter-btn" class="btn-main-style">Favoritos</button>
                             <button id="export-indice-btn" class="btn-main-style">Exportar</button>
+                            <button id="add-new-item-btn" class="btn-main-style bg-indigo-600 text-white hover:bg-indigo-700 border-indigo-600 hidden">Nuevo Insumo</button>
                         </div>
                     </div>
                     <div id="indice-table-container" class="max-h-[85vh] overflow-y-auto">
@@ -380,6 +387,36 @@
         </main>
         
         <!-- Modales -->
+        <div id="item-modal" class="fixed inset-0 bg-slate-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
+                <form id="item-form">
+                    <h3 id="item-modal-title" class="text-lg leading-6 font-medium text-slate-900">Agregar Nuevo Insumo</h3>
+                    <div class="mt-4 space-y-4">
+                        <div>
+                            <label for="item-group" class="block text-sm font-medium text-slate-700">Grupo</label>
+                            <input type="text" id="item-group" list="group-datalist" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            <datalist id="group-datalist"></datalist>
+                        </div>
+                        <div>
+                            <label for="item-code" class="block text-sm font-medium text-slate-700">Código</label>
+                            <input type="text" id="item-code" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="item-name" class="block text-sm font-medium text-slate-700">Nombre</label>
+                            <input type="text" id="item-name" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                         <div>
+                            <label for="item-stock" class="block text-sm font-medium text-slate-700">Stock Inicial</label>
+                            <input type="number" id="item-stock" required value="0" class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
+                    <div class="items-center px-4 py-3 mt-4 text-right">
+                        <button id="close-item-modal" type="button" class="px-4 py-2 bg-slate-200 text-slate-800 text-base font-medium rounded-md shadow-sm hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 mr-2">Cancelar</button>
+                        <button id="save-item-button" type="submit" class="px-4 py-2 bg-indigo-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
         <div id="preload-modal" class="fixed inset-0 bg-slate-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
             <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
                 <div class="mt-3 text-center">
@@ -494,14 +531,70 @@
         <div id="manual-modal" class="fixed inset-0 bg-slate-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
             <div class="relative top-10 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
                  <div class="flex justify-between items-center mb-4 pb-4 border-b">
-                    <h2 class="text-2xl font-semibold text-slate-800">Manual de Usuario - Insumos Almacén v4.20</h2>
+                    <h2 class="text-2xl font-semibold text-slate-800">Manual de Usuario - Insumos Almacén v4.30</h2>
                     <button id="close-manual-modal-button" class="text-slate-400 hover:text-slate-600 text-3xl">&times;</button>
                 </div>
                 <div class="prose max-w-none max-h-[75vh] overflow-y-auto pr-4 text-slate-600">
                     <h3 class="font-semibold text-slate-900">1. Introducción</h3>
                     <p>Bienvenido al Panel de Consultas de Inventario. Esta herramienta está diseñada para proporcionar una visión clara y actualizada de la gestión de insumos, ayudándole a tomar decisiones informadas sobre el stock, los pedidos y los consumos.</p>
 
-                    <h3 class="font-semibold text-slate-900 mt-4">2. Dashboard (Vista Principal)</h3>
+                    <h3 class="font-semibold text-slate-900 mt-6 pt-4 border-t">2. Roles y Permisos</h3>
+                    <p>La aplicación cuenta con tres roles de usuario, cada uno con diferentes niveles de acceso y capacidades para asegurar la integridad de los datos.</p>
+                    <div class="not-prose mt-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                        <!-- Rol Propietario -->
+                        <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-6 shadow-sm">
+                            <h4 class="text-lg font-bold text-indigo-800 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M15.13 5.093C13.22 3.183 10.26 3.183 8.35 5.093L3.5 9.942c-2.343 2.344-2.343 6.146 0 8.49l8.49-8.49Z"/><path d="m18.364 14.122 3.535-3.536a5.008 5.008 0 0 0-7.072-7.071L6.343 12"/></svg>
+                                <span>Propietario</span>
+                            </h4>
+                            <p class="text-indigo-600 mt-1 mb-4 h-10">Control total sobre la aplicación, datos y usuarios.</p>
+                            <ul class="space-y-2">
+                                <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Gestión completa de insumos (ver, crear, eliminar).</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Edita favoritos y notas.</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Realiza revisión semanal.</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Accede al historial de revisiones.</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Administra usuarios y configuración.</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Ve las notificaciones de stock y pedidos.</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Precarga y limpia la base de datos.</span></li>
+                            </ul>
+                        </div>
+                        <!-- Rol Editor -->
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-6 shadow-sm">
+                            <h4 class="text-lg font-bold text-green-800 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                <span>Editor</span>
+                            </h4>
+                            <p class="text-green-600 mt-1 mb-4 h-10">Gestión diaria del inventario sin acceso a usuarios.</p>
+                            <ul class="space-y-2">
+                                <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Gestión completa de insumos.</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Edita favoritos y notas.</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Ve las notificaciones de stock y pedidos.</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Precarga y limpia la base de datos.</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg><span>No gestiona usuarios.</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg><span>No accede al historial de revisiones.</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg><span>No realiza la revisión semanal.</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg><span>No accede a Configuración.</span></li>
+                            </ul>
+                        </div>
+                        <!-- Rol Visor -->
+                        <div class="bg-slate-50 border border-slate-200 rounded-lg p-6 shadow-sm">
+                            <h4 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                <span>Visor</span>
+                            </h4>
+                            <p class="text-slate-600 mt-1 mb-4 h-10">Acceso de solo lectura para consulta de datos.</p>
+                            <ul class="space-y-2">
+                                <li class="flex items-start"><svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg><span>Visualiza todos los datos principales.</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg><span>No puede editar, agregar o eliminar.</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg><span>No puede marcar favoritos ni notas.</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg><span>No realiza la revisión semanal.</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg><span>No tiene acceso a Configuración.</span></li>
+                                <li class="flex items-start"><svg class="w-5 h-5 text-red-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg><span>No ve las notificaciones.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h3 class="font-semibold text-slate-900 mt-4">3. Dashboard (Vista Principal)</h3>
                     <p>Es la pantalla inicial y ofrece un resumen general del estado del inventario.</p>
                     <ul>
                         <li><strong>Indicadores Clave (KPIs):</strong> Tarjetas que muestran datos importantes como el total de productos, la cantidad de favoritos, el número de grupos, y alertas sobre consumos récord o pedidos vencidos. Al hacer clic en el KPI de 'Favoritos', se le redirigirá a la pestaña de Insumos con todos sus productos favoritos ya filtrados.</li>
@@ -509,7 +602,7 @@
                         <li><strong>Insumos Críticos:</strong> Una tabla que muestra automáticamente los productos cuya cobertura de stock está por debajo del umbral crítico (definido en la configuración, por defecto 30 días). Permite un acceso rápido a los items que requieren atención inmediata.</li>
                     </ul>
 
-                    <h3 class="font-semibold text-slate-900 mt-4">3. Pestaña Insumos</h3>
+                    <h3 class="font-semibold text-slate-900 mt-4">4. Pestaña Insumos</h3>
                     <p>Ofrece una vista detallada y personalizable de todos los productos del inventario.</p>
                     <ul>
                         <li><strong>Búsqueda y Filtros:</strong> La barra de búsqueda permite encontrar insumos por nombre o código instantáneamente. Use los filtros para acotar la lista:
@@ -523,7 +616,7 @@
                         <li><strong>Marcar como Favorito:</strong> Haga clic en el ícono de estrella (★) en la primera columna de la tabla para marcar o desmarcar un insumo como favorito. Los insumos favoritos se conservan incluso si se realiza una limpieza de la base de datos y son un filtro útil en toda la aplicación.</li>
                     </ul>
 
-                    <h3 class="font-semibold text-slate-900 mt-4">4. Pestaña Consumos</h3>
+                    <h3 class="font-semibold text-slate-900 mt-4">5. Pestaña Consumos</h3>
                     <p>El centro de análisis para cada producto. Permite visualizar y comparar el historial de consumo.</p>
                     <ul>
                         <li><strong>Panel de Análisis y Comparación:</strong> Puede seleccionar un producto principal y, opcionalmente, un segundo producto para comparar sus datos.</li>
@@ -531,17 +624,17 @@
                         <li><strong>Pedidos y Notas:</strong> Debajo del gráfico, encontrará tablas con las Solpeds y Órdenes de Compra asociadas al producto. También hay un campo para añadir notas o descripciones importantes.</li>
                     </ul>
 
-                    <h3 class="font-semibold text-slate-900 mt-4">5. Pestañas Solpeds y Órdenes de Compra (O/C)</h3>
+                    <h3 class="font-semibold text-slate-900 mt-4">6. Pestañas Solpeds y Órdenes de Compra (O/C)</h3>
                     <p>Estas secciones contienen tablas detalladas con todas las Solicitudes de Pedido y Órdenes de Compra (O/C) cargadas en el sistema. Puede buscar, filtrar por pedidos demorados y ordenar la información haciendo clic en los encabezados.</p>
 
-                    <h3 class="font-semibold text-slate-900 mt-4">6. Funciones Generales</h3>
+                    <h3 class="font-semibold text-slate-900 mt-4">7. Funciones Generales</h3>
                     <ul>
                         <li><strong>Menú de Usuario:</strong> Al hacer clic en su inicial, se despliega un menú.</li>
                         <li><strong>Notificaciones:</strong> El ícono de la campana le alertará sobre insumos con bajo stock u órdenes de compra demoradas.</li>
                     </ul>
                     
-                    <h3 class="font-semibold text-slate-900 mt-4">7. Panel de Administración (Solo Propietarios)</h3>
-                    <p>Accesible desde el menú de usuario para el rol de "Propietario".</p>
+                    <h3 class="font-semibold text-slate-900 mt-4">8. Panel de Administración (Exclusivo para Propietarios)</h3>
+                    <p>Accesible desde el menú de usuario, esta sección es visible y utilizable únicamente por el rol de "Propietario".</p>
                     <ul>
                         <li><strong>Precarga y Limpieza de Datos:</strong> Permite cargar masivamente todos los datos desde un archivo Excel o limpiar la base de datos (conservando favoritos).</li>
                         <li><strong>Gestión de Permisos:</strong> Asigne roles (Editor, Visor) a otros usuarios.</li>
@@ -735,24 +828,73 @@
             const isEditorOrOwner = role === 'owner' || role === 'editor';
             const userMenuButton = document.getElementById('user-menu-button');
 
-            document.getElementById('admin-button-dropdown').classList.toggle('hidden', !isEditorOrOwner);
-            document.getElementById('admin-actions-divider').classList.toggle('hidden', !isEditorOrOwner);
-            document.getElementById('dashboard-preload-btn-dropdown').classList.toggle('hidden', !isEditorOrOwner);
-            document.getElementById('dashboard-clear-btn-dropdown').classList.toggle('hidden', !isEditorOrOwner);
+            // --- Menu Dropdown ---
+            const adminBtn = document.getElementById('admin-button-dropdown');
+            const preloadBtn = document.getElementById('dashboard-preload-btn-dropdown');
+            const clearBtn = document.getElementById('dashboard-clear-btn-dropdown');
+            const adminDivider = document.getElementById('admin-actions-divider');
+            const logoutDivider = document.getElementById('logout-divider');
+
+            // Reset de visibilidad para asegurar el estado correcto
+            adminBtn.classList.add('hidden');
+            preloadBtn.classList.add('hidden');
+            clearBtn.classList.add('hidden');
+            adminDivider.classList.add('hidden');
+            logoutDivider.classList.add('hidden');
+
+            // Se muestra explícitamente lo necesario para cada rol
+            if (isOwner) {
+                adminBtn.classList.remove('hidden');
+                preloadBtn.classList.remove('hidden');
+                clearBtn.classList.remove('hidden');
+                adminDivider.classList.remove('hidden');
+                logoutDivider.classList.remove('hidden');
+            } else if (isEditorOrOwner) { // Es Editor
+                preloadBtn.classList.remove('hidden');
+                clearBtn.classList.remove('hidden');
+                adminDivider.classList.remove('hidden');
+                logoutDivider.classList.remove('hidden');
+            } else { // Es Visor
+                // Para el visor, solo se necesita un divisor entre Manual y Cerrar Sesión.
+                adminDivider.classList.remove('hidden');
+            }
+
+
+            // --- Otros elementos de la UI ---
             document.querySelector('[data-view="reportes"]').classList.toggle('hidden', !isEditorOrOwner);
             document.querySelector('[data-view="history"]').classList.toggle('hidden', !isOwner);
             document.getElementById('notification-container').classList.toggle('hidden', !isEditorOrOwner);
             
             userMenuButton.disabled = false;
 
-            document.getElementById('review-container').classList.toggle('hidden', role === 'viewer');
-            document.getElementById('progress-bar-container').classList.toggle('hidden', role === 'viewer');
+            document.getElementById('review-container').classList.toggle('hidden', !isOwner);
+            document.getElementById('progress-bar-container').classList.toggle('hidden', !isOwner);
             
+            const addNewItemBtn = document.getElementById('add-new-item-btn');
+            if (addNewItemBtn) {
+                addNewItemBtn.classList.toggle('hidden', !isEditorOrOwner);
+            }
+
             const userEmail = user.email || '';
             const userName = userEmail.split('@')[0];
-            const userInitial = userName.charAt(0).toUpperCase();
+            const userAvatar = document.getElementById('user-avatar');
             document.getElementById('user-name').textContent = userName;
-            document.getElementById('user-avatar').textContent = userInitial;
+            
+            // Asigna color e ícono al avatar según el rol
+            userAvatar.classList.remove('bg-indigo-500', 'bg-green-500', 'bg-slate-500');
+            let avatarIcon = '';
+
+            if (role === 'owner') {
+                userAvatar.classList.add('bg-indigo-500');
+                avatarIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.13 5.093C13.22 3.183 10.26 3.183 8.35 5.093L3.5 9.942c-2.343 2.344-2.343 6.146 0 8.49l8.49-8.49Z"/><path d="m18.364 14.122 3.535-3.536a5.008 5.008 0 0 0-7.072-7.071L6.343 12"/></svg>`;
+            } else if (role === 'editor') {
+                userAvatar.classList.add('bg-green-500');
+                avatarIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`;
+            } else { // viewer
+                userAvatar.classList.add('bg-slate-500');
+                avatarIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+            }
+            userAvatar.innerHTML = avatarIcon;
         }
 
         // --- LÓGICA DE NOTIFICACIONES ---
@@ -868,6 +1010,10 @@
 
         // --- FUNCIONES DE FIREBASE ---
         async function handleToggleFavorite(itemId) {
+            if (currentUserRole === 'viewer') {
+                showToast('No tienes permiso para cambiar favoritos.', 'error');
+                return;
+            }
             const itemRef = doc(inventoryCollectionRef, itemId);
             const currentItem = items.find(i => i.id === itemId);
             if (!currentItem) return;
@@ -1081,6 +1227,7 @@
             const permissionsContent = document.getElementById('admin-content-permissions');
             const settingsContent = document.getElementById('admin-content-settings');
 
+            // Solo el 'owner' puede acceder a este modal
             if (currentUserRole === 'owner') {
                 permissionsTab.classList.remove('hidden');
                 permissionsTab.classList.add('active');
@@ -1092,13 +1239,6 @@
                 const querySnapshot = await getDocs(permissionsCollectionRef);
                 querySnapshot.forEach(doc => { allUserPermissions.set(doc.id, doc.data().email || doc.id); });
                 renderPermissionsList();
-
-            } else if (currentUserRole === 'editor') {
-                permissionsTab.classList.add('hidden');
-                settingsTab.classList.add('active');
-                permissionsTab.classList.remove('active');
-                permissionsContent.classList.add('hidden');
-                settingsContent.classList.remove('hidden');
             }
             
             document.getElementById('setting-red-threshold').value = appSettings.coverageThresholds.red;
@@ -1226,12 +1366,10 @@
             const colorClasses = { indigo: { bg: 'bg-indigo-100', text: 'text-indigo-600' }, yellow: { bg: 'bg-yellow-100', text: 'text-yellow-600' }, green: { bg: 'bg-green-100', text: 'text-green-600' }, red: { bg: 'bg-red-100', text: 'text-red-600' } };
 
             kpiContainer.innerHTML = kpis.map(kpi => `
-                <div class="kpi-card" data-kpi="${kpi.type}">
-                    <div class="flex justify-between items-start">
-                        <div><p class="text-sm font-medium text-slate-500 truncate">${kpi.title}</p><p class="mt-1 text-4xl font-bold text-slate-900">${kpi.value}</p></div>
-                        <div class="p-3 rounded-full ${colorClasses[kpi.color].bg} ${colorClasses[kpi.color].text}">${kpi.icon}</div>
-                    </div>
-                    ${kpi.subtitle ? `<p class="text-sm text-slate-500 mt-2">${kpi.subtitle}</p>` : ''}
+                <div class="kpi-card relative pt-8 text-center" data-kpi="${kpi.type}">
+                    <div class="absolute -top-2 -left-2 p-2.5 rounded-lg shadow-md ${colorClasses[kpi.color].bg} ${colorClasses[kpi.color].text}">${kpi.icon}</div>
+                    <p class="text-3xl font-bold text-slate-900">${kpi.value}</p>
+                    <p class="text-xs font-medium text-slate-500 mt-1 uppercase truncate">${kpi.title}</p>
                 </div>`).join('');
             
             renderCriticalItemsTable();
@@ -1267,8 +1405,6 @@
             
             lowStockItems.sort((a, b) => a.coverageDays - b.coverageDays);
 
-            const favFilterBtnClass = showOnlyFavoriteCriticals ? 'bg-yellow-100 border-yellow-300 text-yellow-800' : '';
-
             let groupFilterHTML = `<select id="low-stock-group-filter" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 w-full"><option value="all">TODOS LOS GRUPOS</option>`;
             allGroups.forEach(group => {
                 const selected = group === criticalsSelectedGroup ? 'selected' : '';
@@ -1277,20 +1413,27 @@
             groupFilterHTML += `</select>`;
 
             let contentHTML = `
-                <div class="p-4 border-b">
+                <div class="p-4 border-b bg-gradient-to-r from-slate-900 to-black">
                     <div class="flex justify-between items-center">
-                        <div>
-                            <h3 class="text-xl font-bold text-slate-900">Insumos Críticos (&lt; ${redThreshold} días)</h3>
-                            <p class="text-sm text-slate-500">${lowStockItems.length} items requieren atención.</p>
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-white/20 rounded-lg shadow-sm">
+                                <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white">Insumos Críticos</h3>
+                                <p class="text-sm text-slate-300">${lowStockItems.length} items con cobertura &lt; ${redThreshold} días.</p>
+                            </div>
                         </div>
-                        <button id="low-stock-favorites-filter-btn" class="btn-main-style ${favFilterBtnClass}">Favoritos</button>
+                        <button id="low-stock-favorites-filter-btn" class="btn-main-style ${showOnlyFavoriteCriticals ? 'bg-yellow-300 !text-yellow-900 !border-yellow-400 hover:!bg-yellow-400' : '!bg-transparent !text-white !border-white/40 hover:!bg-white/10'}">Favoritos</button>
                     </div>
-                    <div class="flex items-center gap-2 mt-3">
+                </div>
+                 <div class="p-4 border-b">
+                     <div class="flex items-center gap-2">
                         <div class="flex-1">${groupFilterHTML}</div>
                         <input type="text" id="low-stock-search" value="${searchTerm}" placeholder="Buscar en críticos..." class="w-full flex-1 p-2 bg-white border border-slate-300 rounded-lg">
                     </div>
                 </div>
-                <div id="low-stock-list" class="max-h-[640px] overflow-y-auto">
+                <div id="low-stock-list" class="max-h-[580px] overflow-y-auto">
                     ${generateLowStockListHTML(lowStockItems)}
                 </div>
             `;
@@ -1302,10 +1445,10 @@
                 return '<p class="p-4 text-center text-slate-500">No se encontraron insumos.</p>';
             }
             return itemsToRender.map(item => `
-                <div class="p-4 flex items-center justify-between hover:bg-indigo-50 border-b">
-                    <div class="flex items-center gap-3 flex-1 min-w-0">
-                        <button class="favorite-btn ${item.isFavorite ? 'is-favorite' : ''}" data-item-id="${item.id}" data-btn-type="low-stock-fav">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                <div class="p-4 flex items-center justify-between hover:bg-slate-50 border-b">
+                    <div class="flex items-center gap-4 flex-1 min-w-0">
+                         <button class="favorite-btn ${item.isFavorite ? 'is-favorite' : ''}" data-item-id="${item.id}" data-btn-type="low-stock-fav" ${currentUserRole === 'viewer' ? 'disabled' : ''}>
+                            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
                         </button>
                         <div class="flex-1 cursor-pointer low-stock-item-details" data-item-id="${item.id}">
                             <p class="font-semibold text-slate-800 truncate">${item.name}</p>
@@ -1667,8 +1810,12 @@
                 { key: 'stock', label: 'Stock Actual', class: 'justify-end border-l border-r border-slate-300', width: 'w-[10%]' },
                 { key: 'monthlyConsumption', label: 'Cons. Mensual', class: 'justify-end', width: 'w-[10%]' },
                 { key: 'coverageDays', label: 'Cobertura (Días)', class: 'justify-end', width: 'w-[10%]' },
-                { key: 'description_notes', label: 'Notas', noSort: true, width: 'w-[20%]' }
+                { key: 'description_notes', label: 'Notas', noSort: true, width: 'w-[15%]' }
             ];
+
+            if (currentUserRole === 'owner' || currentUserRole === 'editor') {
+                headers.push({ key: 'actions', label: 'Acciones', noSort: true, width: 'w-[5%]', class: 'text-center' });
+            }
             
             let tableHTML = `<table class="w-full text-sm text-left text-slate-500 table-fixed"><thead class="text-xs text-slate-700 uppercase bg-slate-50 sticky top-0"><tr>`;
             headers.forEach(h => {
@@ -1695,7 +1842,7 @@
 
                 tableHTML += `<tr class="border-b hover:bg-slate-50">
                     <td class="px-4 py-2 text-center">
-                        <button class="favorite-btn ${item.isFavorite ? 'is-favorite' : ''}" data-item-id="${item.id}" data-btn-type="indice-fav">
+                        <button class="favorite-btn ${item.isFavorite ? 'is-favorite' : ''}" data-item-id="${item.id}" data-btn-type="indice-fav" ${currentUserRole === 'viewer' ? 'disabled' : ''}>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
                         </button>
                     </td>
@@ -1706,7 +1853,17 @@
                     <td class="px-4 py-2 text-right truncate indice-item-details cursor-pointer text-base" data-item-id="${item.id}">${formatNumber(item.monthlyConsumption)}</td>
                     <td class="px-4 py-2 text-right ${coverageClass} text-base">${coverageText}</td>
                     <td class="px-4 py-2 text-xs text-slate-600 truncate indice-item-details cursor-pointer" data-item-id="${item.id}">${item.description_notes || ''}</td>
-                </tr>`;
+                `;
+
+                if (currentUserRole === 'owner' || currentUserRole === 'editor') {
+                    tableHTML += `<td class="px-4 py-2 text-center">
+                        <button class="p-1 text-slate-400 hover:text-red-600 delete-item-btn" data-item-id="${item.id}" data-item-name="${item.name}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        </button>
+                    </td>`;
+                }
+
+                tableHTML += `</tr>`;
             });
 
             tableHTML += `</tbody></table>`;
@@ -1767,17 +1924,26 @@
             const panel = document.getElementById(`consumo-panel-${type}`);
             if (!panel) return;
 
+            const consumoIcons = {
+                stock: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>',
+                avg: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>',
+                peak: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>',
+                monthly: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>',
+                coverage: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>'
+            };
+
             panel.innerHTML = `
             <div class="p-4">
                 <div class="flex justify-between items-center">
                     <h3 id="consumo-kpi-name-${type}" class="text-lg font-bold text-slate-900 flex-1 truncate">-</h3>
                     <div id="consumo-favorite-btn-container-${type}"></div>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-4">
-                     <div class="consumo-kpi-card text-center"> <p class="text-xs font-medium text-slate-500">STOCK ACTUAL</p> <p id="consumo-kpi-stock-${type}" class="text-3xl font-bold text-slate-900 mt-1">-</p> </div>
-                     <div class="consumo-kpi-card text-center"> <p class="text-xs font-medium text-slate-500">PROMEDIO 12M</p> <p id="consumo-kpi-avg-${type}" class="text-3xl font-bold text-indigo-600 mt-1">-</p> </div>
-                     <div class="consumo-kpi-card text-center border-2 border-indigo-500"> <p class="text-xs font-medium text-slate-500">CONSUMO MENSUAL</p> <p id="consumo-kpi-monthly-consumption-${type}" class="text-3xl font-bold text-slate-900 mt-1">-</p> </div>
-                     <div class="consumo-kpi-card text-center border-2 border-indigo-500"> <p class="text-xs font-medium text-slate-500">COBERTURA HOY (DÍAS)</p> <p id="consumo-kpi-coverage-today-${type}" class="text-3xl font-bold text-slate-900 mt-1">-</p> </div>
+                <div class="grid grid-cols-5 gap-4 mt-6">
+                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-slate-100 text-slate-600 shadow-md">${consumoIcons.stock}</div> <p id="consumo-kpi-stock-${type}" class="text-3xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Stock Actual</p></div>
+                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.avg}</div> <p id="consumo-kpi-avg-${type}" class="text-3xl font-bold text-indigo-600">-</p><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Promedio</p></div>
+                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-green-100 text-green-600 shadow-md">${consumoIcons.peak}</div> <p id="consumo-kpi-peak-${type}" class="text-3xl font-bold text-green-600">-</p><div class="flex justify-center items-baseline gap-2"><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Pico</p><p id="consumo-kpi-peak-month-${type}" class="text-xs text-slate-500 truncate"></p></div></div>
+                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center border-2 border-sky-400"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-blue-100 text-blue-600 shadow-md">${consumoIcons.monthly}</div> <p id="consumo-kpi-monthly-consumption-${type}" class="text-3xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Consumo Mensual</p></div>
+                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center border-2 border-sky-400"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-yellow-100 text-yellow-600 shadow-md">${consumoIcons.coverage}</div> <p id="consumo-kpi-coverage-today-${type}" class="text-3xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Cobertura (Días)</p></div>
                 </div>
                 <div id="consumo-chart-wrapper-${type}" class="consumo-chart-wrapper">
                     <p class="text-slate-500 m-auto">Seleccione un producto para ver su historial.</p>
@@ -1803,6 +1969,9 @@
             favoriteBtn.className = `favorite-btn ${item.isFavorite ? 'is-favorite' : ''}`;
             favoriteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>`;
             favoriteBtn.dataset.itemId = itemId;
+            if (currentUserRole === 'viewer') {
+                favoriteBtn.disabled = true;
+            }
             favoriteBtnContainer.innerHTML = '';
             favoriteBtnContainer.appendChild(favoriteBtn);
 
@@ -1824,13 +1993,28 @@
             });
 
             const avgConsumption = consumos.length > 0 ? consumos.reduce((a, b) => a + b, 0) / consumos.length : 0;
+            const peakConsumption = consumos.length > 0 ? Math.max(...consumos) : 0;
+            let peakMonths = [];
+            if (peakConsumption > 0) {
+                consumos.forEach((consumo, index) => {
+                    if (consumo === peakConsumption) {
+                        peakMonths.push(monthLabels[index]);
+                    }
+                });
+            }
+
             document.getElementById(`consumo-kpi-avg-${type}`).textContent = formatNumber(Math.round(avgConsumption));
+            document.getElementById(`consumo-kpi-peak-${type}`).textContent = formatNumber(Math.round(peakConsumption));
+            const peakMonthEl = document.getElementById(`consumo-kpi-peak-month-${type}`);
+            if(peakMonthEl) {
+               peakMonthEl.textContent = peakMonths.join(', ');
+            }
             document.getElementById(`consumo-kpi-monthly-consumption-${type}`).textContent = formatNumber(Math.round(item.monthlyConsumption));
             document.getElementById(`consumo-kpi-coverage-today-${type}`).textContent = (processedItem.coverageDays === Infinity) ? '∞' : Math.round(processedItem.coverageDays);
             
             const notesTextarea = document.getElementById(`consumo-description-notes-${type}`);
             notesTextarea.value = item.description_notes || '';
-            notesTextarea.disabled = false;
+            notesTextarea.disabled = currentUserRole === 'viewer';
             notesTextarea.dataset.itemId = itemId;
             
             const chartWrapper = document.getElementById(`consumo-chart-wrapper-${type}`);
@@ -2905,6 +3089,13 @@
                     comparisonItemId = null;
                     switchMainView('consumos');
                 }
+                const deleteBtn = e.target.closest('.delete-item-btn');
+                if (deleteBtn) {
+                    e.stopPropagation();
+                    const itemId = deleteBtn.dataset.itemId;
+                    const itemName = deleteBtn.dataset.itemName;
+                    handleDeleteItem(itemId, itemName);
+                }
             });
 
             document.getElementById('consumos-view').addEventListener('input', (e) => {
@@ -3035,6 +3226,10 @@
             });
             document.getElementById('close-record-consumption-modal-button')?.addEventListener('click', () => document.getElementById('record-consumption-modal').classList.add('hidden'));
 
+            document.getElementById('add-new-item-btn')?.addEventListener('click', handleOpenItemModal);
+            document.getElementById('close-item-modal')?.addEventListener('click', handleCloseItemModal);
+            document.getElementById('item-form')?.addEventListener('submit', handleSaveItem);
+
             window.addEventListener('click', (e) => {
                 if (!e.target.closest('#notification-container') && !e.target.closest('#user-menu-container')) {
                     document.querySelectorAll('.dropdown-content.show').forEach(d => d.classList.remove('show'));
@@ -3043,6 +3238,7 @@
         });
 
         function handleNotesInput(e) {
+            if (currentUserRole === 'viewer') return;
             const itemId = e.target.dataset.itemId;
             if (itemId) {
                 if (notesSaveTimeout) clearTimeout(notesSaveTimeout);
@@ -3063,8 +3259,96 @@
                 }, 1000); // Debounce for 1 second
             }
         }
+
+        let editingItemId = null;
+
+        function handleOpenItemModal() {
+            editingItemId = null;
+            document.getElementById('item-form').reset();
+            document.getElementById('item-modal-title').textContent = 'Agregar Nuevo Insumo';
+            
+            const uniqueGroups = [...new Set(items.map(item => item.group))].sort();
+            const datalist = document.getElementById('group-datalist');
+            datalist.innerHTML = uniqueGroups.map(g => `<option value="${g}">`).join('');
+
+            document.getElementById('item-modal').classList.remove('hidden');
+        }
+
+        function handleCloseItemModal() {
+            document.getElementById('item-modal').classList.add('hidden');
+        }
+
+        async function handleSaveItem(e) {
+            e.preventDefault();
+            if (currentUserRole !== 'owner' && currentUserRole !== 'editor') {
+                showToast('No tienes permiso para realizar esta acción.', 'error');
+                return;
+            }
+
+            const group = document.getElementById('item-group').value.trim();
+            const code = document.getElementById('item-code').value.trim();
+            const name = document.getElementById('item-name').value.trim();
+            const stock = parseInt(document.getElementById('item-stock').value, 10);
+
+            if (!group || !code || !name || isNaN(stock)) {
+                showToast('Todos los campos son obligatorios.', 'error');
+                return;
+            }
+
+            if (items.some(item => item.code === code)) {
+                showToast('El código de insumo ya existe.', 'error');
+                return;
+            }
+
+            const newItem = {
+                group,
+                code,
+                name: `${code} ${name}`,
+                stock,
+                monthlyConsumption: 0,
+                delayedQuantity: 0,
+                leadTimeDays: 0,
+                safetyStockDays: 0,
+                orderQuantities: [],
+                isModified: false,
+                createdAt: new Date().toISOString(),
+                isFavorite: false,
+                description_notes: '',
+                consumos: Array(12).fill(0)
+            };
+
+            try {
+                await addDoc(inventoryCollectionRef, newItem);
+                showToast('Insumo agregado correctamente.', 'success');
+                handleCloseItemModal();
+            } catch (error) {
+                console.error("Error al agregar insumo:", error);
+                showToast('Error al agregar el insumo.', 'error');
+            }
+        }
+
+        function handleDeleteItem(itemId, itemName) {
+            if (currentUserRole !== 'owner' && currentUserRole !== 'editor') {
+                showToast('No tienes permiso para realizar esta acción.', 'error');
+                return;
+            }
+
+            document.getElementById('confirm-modal-title').textContent = 'Eliminar Insumo';
+            document.getElementById('confirm-modal-text').textContent = `¿Estás seguro de que quieres eliminar "${itemName}"? Esta acción no se puede deshacer.`;
+            document.getElementById('confirm-clear-modal').classList.remove('hidden');
+            document.getElementById('confirm-clear-button').onclick = async () => {
+                try {
+                    await deleteDoc(doc(inventoryCollectionRef, itemId));
+                    showToast('Insumo eliminado.', 'success');
+                } catch (error) {
+                    console.error("Error al eliminar insumo:", error);
+                    showToast('Error al eliminar el insumo.', 'error');
+                } finally {
+                    document.getElementById('confirm-clear-modal').classList.add('hidden');
+                }
+            };
+        }
     </script>
 </body>
 </html>
-    F.A. - 01/09/2025 - 
-
+..  F.A. - 2025 - ..
