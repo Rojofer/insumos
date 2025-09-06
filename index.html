@@ -55,21 +55,40 @@
             background-color: #f8fafc;
             border-color: #94a3b8;
         }
-        .nav-link { padding: 6px 12px; font-weight: 500; color: #475569; border-bottom: 3px solid transparent; transition: all 0.2s; }
-        .nav-link:hover { color: #0f172a; }
-        .nav-link.active { color: #3730a3; border-bottom-color: #3730a3; }
+        .nav-link {
+            padding: 8px 16px;
+            font-weight: 600;
+            color: #475569;
+            border-radius: 9999px;
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-link:hover {
+            color: #1e293b;
+            background-color: #f1f5f9;
+        }
+        .nav-link.active {
+            color: #ffffff;
+            background-color: #4338ca;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
         .kpi-card { background-color: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); transition: all 0.2s ease-in-out; }
         .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); cursor: pointer; }
         .favorite-btn {
             background: none;
-            border: none;
+            border: 1px solid #e2e8f0;
             cursor: pointer;
-            padding: 4px;
+            padding: 0;
             border-radius: 50%;
             transition: all 0.2s;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .favorite-btn:hover {
-            background-color: rgba(252, 211, 77, 0.3);
+            background-color: #fef9c3;
+            border-color: #fde047;
         }
         .favorite-btn:disabled {
             cursor: not-allowed;
@@ -79,13 +98,13 @@
             background-color: transparent;
         }
         .favorite-btn svg {
-            width: 24px;
-            height: 24px;
-            stroke: #f59e0b;
-            stroke-width: 1.5;
+            width: 18px;
+            height: 18px;
+            stroke: #fde047;
+            stroke-width: 2;
         }
         .favorite-btn.is-favorite svg {
-            fill: #f59e0b;
+            fill: #fde047;
         }
         .consumo-chart-wrapper { display: flex; height: 250px; padding-top: 20px; border-top: 1px solid #e2e8f0; margin-top: 1rem; }
         .consumo-y-axis { display: flex; flex-direction: column; justify-content: space-between; height: 100%; padding-right: 10px; text-align: right; font-size: 12px; color: #64748b; }
@@ -96,8 +115,26 @@
         .consumo-chart-projected-label { position: absolute; right: -4px; top: 0; transform: translateY(-50%); background-color: #ef4444; color: white; padding: 1px 4px; font-size: 10px; font-weight: bold; border-radius: 4px; }
         .consumo-chart-value { padding-top: 8px; color: white; font-weight: 600; font-size: 12px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
         .consumo-chart-label { margin-top: 8px; font-size: 12px; color: #64748b; }
-        .indice-coverage-btn { padding: 4px 12px; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; transition: all 0.2s; border: 1px solid transparent; display: inline-flex; align-items: center; }
-        .indice-coverage-btn.active { background-color: white; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); border-color: #cbd5e1; }
+        .indice-coverage-btn {
+            padding: 4px 12px;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            color: #64748b;
+        }
+        .indice-coverage-btn:not(.active):hover {
+            background-color: #e2e8f0;
+        }
+        .indice-coverage-btn.active {
+            background-color: white;
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+            border-color: #cbd5e1;
+            color: #1e293b;
+        }
         .notification-item.unread { background-color: #eef2ff; }
         .notification-item:hover { background-color: #f8fafc; }
         .history-table th:first-child, .history-table td:first-child {
@@ -120,26 +157,26 @@
         <div class="w-full max-w-sm">
             <div class="text-center mb-8">
                 <div class="inline-block bg-white p-4 rounded-full shadow-md">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path><path d="M20 9H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V11a2 2 0 0 0-2-2z"></path></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M12.89 1.45l8 4A2 2 0 0 1 22 7.24v9.53a2 2 0 0 1-1.11 1.79l-8 4a2 2 0 0 1-1.79 0l-8-4A2 2 0 0 1 2 16.76V7.24a2 2 0 0 1 1.11-1.79l8-4a2 2 0 0 1 1.78 0z"></path><polyline points="2,8 12,13 22,8"></polyline><line x1="12" y1="22.45" x2="12" y2="13"></line></svg>
                 </div>
             </div>
             
             <div id="login-view" class="bg-white p-8 rounded-2xl shadow-lg hidden">
-                <h2 class="text-2xl font-bold text-center text-slate-800">Insumos</h2>
-                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v4.30 - 02/09/2025</p>
+                <h2 class="text-2xl font-bold text-center text-slate-800">ALMACEN</h2>
+                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v1.5</p>
                 <form id="login-form" class="space-y-4">
                     <div>
                         <label for="login-email" class="text-sm font-medium text-slate-700">Email</label>
-                        <input id="login-email" type="email" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <input id="login-email" type="email" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
                         <label for="login-password" class="text-sm font-medium text-slate-700">Contraseña</label>
-                        <input id="login-password" type="password" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <input id="login-password" type="password" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div id="login-error" class="text-red-500 text-sm text-center h-5"></div>
-                    <div><button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Iniciar Sesión</button></div>
+                    <div><button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Iniciar Sesión</button></div>
                 </form>
-                <p class="mt-6 text-center text-sm text-slate-500">¿No tienes cuenta? <button id="show-register-view-btn" class="font-medium text-indigo-600 hover:text-indigo-500">Regístrate</button></p>
+                <p class="mt-6 text-center text-sm text-slate-500">¿No tienes cuenta? <button id="show-register-view-btn" class="font-medium text-blue-600 hover:text-blue-500">Regístrate</button></p>
             </div>
             
             <div id="register-view" class="bg-white p-8 rounded-2xl shadow-lg hidden">
@@ -148,16 +185,16 @@
                 <form id="register-form" class="space-y-4">
                     <div>
                         <label for="register-email" class="text-sm font-medium text-slate-700">Email</label>
-                        <input id="register-email" type="email" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <input id="register-email" type="email" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
                         <label for="register-password" class="text-sm font-medium text-slate-700">Contraseña</label>
-                        <input id="register-password" type="password" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <input id="register-password" type="password" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div id="register-error" class="text-red-500 text-sm text-center h-5"></div>
-                    <div><button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Registrar</button></div>
+                    <div><button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Registrar</button></div>
                 </form>
-                <p class="mt-6 text-center text-sm text-slate-500">¿Ya tienes cuenta? <button id="show-login-view-btn" class="font-medium text-indigo-600 hover:text-indigo-500">Inicia sesión</button></p>
+                <p class="mt-6 text-center text-sm text-slate-500">¿Ya tienes cuenta? <button id="show-login-view-btn" class="font-medium text-blue-600 hover:text-blue-500">Inicia sesión</button></p>
             </div>
         </div>
     </div>
@@ -168,18 +205,18 @@
                 <div class="flex items-center justify-between h-16">
                     <div class="flex items-center">
                         <div class="flex-shrink-0 flex items-center gap-2">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M12.89 1.45l8 4A2 2 0 0 1 22 7.24v9.53a2 2 0 0 1-1.11 1.79l-8 4a2 2 0 0 1-1.79 0l-8-4A2 2 0 0 1 2 16.76V7.24a2 2 0 0 1 1.11-1.79l8-4a2 2 0 0 1 1.78 0z"></path><polyline points="2,8 12,13 22,8"></polyline><line x1="12" y1="22.45" x2="12" y2="13"></line></svg>
+                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M12.89 1.45l8 4A2 2 0 0 1 22 7.24v9.53a2 2 0 0 1-1.11 1.79l-8 4a2 2 0 0 1-1.79 0l-8-4A2 2 0 0 1 2 16.76V7.24a2 2 0 0 1 1.11-1.79l8-4a2 2 0 0 1 1.78 0z"></path><polyline points="2,8 12,13 22,8"></polyline><line x1="12" y1="22.45" x2="12" y2="13"></line></svg>
                             <span class="font-bold text-xl text-slate-800">ALMACEN</span>
-                            <span class="ml-2 text-xs font-semibold text-slate-400">v4.30</span>
+                            <span class="ml-2 text-xs font-semibold text-slate-400">v1.5</span>
                         </div>
                         <div class="hidden md:block">
-                            <div id="main-nav-links" class="ml-10 flex items-baseline space-x-4">
+                            <div id="main-nav-links" class="ml-10 flex items-center space-x-1">
                                 <button data-view="dashboard" class="nav-link active">Dashboard</button>
                                 <button data-view="indice" class="nav-link">Insumos</button>
                                 <button data-view="consumos" class="nav-link">Consumos</button>
                                 <button data-view="solpeds" class="nav-link">Solpeds</button>
                                 <button data-view="ocs" class="nav-link">O/C</button>
-                                <button data-view="reportes" class="nav-link hidden">Reportes</button>
+                                <button data-view="reportes" class="nav-link">Reportes</button>
                                 <button data-view="history" class="nav-link hidden">Historial</button>
                             </div>
                         </div>
@@ -249,8 +286,8 @@
             </div>
 
             <div id="indice-view" class="hidden">
-                <div class="bg-white p-6 shadow">
-                    <div class="flex justify-between items-center mb-4">
+                <div class="bg-white p-4 border-b border-slate-200">
+                    <div class="flex justify-between items-center">
                         <div class="flex items-center gap-4">
                             <h2 class="text-2xl font-bold text-slate-900">INSUMOS</h2>
                             <span id="indice-counter" class="text-sm font-medium text-slate-500"></span>
@@ -259,23 +296,28 @@
                                 <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                                 <input type="text" id="indice-search-input" placeholder="Buscar por nombre o código..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg">
                             </div>
+                            <button id="indice-clear-filters-btn" class="btn-main-style hidden">Limpiar Filtros</button>
                         </div>
                         <div class="flex items-center gap-2">
                             <div id="indice-coverage-filter-buttons" class="flex items-center p-1 bg-slate-100 rounded-lg">
                                 <button data-filter="all" class="indice-coverage-btn active">Todos</button>
-                                <button data-filter="red" class="indice-coverage-btn"><span class="w-2 h-2 mr-2 bg-red-500 rounded-full inline-block"></span></button>
-                                <button data-filter="yellow" class="indice-coverage-btn"><span class="w-2 h-2 mr-2 bg-yellow-400 rounded-full inline-block"></span></button>
-                                <button data-filter="green" class="indice-coverage-btn"><span class="w-2 h-2 mr-2 bg-green-500 rounded-full inline-block"></span></button>
+                                <button data-filter="red" class="indice-coverage-btn"></button>
+                                <button data-filter="yellow" class="indice-coverage-btn"></button>
+                                <button data-filter="green" class="indice-coverage-btn"></button>
                             </div>
-                            <div class="h-6 border-l border-slate-300 mx-2"></div>
-                            <button id="indice-favorites-filter-btn" class="btn-main-style">Favoritos</button>
-                            <button id="export-indice-btn" class="btn-main-style">Exportar</button>
-                            <button id="add-new-item-btn" class="btn-main-style bg-indigo-600 text-white hover:bg-indigo-700 border-indigo-600 hidden">Nuevo Insumo</button>
+                            <div class="h-6 border-l border-slate-200 mx-2"></div>
+                            <button id="export-indice-btn" class="btn-main-style p-2 hover:bg-green-50 hover:text-green-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            </button>
+                            <div class="h-6 border-l border-slate-200 mx-2"></div>
+                            <button id="add-new-item-btn" class="btn-main-style bg-blue-600 text-white hover:bg-blue-700 border-blue-600 hidden p-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            </button>
                         </div>
                     </div>
-                    <div id="indice-table-container" class="max-h-[85vh] overflow-y-auto">
-                        <!-- La tabla del indice se inyectará aquí -->
-                    </div>
+                </div>
+                <div id="indice-table-container" class="max-h-[calc(100vh-145px)] overflow-y-auto">
+                    <!-- La tabla del indice se inyectará aquí -->
                 </div>
             </div>
 
@@ -317,71 +359,100 @@
             </div>
 
             <div id="solpeds-view" class="hidden">
-                <div class="bg-white p-6 shadow">
-                    <div class="flex justify-between items-center mb-4">
+                <div class="bg-white p-4 border-b border-slate-200">
+                    <div class="flex justify-between items-center">
                         <div class="flex items-center gap-4">
-                            <h2 class="text-xl font-bold text-slate-900">Solicitudes de Pedido (Solpeds)</h2>
+                            <h2 class="text-2xl font-bold text-slate-900">SOLICITUDES DE PEDIDO</h2>
                             <span id="solpeds-counter" class="text-sm font-medium text-slate-500"></span>
-                            <input type="text" id="solpeds-search-input" placeholder="Buscar en Solpeds..." class="w-80 p-2 bg-white border border-slate-300 rounded-lg">
+                            <div class="relative">
+                                <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <input type="text" id="solpeds-search-input" placeholder="Buscar..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg">
+                            </div>
                         </div>
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2">
                             <button id="solpeds-delayed-filter-btn" class="btn-main-style">SP Demoradas</button>
-                            <button id="export-solpeds-btn" class="btn-main-style">Exportar</button>
+                            <div class="h-6 border-l border-slate-200 mx-2"></div>
+                            <button id="export-solpeds-btn" class="btn-main-style p-2 hover:bg-green-50 hover:text-green-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            </button>
                         </div>
                     </div>
-                    <div id="solpeds-table-container" class="max-h-[85vh] overflow-y-auto">
-                        <!-- La tabla de Solpeds se inyectará aquí -->
-                    </div>
+                </div>
+                <div id="solpeds-table-container" class="max-h-[calc(100vh-145px)] overflow-y-auto">
+                    <!-- La tabla de Solpeds se inyectará aquí -->
                 </div>
             </div>
             
             <div id="ocs-view" class="hidden">
-                <div class="bg-white p-6 shadow">
-                    <div class="flex justify-between items-center mb-4">
+                <div class="bg-white p-4 border-b border-slate-200">
+                    <div class="flex justify-between items-center">
                         <div class="flex items-center gap-4">
-                           <h2 class="text-xl font-bold text-slate-900">Órdenes de Compra (O/C)</h2>
+                           <h2 class="text-2xl font-bold text-slate-900">ÓRDENES DE COMPRA</h2>
                            <span id="ocs-counter" class="text-sm font-medium text-slate-500"></span>
-                           <input type="text" id="ocs-search-input" placeholder="Buscar en O/C..." class="w-80 p-2 bg-white border border-slate-300 rounded-lg">
+                           <div class="relative">
+                                <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <input type="text" id="ocs-search-input" placeholder="Buscar..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg">
+                           </div>
                         </div>
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2">
                            <button id="ocs-delayed-filter-btn" class="btn-main-style">O/C Demoradas</button>
-                           <button id="export-ocs-btn" class="btn-main-style">Exportar</button>
+                           <div class="h-6 border-l border-slate-200 mx-2"></div>
+                           <button id="export-ocs-btn" class="btn-main-style p-2 hover:bg-green-50 hover:text-green-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            </button>
                         </div>
                     </div>
-                    <div id="ocs-table-container" class="max-h-[85vh] overflow-y-auto">
-                        <!-- La tabla de OCs se inyectará aquí -->
-                    </div>
+                </div>
+                <div id="ocs-table-container" class="max-h-[calc(100vh-145px)] overflow-y-auto">
+                    <!-- La tabla de OCs se inyectará aquí -->
                 </div>
             </div>
 
             <div id="reportes-view" class="hidden">
-                 <div class="bg-white p-6 shadow">
-                    <div class="flex justify-between items-center mb-4">
+                <div class="bg-white p-4 border-b border-slate-200">
+                    <div class="flex justify-between items-center">
                         <div class="flex items-center gap-4">
-                           <h2 class="text-xl font-bold text-slate-900">Reporte: Stock Inmovilizado</h2>
-                           <span id="immobilized-counter" class="text-sm font-medium text-slate-500"></span>
-                           <input type="text" id="immobilized-search-input" placeholder="Buscar en reporte..." class="w-80 p-2 bg-white border border-slate-300 rounded-lg">
+                            <h2 class="text-2xl font-bold text-slate-900">REPORTE DE STOCK INMOVILIZADO</h2>
                         </div>
-                        <button id="export-immobilized-btn" class="btn-main-style">Exportar</button>
                     </div>
-                    <div id="immobilized-stock-table-container" class="max-h-[85vh] overflow-y-auto">
-                        <!-- La tabla de Stock Inmovilizado se inyectará aquí -->
+                </div>
+                
+                <div id="immobilized-report-content">
+                    <div class="bg-white p-4 border-b border-slate-200">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-4">
+                               <span id="immobilized-counter" class="text-sm font-medium text-slate-500"></span>
+                               <div class="relative">
+                                   <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                   <input type="text" id="immobilized-search-input" placeholder="Buscar..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg">
+                               </div>
+                            </div>
+                            <button id="export-immobilized-btn" class="btn-main-style p-2 hover:bg-green-50 hover:text-green-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            </button>
+                        </div>
                     </div>
+                    <div id="immobilized-stock-table-container" class="max-h-[calc(100vh-210px)] overflow-y-auto"></div>
                 </div>
             </div>
 
             <div id="history-view" class="hidden">
-                <div class="bg-white p-6 shadow">
-                    <div class="flex justify-between items-center mb-4">
+                <div class="bg-white p-4 border-b border-slate-200">
+                    <div class="flex justify-between items-center">
                         <div class="flex items-center gap-4">
-                            <h2 class="text-xl font-bold text-slate-900">Historial de Revisiones Semanales</h2>
-                            <input type="text" id="history-search-input" placeholder="Buscar grupo..." class="w-80 p-2 bg-white border border-slate-300 rounded-lg">
+                            <h2 class="text-2xl font-bold text-slate-900">HISTORIAL DE REVISIONES</h2>
+                            <div class="relative">
+                               <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <input type="text" id="history-search-input" placeholder="Buscar grupo..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg">
+                            </div>
                         </div>
-                        <button id="export-history-btn" class="btn-main-style">Exportar</button>
+                        <button id="export-history-btn" class="btn-main-style p-2 hover:bg-green-50 hover:text-green-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        </button>
                     </div>
-                    <div id="history-table-container" class="max-h-[85vh] overflow-auto">
-                        <!-- La tabla de historial se inyectará aquí -->
-                    </div>
+                </div>
+                <div id="history-table-container" class="max-h-[calc(100vh-145px)] overflow-auto">
+                    <!-- La tabla de historial se inyectará aquí -->
                 </div>
             </div>
         </main>
@@ -1140,7 +1211,75 @@
         }
         
         
-        function processInventorySheet(workbook) { const sheetName = workbook.SheetNames[0]; if (!sheetName) return { inventoryItems: [], inventoryReport: { processedCount: 0, ignoredCount: 0 } }; const worksheet = workbook.Sheets[sheetName]; const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, defval: null }); const itemsMap = new Map(); const report = { processedCount: 0, ignoredCount: 0, reasons: {} }; const headerRow = rows[0].map(h => String(h).trim().toLowerCase().replace(/[\s_]+/g, '')); const colMap = { group: headerRow.indexOf('grupo'), code: headerRow.indexOf('código') !== -1 ? headerRow.indexOf('código') : headerRow.indexOf('cod'), name: headerRow.indexOf('nombre'), stock: headerRow.indexOf('stock'), monthlyConsumption: headerRow.indexOf('consumomensual'), delayedQuantity: headerRow.indexOf('demorados'), pedido: headerRow.indexOf('pedido'), fecha: headerRow.indexOf('fecha'), leadTimeDays: headerRow.indexOf('leadtime'), safetyStockDays: headerRow.indexOf('díasseguridad') }; const parseNumeric = (val) => { if (val === null || val === undefined || typeof val === 'string' && val.trim() === '' || val === '-') return 0; const cleanVal = String(val).replace(/\./g, '').replace(',', '.'); const num = parseFloat(cleanVal); return isNaN(num) ? 0 : num; }; for (let i = 1; i < rows.length; i++) { const row = rows[i]; if (!row || row.length < 2 || row.every(cell => cell === null || cell === '')) continue; const code = String(row[colMap.code] || '').trim(); const name = String(row[colMap.name] || '').trim(); if (!code || !name) { report.ignoredCount++; report.reasons['Falta Código/Nombre'] = (report.reasons['Falta Código/Nombre'] || 0) + 1; continue; } let existingItem = itemsMap.get(code); if (!existingItem) { existingItem = { code: code, group: String(row[colMap.group] || 'General').trim(), name: `${code} ${name}`, stock: parseNumeric(row[colMap.stock]), monthlyConsumption: parseNumeric(row[colMap.monthlyConsumption]), delayedQuantity: parseNumeric(row[colMap.delayedQuantity]), leadTimeDays: parseNumeric(row[colMap.leadTimeDays]), safetyStockDays: parseNumeric(row[colMap.safetyStockDays]), orderQuantities: [], isModified: false, createdAt: new Date().toISOString(), isFavorite: false, description_notes: '' }; itemsMap.set(code, existingItem); } const pedido = parseNumeric(row[colMap.pedido]); const fecha = parseAndFormatDateToISO(row[colMap.fecha]); if (pedido > 0) { if (fecha) { existingItem.orderQuantities.push({ quantity: pedido, date: fecha }); } else { report.ignoredCount++; report.reasons['Pedido sin Fecha'] = (report.reasons['Pedido sin Fecha'] || 0) + 1; } } } report.processedCount = itemsMap.size; return { inventoryItems: Array.from(itemsMap.values()), inventoryReport: report }; }
+        function processInventorySheet(workbook) {
+            const sheetName = workbook.SheetNames[0];
+            if (!sheetName) return { inventoryItems: [], inventoryReport: { processedCount: 0, ignoredCount: 0 } };
+            const worksheet = workbook.Sheets[sheetName];
+            const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, defval: null });
+            const itemsMap = new Map();
+            const report = { processedCount: 0, ignoredCount: 0, reasons: {} };
+            const headerRow = rows[0].map(h => String(h).trim().toLowerCase().replace(/[\s_]+/g, ''));
+            const colMap = {
+                group: headerRow.indexOf('grupo'),
+                code: headerRow.indexOf('código') !== -1 ? headerRow.indexOf('código') : headerRow.indexOf('cod'),
+                name: headerRow.indexOf('nombre'),
+                stock: headerRow.indexOf('stock'),
+                monthlyConsumption: headerRow.indexOf('consumomensual'),
+                delayedQuantity: headerRow.indexOf('demorados'),
+                pedido: headerRow.indexOf('pedido'),
+                fecha: headerRow.indexOf('fecha'),
+                leadTimeDays: headerRow.indexOf('leadtime'),
+                safetyStockDays: headerRow.indexOf('díasseguridad')
+            };
+            const parseNumeric = (val) => {
+                if (val === null || val === undefined || typeof val === 'string' && val.trim() === '' || val === '-') return 0;
+                const cleanVal = String(val).replace(/\./g, '').replace(',', '.');
+                const num = parseFloat(cleanVal);
+                return isNaN(num) ? 0 : num;
+            };
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length < 2 || row.every(cell => cell === null || cell === '')) continue;
+                const code = String(row[colMap.code] || '').trim();
+                const name = String(row[colMap.name] || '').trim();
+                if (!code || !name) {
+                    report.ignoredCount++;
+                    report.reasons['Falta Código/Nombre'] = (report.reasons['Falta Código/Nombre'] || 0) + 1;
+                    continue;
+                }
+                let existingItem = itemsMap.get(code);
+                if (!existingItem) {
+                    existingItem = {
+                        code: code,
+                        group: String(row[colMap.group] || 'General').trim(),
+                        name: `${code} ${name}`,
+                        stock: parseNumeric(row[colMap.stock]),
+                        monthlyConsumption: parseNumeric(row[colMap.monthlyConsumption]),
+                        delayedQuantity: parseNumeric(row[colMap.delayedQuantity]),
+                        leadTimeDays: parseNumeric(row[colMap.leadTimeDays]),
+                        safetyStockDays: parseNumeric(row[colMap.safetyStockDays]),
+                        orderQuantities: [],
+                        isModified: false,
+                        createdAt: new Date().toISOString(),
+                        isFavorite: false,
+                        description_notes: ''
+                    };
+                    itemsMap.set(code, existingItem);
+                }
+                const pedido = parseNumeric(row[colMap.pedido]);
+                const fecha = parseAndFormatDateToISO(row[colMap.fecha]);
+                if (pedido > 0) {
+                    if (fecha) {
+                        existingItem.orderQuantities.push({ quantity: pedido, date: fecha });
+                    } else {
+                        report.ignoredCount++;
+                        report.reasons['Pedido sin Fecha'] = (report.reasons['Pedido sin Fecha'] || 0) + 1;
+                    }
+                }
+            }
+            report.processedCount = itemsMap.size;
+            return { inventoryItems: Array.from(itemsMap.values()), inventoryReport: report };
+        }
         function processHistorySheet(workbook) {
             const sheetName = workbook.SheetNames[1];
             if (!sheetName) return { historyMap: new Map(), historyReport: { processedCount: 0, ignoredCount: 0 } };
@@ -1363,14 +1502,22 @@
                 { type: 'ocs-vencidas', title: 'O/C Vencidas', value: ocsVencidasCount, subtitle: 'Entrega demorada', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>', color: 'red' }
             ];
             
-            const colorClasses = { indigo: { bg: 'bg-indigo-100', text: 'text-indigo-600' }, yellow: { bg: 'bg-yellow-100', text: 'text-yellow-600' }, green: { bg: 'bg-green-100', text: 'text-green-600' }, red: { bg: 'bg-red-100', text: 'text-red-600' } };
+            kpiContainer.innerHTML = kpis.map(kpi => {
+                let iconClass = 'bg-indigo-100 text-indigo-600';
+                let cardClass = '';
 
-            kpiContainer.innerHTML = kpis.map(kpi => `
-                <div class="kpi-card relative pt-8 text-center" data-kpi="${kpi.type}">
-                    <div class="absolute -top-2 -left-2 p-2.5 rounded-lg shadow-md ${colorClasses[kpi.color].bg} ${colorClasses[kpi.color].text}">${kpi.icon}</div>
+                if ((kpi.type === 'consumption-peak' || kpi.type === 'solpeds-vencidas' || kpi.type === 'ocs-vencidas') && kpi.value > 0) {
+                    iconClass = 'bg-red-100 text-red-600';
+                    cardClass = 'border-2 border-red-400';
+                }
+
+                return `
+                <div class="kpi-card relative pt-8 text-center ${cardClass}" data-kpi="${kpi.type}">
+                    <div class="absolute -top-2 -left-2 p-2.5 rounded-lg shadow-md ${iconClass}">${kpi.icon}</div>
                     <p class="text-3xl font-bold text-slate-900">${kpi.value}</p>
                     <p class="text-xs font-medium text-slate-500 mt-1 uppercase truncate">${kpi.title}</p>
-                </div>`).join('');
+                </div>`;
+            }).join('');
             
             renderCriticalItemsTable();
 
@@ -1413,15 +1560,15 @@
             groupFilterHTML += `</select>`;
 
             let contentHTML = `
-                <div class="p-4 border-b bg-gradient-to-r from-slate-900 to-black">
+                <div class="p-4 border-b bg-indigo-600">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-3">
-                            <div class="p-2 bg-white/20 rounded-lg shadow-sm">
+                            <div class="p-2 bg-indigo-500 rounded-lg shadow-sm">
                                 <svg class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                             </div>
                             <div>
                                 <h3 class="text-xl font-bold text-white">Insumos Críticos</h3>
-                                <p class="text-sm text-slate-300">${lowStockItems.length} items con cobertura &lt; ${redThreshold} días.</p>
+                                <p class="text-sm text-indigo-100">${lowStockItems.length} items con cobertura &lt; ${redThreshold} días.</p>
                             </div>
                         </div>
                         <button id="low-stock-favorites-filter-btn" class="btn-main-style ${showOnlyFavoriteCriticals ? 'bg-yellow-300 !text-yellow-900 !border-yellow-400 hover:!bg-yellow-400' : '!bg-transparent !text-white !border-white/40 hover:!bg-white/10'}">Favoritos</button>
@@ -1448,7 +1595,7 @@
                 <div class="p-4 flex items-center justify-between hover:bg-slate-50 border-b">
                     <div class="flex items-center gap-4 flex-1 min-w-0">
                          <button class="favorite-btn ${item.isFavorite ? 'is-favorite' : ''}" data-item-id="${item.id}" data-btn-type="low-stock-fav" ${currentUserRole === 'viewer' ? 'disabled' : ''}>
-                            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
                         </button>
                         <div class="flex-1 cursor-pointer low-stock-item-details" data-item-id="${item.id}">
                             <p class="font-semibold text-slate-800 truncate">${item.name}</p>
@@ -1706,24 +1853,37 @@
 
 
         // --- LÓGICA DE LA PESTAÑA INSUMOS ---
+        function handleClearIndiceFilters() {
+            indiceSearchTerm = '';
+            indiceSelectedGroup = 'all';
+            indiceShowFavorites = false;
+            indiceCoverageFilter = 'all';
+            renderIndiceView();
+        }
+
         function renderIndiceView() {
             const container = document.getElementById('indice-table-container');
             const searchInput = document.getElementById('indice-search-input');
             const groupFilterContainer = document.getElementById('indice-group-filter-container');
-            const favoritesFilterBtn = document.getElementById('indice-favorites-filter-btn');
+            const clearFiltersBtn = document.getElementById('indice-clear-filters-btn');
             const { red, yellow } = appSettings.coverageThresholds;
             
-            searchInput.value = indiceSearchTerm;
-            if (favoritesFilterBtn) {
-                favoritesFilterBtn.classList.toggle('bg-yellow-100', indiceShowFavorites);
-                favoritesFilterBtn.classList.toggle('border-yellow-300', indiceShowFavorites);
-                favoritesFilterBtn.classList.toggle('text-yellow-800', indiceShowFavorites);
+            const isAnyFilterActive = indiceCoverageFilter !== 'all' || indiceSelectedGroup !== 'all' || indiceShowFavorites || indiceSearchTerm !== '';
+            if (clearFiltersBtn) {
+                clearFiltersBtn.classList.toggle('hidden', !isAnyFilterActive);
+                if (isAnyFilterActive) {
+                    clearFiltersBtn.classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-200');
+                } else {
+                    clearFiltersBtn.classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-200');
+                }
             }
             
+            searchInput.value = indiceSearchTerm;
+            
             const filterButtonsContainer = document.getElementById('indice-coverage-filter-buttons');
-            filterButtonsContainer.querySelector('[data-filter="red"]').innerHTML = `<span class="w-2 h-2 mr-2 bg-red-500 rounded-full inline-block"></span>&lt; ${red}`;
-            filterButtonsContainer.querySelector('[data-filter="yellow"]').innerHTML = `<span class="w-2 h-2 mr-2 bg-yellow-400 rounded-full inline-block"></span>${red}-${yellow}`;
-            filterButtonsContainer.querySelector('[data-filter="green"]').innerHTML = `<span class="w-2 h-2 mr-2 bg-green-500 rounded-full inline-block"></span>&gt; ${yellow}`;
+            filterButtonsContainer.querySelector('[data-filter="red"]').textContent = `Crítico`;
+            filterButtonsContainer.querySelector('[data-filter="yellow"]').textContent = `Precaución`;
+            filterButtonsContainer.querySelector('[data-filter="green"]').textContent = `OK`;
             
             document.querySelectorAll('#indice-coverage-filter-buttons button').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.filter === indiceCoverageFilter);
@@ -1803,10 +1963,10 @@
             
             const sortIconSVG = `<svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
             const headers = [
-                { key: 'isFavorite', label: '★', noSort: true, width: 'w-[5%]' },
-                { key: 'group', label: 'Grupo', width: 'w-[10%]' },
-                { key: 'code', label: 'Código', width: 'w-[10%]' },
-                { key: 'name', label: 'Material', width: 'w-[25%]' },
+                { key: 'isFavorite', label: '★', noSort: true, width: 'w-[4%]' },
+                { key: 'group', label: 'Grupo', width: 'w-[8%]' },
+                { key: 'code', label: 'Código', width: 'w-[8%]' },
+                { key: 'name', label: 'Material', width: 'w-[27%]' },
                 { key: 'stock', label: 'Stock Actual', class: 'justify-end border-l border-r border-slate-300', width: 'w-[10%]' },
                 { key: 'monthlyConsumption', label: 'Cons. Mensual', class: 'justify-end', width: 'w-[10%]' },
                 { key: 'coverageDays', label: 'Cobertura (Días)', class: 'justify-end', width: 'w-[10%]' },
@@ -1821,7 +1981,17 @@
             headers.forEach(h => {
                 const thClass = `px-4 py-2 ${h.class || ''}`;
                 const widthClass = h.width || '';
-                if (h.noSort) {
+                if (h.key === 'isFavorite') {
+                    const activeClasses = 'bg-yellow-100 text-yellow-500 border-yellow-300';
+                    const inactiveClasses = 'bg-transparent text-slate-400 border-slate-300 hover:bg-slate-100';
+                    const buttonClasses = indiceShowFavorites ? activeClasses : inactiveClasses;
+                    
+                    tableHTML += `<th scope="col" class="px-4 py-2 w-[4%] text-center">
+                        <button id="indice-favorites-header-filter-btn" class="w-8 h-8 rounded-full flex items-center justify-center transition-colors border ${buttonClasses}">
+                            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                        </button>
+                    </th>`;
+                } else if (h.noSort) {
                     tableHTML += `<th scope="col" class="${thClass} ${widthClass}">${h.label}</th>`;
                 } else {
                     tableHTML += `<th scope="col" class="${thClass} ${widthClass}"><button class="table-sort-button ${h.class || ''}" data-sort="${h.key}">${h.label}</button></th>`;
@@ -1840,16 +2010,16 @@
                      coverageClass = 'text-green-600 font-bold';
                 }
 
-                tableHTML += `<tr class="border-b hover:bg-slate-50">
+                tableHTML += `<tr class="border-b hover:bg-slate-100 even:bg-slate-50">
                     <td class="px-4 py-2 text-center">
                         <button class="favorite-btn ${item.isFavorite ? 'is-favorite' : ''}" data-item-id="${item.id}" data-btn-type="indice-fav" ${currentUserRole === 'viewer' ? 'disabled' : ''}>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
                         </button>
                     </td>
-                    <td class="px-4 py-2 truncate indice-item-details cursor-pointer" data-item-id="${item.id}">${item.group}</td>
-                    <td class="px-4 py-2 font-mono truncate indice-item-details cursor-pointer" data-item-id="${item.id}">${item.code}</td>
+                    <td class="px-4 py-1 truncate indice-item-details cursor-pointer" data-item-id="${item.id}">${item.group}</td>
+                    <td class="px-4 py-1 truncate indice-item-details cursor-pointer" data-item-id="${item.id}">${item.code}</td>
                     <td class="px-4 py-2 font-medium text-slate-900 truncate indice-item-details cursor-pointer" data-item-id="${item.id}">${item.name.replace(new RegExp(`^${item.code}\\s*`), '')}</td>
-                    <td class="px-4 py-2 text-right truncate indice-item-details cursor-pointer text-base font-medium border-l border-r border-slate-300" data-item-id="${item.id}">${formatNumber(item.stock)}</td>
+                    <td class="px-4 py-2 text-right truncate indice-item-details cursor-pointer text-xl font-bold border-l border-r border-slate-300" data-item-id="${item.id}">${formatNumber(item.stock)}</td>
                     <td class="px-4 py-2 text-right truncate indice-item-details cursor-pointer text-base" data-item-id="${item.id}">${formatNumber(item.monthlyConsumption)}</td>
                     <td class="px-4 py-2 text-right ${coverageClass} text-base">${coverageText}</td>
                     <td class="px-4 py-2 text-xs text-slate-600 truncate indice-item-details cursor-pointer" data-item-id="${item.id}">${item.description_notes || ''}</td>
@@ -1879,6 +2049,17 @@
 
         // --- LÓGICA DE LA PESTAÑA CONSUMOS ---
         function renderConsumosView() {
+            const searchInput = document.getElementById('consumo-search-input');
+            if (searchInput) {
+                const selectedItem = items.find(i => i.id === selectedConsumptionItemId);
+                searchInput.value = selectedItem ? selectedItem.name : '';
+            }
+            const comparisonSearchInput = document.getElementById('consumo-comparison-search-input');
+            if (comparisonSearchInput) {
+                const selectedComparisonItem = items.find(i => i.id === comparisonItemId);
+                comparisonSearchInput.value = selectedComparisonItem ? selectedComparisonItem.name : '';
+            }
+            
             renderConsumoFilters('primary');
             renderConsumoFilters('comparison');
             renderConsumosContent();
@@ -1939,11 +2120,11 @@
                     <div id="consumo-favorite-btn-container-${type}"></div>
                 </div>
                 <div class="grid grid-cols-5 gap-4 mt-6">
-                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-slate-100 text-slate-600 shadow-md">${consumoIcons.stock}</div> <p id="consumo-kpi-stock-${type}" class="text-3xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Stock Actual</p></div>
+                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.stock}</div> <p id="consumo-kpi-stock-${type}" class="text-3xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Stock Actual</p></div>
                     <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.avg}</div> <p id="consumo-kpi-avg-${type}" class="text-3xl font-bold text-indigo-600">-</p><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Promedio</p></div>
-                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-green-100 text-green-600 shadow-md">${consumoIcons.peak}</div> <p id="consumo-kpi-peak-${type}" class="text-3xl font-bold text-green-600">-</p><div class="flex justify-center items-baseline gap-2"><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Pico</p><p id="consumo-kpi-peak-month-${type}" class="text-xs text-slate-500 truncate"></p></div></div>
-                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center border-2 border-sky-400"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-blue-100 text-blue-600 shadow-md">${consumoIcons.monthly}</div> <p id="consumo-kpi-monthly-consumption-${type}" class="text-3xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Consumo Mensual</p></div>
-                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center border-2 border-sky-400"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-yellow-100 text-yellow-600 shadow-md">${consumoIcons.coverage}</div> <p id="consumo-kpi-coverage-today-${type}" class="text-3xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Cobertura (Días)</p></div>
+                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.peak}</div> <p id="consumo-kpi-peak-${type}" class="text-3xl font-bold text-green-600">-</p><div class="flex justify-center items-baseline gap-2"><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Pico</p><p id="consumo-kpi-peak-month-${type}" class="text-xs text-slate-500 truncate"></p></div></div>
+                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center border-2 border-sky-400"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.monthly}</div> <p id="consumo-kpi-monthly-consumption-${type}" class="text-3xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Consumo Mensual</p></div>
+                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center border-2 border-sky-400"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.coverage}</div> <p id="consumo-kpi-coverage-today-${type}" class="text-3xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Cobertura (Días)</p></div>
                 </div>
                 <div id="consumo-chart-wrapper-${type}" class="consumo-chart-wrapper">
                     <p class="text-slate-500 m-auto">Seleccione un producto para ver su historial.</p>
@@ -2046,7 +2227,7 @@
                     const barHeight = maxValue > 0 ? (value / maxValue) * 100 : 0;
                     const displayValue = value > 5000 ? (value/1000).toFixed(0) + 'k' : formatNumber(value);
                     
-                    let barClass = 'bg-indigo-600';
+                    let barClass = 'bg-indigo-500';
                     if (value > 0 && uniqueValues.length > 1) {
                         if (value === Math.max(...nonZeroConsumos)) barClass = 'bg-green-500';
                         else if (value === minValue) barClass = 'bg-red-500';
@@ -2327,7 +2508,7 @@
                 
                 const releaseDate = parseDateString(s.fechaLiberacion);
                 const isDelayed = releaseDate && releaseDate <= today;
-                let rowClass = isDelayed ? 'bg-red-100 hover:bg-red-200 text-red-900' : 'hover:bg-slate-50';
+                let rowClass = isDelayed ? 'bg-red-100 hover:bg-red-200 text-red-900' : 'hover:bg-slate-100 even:bg-slate-50';
                 if (itemId) rowClass += ' cursor-pointer solped-item-row';
                 const dateClass = isDelayed ? 'font-bold' : '';
 
@@ -2461,7 +2642,7 @@
                 const isDelayed = deliveryDate && deliveryDate < today;
                 const dateClass = isDelayed ? 'text-red-600 font-bold' : '';
 
-                let rowClass = 'border-b hover:bg-slate-50';
+                let rowClass = 'border-b hover:bg-slate-100 even:bg-slate-50';
                 if (itemId) rowClass += ' cursor-pointer oc-item-row';
                 if (oc.status && oc.status.toLowerCase().includes('en proceso de autorización')) {
                     rowClass += ' bg-yellow-100 hover:bg-yellow-200';
@@ -2577,9 +2758,9 @@
             tableHTML += `</tr></thead><tbody>`;
             
             immobilizedItems.forEach(item => {
-                 tableHTML += `<tr class="border-b hover:bg-slate-50 cursor-pointer report-item-row" data-item-id="${item.id}">
+                 tableHTML += `<tr class="border-b hover:bg-slate-100 even:bg-slate-50 cursor-pointer report-item-row" data-item-id="${item.id}">
                     <td class="px-4 py-2">${item.group}</td>
-                    <td class="px-4 py-2 font-mono">${item.code}</td>
+                    <td class="px-4 py-2">${item.code}</td>
                     <td class="px-4 py-2 font-medium text-slate-900">${item.name.replace(new RegExp(`^${item.code}\\s*`), '')}</td>
                     <td class="px-4 py-2 text-right font-bold">${formatNumber(item.stock)}</td>
                     <td class="px-4 py-2 text-right font-bold text-red-600">${item.monthsWithoutConsumption}</td>
@@ -2592,6 +2773,91 @@
             const activeButton = container.querySelector(`.table-sort-button[data-sort="${immobilizedSortConfig.key}"]`);
             if (activeButton) {
                 activeButton.classList.add('active', immobilizedSortConfig.direction);
+                activeButton.innerHTML += sortIconSVG;
+            }
+        }
+        
+        function renderPeakConsumptionReport() {
+            const container = document.getElementById('peak-consumption-table-container');
+            const searchInput = document.getElementById('peak-consumption-search-input');
+            const searchTerm = searchInput.value.toLowerCase();
+
+            let peakItems = getProcessedItems().filter(item => {
+                if (!item.consumos || item.consumos.length < 12) return false;
+                
+                const previousMonthConsumption = item.consumos[10]; // M11
+                if (previousMonthConsumption <= 0) return false;
+
+                const peakInHistory = Math.max(...item.consumos);
+                
+                return previousMonthConsumption === peakInHistory;
+
+            }).map(item => ({
+                ...item,
+                peakConsumption: item.consumos[10],
+                currentConsumption: item.consumos[11]
+            }));
+
+            if(searchTerm) {
+                 peakItems = peakItems.filter(item => 
+                    item.name.toLowerCase().includes(searchTerm) ||
+                    item.group.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            const counterEl = document.getElementById('peak-consumption-counter');
+            if (counterEl) {
+                counterEl.textContent = `(${peakItems.length} items encontrados)`;
+            }
+
+            peakItems.sort((a, b) => {
+                const key = peakConsumptionSortConfig.key;
+                const dir = peakConsumptionSortConfig.direction === 'asc' ? 1 : -1;
+                let valA = a[key] ?? 0;
+                let valB = b[key] ?? 0;
+                
+                if (valA < valB) return -1 * dir;
+                if (valA > valB) return 1 * dir;
+                return 0;
+            });
+            
+            if (peakItems.length === 0) {
+                container.innerHTML = `<p class="text-center text-slate-500 py-10">No se encontraron insumos con pico de consumo el mes anterior (M11).</p>`;
+                return;
+            }
+
+            const sortIconSVG = `<svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+            const headers = [
+                { key: 'group', label: 'Grupo' },
+                { key: 'code', label: 'Código' },
+                { key: 'name', label: 'Material' },
+                { key: 'peakConsumption', label: 'Consumo Pico (Mes Anterior)', class: 'justify-end' },
+                { key: 'currentConsumption', label: 'Consumo Mes Actual', class: 'justify-end' }
+            ];
+            
+            let tableHTML = `<table class="w-full text-sm text-left text-slate-500"><thead class="text-xs text-slate-700 uppercase bg-slate-50 sticky top-0"><tr>`;
+            headers.forEach(h => {
+                const thClass = `px-4 py-2 ${h.class || ''}`;
+                tableHTML += `<th scope="col" class="${thClass}"><button class="table-sort-button ${h.class || ''}" data-sort="${h.key}">${h.label}</button></th>`;
+            });
+            tableHTML += `</tr></thead><tbody>`;
+            
+            peakItems.forEach(item => {
+                 tableHTML += `<tr class="border-b hover:bg-slate-100 even:bg-slate-50 cursor-pointer report-item-row" data-item-id="${item.id}">
+                    <td class="px-4 py-2">${item.group}</td>
+                    <td class="px-4 py-2">${item.code}</td>
+                    <td class="px-4 py-2 font-medium text-slate-900">${item.name.replace(new RegExp(`^${item.code}\\s*`), '')}</td>
+                    <td class="px-4 py-2 text-right font-bold text-green-600">${formatNumber(item.peakConsumption)}</td>
+                    <td class="px-4 py-2 text-right">${formatNumber(item.currentConsumption)}</td>
+                </tr>`;
+            });
+            
+            tableHTML += `</tbody></table>`;
+            container.innerHTML = tableHTML;
+
+            const activeButton = container.querySelector(`.table-sort-button[data-sort="${peakConsumptionSortConfig.key}"]`);
+            if (activeButton) {
+                activeButton.classList.add('active', peakConsumptionSortConfig.direction);
                 activeButton.innerHTML += sortIconSVG;
             }
         }
@@ -2629,6 +2895,40 @@
                 'Meses sin Consumo': item.monthsWithoutConsumption
             }));
             exportToExcel(formattedData, 'stock_inmovilizado.xlsx');
+        }
+
+        function handleExportPeakConsumptionReport() {
+             const searchInput = document.getElementById('peak-consumption-search-input');
+            const searchTerm = searchInput.value.toLowerCase();
+
+            let peakItems = getProcessedItems().filter(item => {
+                if (!item.consumos || item.consumos.length < 12) return false;
+                const previousMonthConsumption = item.consumos[10];
+                if (previousMonthConsumption <= 0) return false;
+                const peakInHistory = Math.max(...item.consumos);
+                return previousMonthConsumption === peakInHistory;
+            }).map(item => ({
+                ...item,
+                peakConsumption: item.consumos[10],
+                currentConsumption: item.consumos[11]
+            }));
+
+            if(searchTerm) {
+                 peakItems = peakItems.filter(item => 
+                    item.name.toLowerCase().includes(searchTerm) ||
+                    item.group.toLowerCase().includes(searchTerm)
+                );
+            }
+            if (peakItems.length === 0) { showToast('No hay datos para exportar.', 'info'); return; }
+
+            const formattedData = peakItems.map(item => ({
+                'Grupo': item.group,
+                'Código': item.code,
+                'Material': item.name.replace(new RegExp(`^${item.code}\\s*`), ''),
+                'Consumo Pico (Mes Anterior)': item.peakConsumption,
+                'Consumo Mes Actual': item.currentConsumption
+            }));
+            exportToExcel(formattedData, 'picos_de_consumo.xlsx');
         }
 
         // --- LÓGICA DE EXPORTACIÓN ---
@@ -3038,7 +3338,7 @@
                 if(e.target.id === 'history-search-input') { renderHistoryView(); }
             });
             document.getElementById('history-view')?.addEventListener('click', (e) => {
-                if(e.target.id === 'export-history-btn') { handleExportHistory(); }
+                if(e.target.closest('#export-history-btn')) { handleExportHistory(); }
             });
 
             document.getElementById('indice-view').addEventListener('input', (e) => {
@@ -3070,12 +3370,16 @@
                     indiceCoverageFilter = coverageBtn.dataset.filter;
                     renderIndiceView();
                 }
-                if (e.target.id === 'export-indice-btn') {
+                if (e.target.closest('#export-indice-btn')) {
                     handleExportIndice();
                 }
-                if (e.target.id === 'indice-favorites-filter-btn') {
+                const favoritesHeaderBtn = e.target.closest('#indice-favorites-header-filter-btn');
+                if (favoritesHeaderBtn) {
                     indiceShowFavorites = !indiceShowFavorites;
                     renderIndiceView();
+                }
+                if (e.target.id === 'indice-clear-filters-btn') {
+                    handleClearIndiceFilters();
                 }
                 const favBtn = e.target.closest('.favorite-btn[data-btn-type="indice-fav"]');
                 if(favBtn) {
@@ -3141,7 +3445,7 @@
 
                 if (btn) { handleSolpedsSort(btn.dataset.sort); }
                 else if (e.target.id === 'solpeds-delayed-filter-btn') { showOnlyDelayedSolpeds = !showOnlyDelayedSolpeds; renderSolpedsView(); }
-                else if (e.target.id === 'export-solpeds-btn') { handleExportSolpeds(); }
+                else if (e.target.closest('#export-solpeds-btn')) { handleExportSolpeds(); }
                 else if (row && row.dataset.itemId) {
                     selectedConsumptionItemId = row.dataset.itemId;
                     comparisonItemId = null;
@@ -3156,7 +3460,7 @@
 
                 if (btn) { handleOCsSort(btn.dataset.sort); }
                 else if (e.target.id === 'ocs-delayed-filter-btn') { showOnlyDelayedOCs = !showOnlyDelayedOCs; renderOCsView(); }
-                else if (e.target.id === 'export-ocs-btn') { handleExportOCs(); }
+                else if (e.target.closest('#export-ocs-btn')) { handleExportOCs(); }
                 else if (row && row.dataset.itemId) {
                     selectedConsumptionItemId = row.dataset.itemId;
                     comparisonItemId = null;
@@ -3164,12 +3468,20 @@
                 }
             });
 
-            document.getElementById('reportes-view')?.addEventListener('input', (e) => { if (e.target.id === 'immobilized-search-input') { renderImmobilizedStockReport(); } });
+            document.getElementById('reportes-view')?.addEventListener('input', (e) => { 
+                if (e.target.id === 'immobilized-search-input') renderImmobilizedStockReport();
+            });
             document.getElementById('reportes-view')?.addEventListener('click', (e) => { 
-                const btn = e.target.closest('.table-sort-button');
+                const sortBtn = e.target.closest('.table-sort-button');
                 const row = e.target.closest('.report-item-row');
-                if (btn) {
-                    const key = btn.dataset.sort;
+                
+                if(e.target.closest('#export-immobilized-btn')) {
+                    handleExportImmobilized();
+                    return;
+                }
+
+                if (sortBtn) {
+                    const key = sortBtn.dataset.sort;
                     if (immobilizedSortConfig.key === key) {
                         immobilizedSortConfig.direction = immobilizedSortConfig.direction === 'asc' ? 'desc' : 'asc';
                     } else {
@@ -3177,8 +3489,6 @@
                         immobilizedSortConfig.direction = 'asc';
                     }
                     renderImmobilizedStockReport();
-                } else if (e.target.id === 'export-immobilized-btn') {
-                    handleExportImmobilized();
                 } else if (row && row.dataset.itemId) {
                     selectedConsumptionItemId = row.dataset.itemId;
                     comparisonItemId = null;
@@ -3351,4 +3661,5 @@
     </script>
 </body>
 </html>
-..  F.A. - 2025 - ..
+
+- - -  F.A  - - - 06/09/2025 - - -
