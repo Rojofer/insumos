@@ -40,7 +40,7 @@
             background-color: white;
             color: #334155;
             font-weight: 600;
-            padding: 4px 12px;
+            padding: 0 12px;
             font-size: 0.875rem;
             line-height: 1.25rem;
             border-radius: 0.375rem;
@@ -50,6 +50,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            height: 36px;
         }
         .btn-main-style:hover {
             background-color: #f8fafc;
@@ -68,8 +69,18 @@
         }
         .nav-link.active {
             color: #ffffff;
-            background-color: #4338ca;
+            background-color: #6366f1;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -16px; /* Se ajusta para que la línea toque el borde inferior de la barra de navegación */
+            height: 4px;
+            background-color: #6366f1;
         }
         .kpi-card { background-color: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); transition: all 0.2s ease-in-out; }
         .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); cursor: pointer; }
@@ -103,8 +114,17 @@
             stroke: #fde047;
             stroke-width: 2;
         }
+        .favorite-btn.is-favorite {
+            background-color: #16a34a; /* green-600 */
+            border-color: #16a34a;
+        }
+        .favorite-btn.is-favorite:hover {
+            background-color: #15803d; /* green-700 */
+            border-color: #15803d;
+        }
         .favorite-btn.is-favorite svg {
-            fill: #fde047;
+            fill: white;
+            stroke: white;
         }
         .consumo-chart-wrapper { display: flex; height: 250px; padding-top: 20px; border-top: 1px solid #e2e8f0; margin-top: 1rem; }
         .consumo-y-axis { display: flex; flex-direction: column; justify-content: space-between; height: 100%; padding-right: 10px; text-align: right; font-size: 12px; color: #64748b; }
@@ -116,18 +136,20 @@
         .consumo-chart-value { padding-top: 8px; color: white; font-weight: 600; font-size: 12px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
         .consumo-chart-label { margin-top: 8px; font-size: 12px; color: #64748b; }
         .indice-coverage-btn {
-            padding: 4px 12px;
+            padding: 0 10px;
             border-radius: 0.375rem;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             font-weight: 600;
             transition: all 0.2s;
             border: 1px solid transparent;
             display: inline-flex;
             align-items: center;
-            color: #64748b;
+            color: #c7d2fe;
+            height: 32px;
         }
         .indice-coverage-btn:not(.active):hover {
-            background-color: #e2e8f0;
+            background-color: #4f46e5;
+            color: white;
         }
         .indice-coverage-btn.active {
             background-color: white;
@@ -163,15 +185,15 @@
             
             <div id="login-view" class="bg-white p-8 rounded-2xl shadow-lg hidden">
                 <h2 class="text-2xl font-bold text-center text-slate-800">ALMACEN</h2>
-                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v1.5</p>
+                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v2.0</p>
                 <form id="login-form" class="space-y-4">
                     <div>
                         <label for="login-email" class="text-sm font-medium text-slate-700">Email</label>
-                        <input id="login-email" type="email" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <input id="login-email" type="email" required class="mt-1 block w-full px-3 py-2 h-10 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
                         <label for="login-password" class="text-sm font-medium text-slate-700">Contraseña</label>
-                        <input id="login-password" type="password" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <input id="login-password" type="password" required class="mt-1 block w-full px-3 py-2 h-10 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div id="login-error" class="text-red-500 text-sm text-center h-5"></div>
                     <div><button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Iniciar Sesión</button></div>
@@ -185,11 +207,11 @@
                 <form id="register-form" class="space-y-4">
                     <div>
                         <label for="register-email" class="text-sm font-medium text-slate-700">Email</label>
-                        <input id="register-email" type="email" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <input id="register-email" type="email" required class="mt-1 block w-full px-3 py-2 h-10 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
                         <label for="register-password" class="text-sm font-medium text-slate-700">Contraseña</label>
-                        <input id="register-password" type="password" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <input id="register-password" type="password" required class="mt-1 block w-full px-3 py-2 h-10 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div id="register-error" class="text-red-500 text-sm text-center h-5"></div>
                     <div><button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Registrar</button></div>
@@ -207,13 +229,13 @@
                         <div class="flex-shrink-0 flex items-center gap-2">
                              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M12.89 1.45l8 4A2 2 0 0 1 22 7.24v9.53a2 2 0 0 1-1.11 1.79l-8 4a2 2 0 0 1-1.79 0l-8-4A2 2 0 0 1 2 16.76V7.24a2 2 0 0 1 1.11-1.79l8-4a2 2 0 0 1 1.78 0z"></path><polyline points="2,8 12,13 22,8"></polyline><line x1="12" y1="22.45" x2="12" y2="13"></line></svg>
                             <span class="font-bold text-xl text-slate-800">ALMACEN</span>
-                            <span class="ml-2 text-xs font-semibold text-slate-400">v1.5</span>
+                            <span class="ml-2 text-xs font-semibold text-slate-400">v2.0</span>
                         </div>
                         <div class="hidden md:block">
                             <div id="main-nav-links" class="ml-10 flex items-center space-x-1">
                                 <button data-view="dashboard" class="nav-link active">Dashboard</button>
+                                <button data-view="consumos" class="nav-link">Análisis</button>
                                 <button data-view="indice" class="nav-link">Insumos</button>
-                                <button data-view="consumos" class="nav-link">Consumos</button>
                                 <button data-view="solpeds" class="nav-link">Solpeds</button>
                                 <button data-view="ocs" class="nav-link">O/C</button>
                                 <button data-view="reportes" class="nav-link">Reportes</button>
@@ -267,7 +289,7 @@
                             <div class="p-4 flex justify-between items-center border-b">
                                 <div class="flex items-center gap-4">
                                     <h2 class="text-xl font-bold text-slate-900">Revisión Semanal</h2>
-                                    <button id="show-history-btn" class="btn-main-style text-xs py-1">Historial</button>
+                                    <button id="show-history-btn" class="btn-main-style">Historial</button>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <button id="save-review-btn" class="btn-main-style bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100">Guardar</button>
@@ -286,31 +308,33 @@
             </div>
 
             <div id="indice-view" class="hidden">
-                <div class="bg-white p-4 border-b border-slate-200">
+                <div class="bg-indigo-500 p-4 border-b border-indigo-600">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-4">
-                            <h2 class="text-2xl font-bold text-slate-900">INSUMOS</h2>
-                            <span id="indice-counter" class="text-sm font-medium text-slate-500"></span>
+                            <h2 class="text-2xl font-bold text-white">INSUMOS</h2>
+                            <span id="indice-counter" class="text-sm font-medium text-indigo-200"></span>
                             <div id="indice-group-filter-container" class="mr-4"></div>
                             <div class="relative">
                                 <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                <input type="text" id="indice-search-input" placeholder="Buscar por nombre o código..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg">
+                                <input type="text" id="indice-search-input" placeholder="Buscar por nombre o código..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9">
                             </div>
-                            <button id="indice-clear-filters-btn" class="btn-main-style hidden">Limpiar Filtros</button>
+                            <button id="indice-clear-filters-btn" class="btn-main-style w-9 h-9 !p-0 flex-shrink-0 hidden">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
+                            </button>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div id="indice-coverage-filter-buttons" class="flex items-center p-1 bg-slate-100 rounded-lg">
+                            <div id="indice-coverage-filter-buttons" class="flex items-center p-1 bg-indigo-600 rounded-lg">
                                 <button data-filter="all" class="indice-coverage-btn active">Todos</button>
                                 <button data-filter="red" class="indice-coverage-btn"></button>
                                 <button data-filter="yellow" class="indice-coverage-btn"></button>
                                 <button data-filter="green" class="indice-coverage-btn"></button>
                             </div>
                             <div class="h-6 border-l border-slate-200 mx-2"></div>
-                            <button id="export-indice-btn" class="btn-main-style p-2 hover:bg-green-50 hover:text-green-700">
+                            <button id="export-indice-btn" class="btn-main-style hover:bg-indigo-50 hover:text-indigo-700">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             </button>
                             <div class="h-6 border-l border-slate-200 mx-2"></div>
-                            <button id="add-new-item-btn" class="btn-main-style bg-blue-600 text-white hover:bg-blue-700 border-blue-600 hidden p-2">
+                            <button id="add-new-item-btn" class="btn-main-style bg-blue-600 text-white hover:bg-blue-700 border-blue-600 hidden">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                             </button>
                         </div>
@@ -323,31 +347,39 @@
 
             <div id="consumos-view" class="hidden">
                 <div class="flex flex-col h-full">
-                    <div class="bg-white p-4 shadow-md z-10">
-                        <div class="flex items-start gap-4">
+                    <div class="bg-indigo-500 p-4 z-10">
+                        <div class="flex items-center gap-4">
                             <div id="primary-search-wrapper" class="w-[55%]">
-                                <div class="flex justify-between items-center">
-                                    <div class="flex items-center gap-2">
-                                        <div id="consumo-group-filter-container"></div>
-                                        <button id="consumo-favorites-filter-btn" data-type="primary" class="btn-main-style">Favoritos</button>
+                                <div class="flex items-center gap-2 w-full">
+                                    <div id="consumo-group-filter-container"></div>
+                                    <button id="consumo-favorites-filter-btn" data-type="primary" class="favorite-btn flex-shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                                    </button>
+                                    <div class="relative flex-grow">
+                                        <input type="text" id="consumo-search-input" placeholder="Buscar producto 1..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9">
+                                        <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                        <div id="consumo-search-results" class="absolute top-full left-0 right-0 bg-white border mt-1 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto hidden"></div>
                                     </div>
-                                    <button id="consumo-clear-filters-btn" class="btn-main-style">Limpiar Todo</button>
-                                </div>
-                                <div class="relative mt-2">
-                                    <input type="text" id="consumo-search-input" placeholder="Buscar producto 1..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg">
-                                    <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                    <div id="consumo-search-results" class="absolute top-full left-0 right-0 bg-white border mt-1 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto"></div>
+                                    <button id="consumo-clear-primary-btn" class="btn-main-style w-9 h-9 !p-0 flex-shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
+                                    </button>
                                 </div>
                             </div>
+                            <div class="h-6 border-l border-white/40 mx-2"></div>
                             <div id="comparison-search-wrapper" class="w-[45%]">
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-2 w-full">
                                     <div id="consumo-comparison-group-filter-container"></div>
-                                    <button id="consumo-comparison-favorites-filter-btn" data-type="comparison" class="btn-main-style">Favoritos</button>
-                                </div>
-                                <div class="relative mt-2">
-                                    <input type="text" id="consumo-comparison-search-input" placeholder="Buscar producto 2..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg">
-                                    <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                    <div id="consumo-comparison-search-results" class="absolute top-full left-0 right-0 bg-white border mt-1 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto"></div>
+                                    <button id="consumo-comparison-favorites-filter-btn" data-type="comparison" class="favorite-btn flex-shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                                    </button>
+                                    <div class="relative flex-grow">
+                                        <input type="text" id="consumo-comparison-search-input" placeholder="Buscar producto 2..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9">
+                                        <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                        <div id="consumo-comparison-search-results" class="absolute top-full left-0 right-0 bg-white border mt-1 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto hidden"></div>
+                                    </div>
+                                    <button id="consumo-clear-comparison-btn" class="btn-main-style w-9 h-9 !p-0 flex-shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -359,20 +391,25 @@
             </div>
 
             <div id="solpeds-view" class="hidden">
-                <div class="bg-white p-4 border-b border-slate-200">
+                <div class="bg-indigo-500 p-4 border-b border-indigo-600">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-4">
-                            <h2 class="text-2xl font-bold text-slate-900">SOLICITUDES DE PEDIDO</h2>
-                            <span id="solpeds-counter" class="text-sm font-medium text-slate-500"></span>
+                            <h2 class="text-2xl font-bold text-white">Solpeds</h2>
+                            <span id="solpeds-counter" class="text-sm font-medium text-indigo-200"></span>
+                            <div id="solpeds-group-filter-container" class="mr-2"></div>
+                            <div id="solpeds-date-filter-container" class="flex items-center gap-2"></div>
                             <div class="relative">
                                 <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                <input type="text" id="solpeds-search-input" placeholder="Buscar..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg">
+                                <input type="text" id="solpeds-search-input" placeholder="Buscar..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9">
                             </div>
+                            <button id="solpeds-clear-filters-btn" class="btn-main-style w-9 h-9 !p-0 flex-shrink-0 hidden">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
+                            </button>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button id="solpeds-delayed-filter-btn" class="btn-main-style">SP Demoradas</button>
+                            <button id="solpeds-delayed-filter-btn" class="btn-main-style">Demoradas</button>
                             <div class="h-6 border-l border-slate-200 mx-2"></div>
-                            <button id="export-solpeds-btn" class="btn-main-style p-2 hover:bg-green-50 hover:text-green-700">
+                            <button id="export-solpeds-btn" class="btn-main-style hover:bg-indigo-50 hover:text-indigo-700">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             </button>
                         </div>
@@ -384,20 +421,26 @@
             </div>
             
             <div id="ocs-view" class="hidden">
-                <div class="bg-white p-4 border-b border-slate-200">
+                <div class="bg-indigo-500 p-4 border-b border-indigo-600">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-4">
-                           <h2 class="text-2xl font-bold text-slate-900">ÓRDENES DE COMPRA</h2>
-                           <span id="ocs-counter" class="text-sm font-medium text-slate-500"></span>
+                           <h2 class="text-2xl font-bold text-white">O/C</h2>
+                           <span id="ocs-counter" class="text-sm font-medium text-indigo-200"></span>
+                           <div id="ocs-group-filter-container" class="mr-2"></div>
+                           <div id="ocs-date-filter-container" class="flex items-center gap-2"></div>
                            <div class="relative">
                                 <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                <input type="text" id="ocs-search-input" placeholder="Buscar..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg">
+                                <input type="text" id="ocs-search-input" placeholder="Buscar..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9">
                            </div>
+                           <button id="ocs-clear-filters-btn" class="btn-main-style w-9 h-9 !p-0 flex-shrink-0 hidden">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
+                           </button>
                         </div>
                         <div class="flex items-center gap-2">
-                           <button id="ocs-delayed-filter-btn" class="btn-main-style">O/C Demoradas</button>
+                           <div id="ocs-status-filter-container" class="mr-2"></div>
+                           <button id="ocs-delayed-filter-btn" class="btn-main-style">Demoradas</button>
                            <div class="h-6 border-l border-slate-200 mx-2"></div>
-                           <button id="export-ocs-btn" class="btn-main-style p-2 hover:bg-green-50 hover:text-green-700">
+                           <button id="export-ocs-btn" class="btn-main-style hover:bg-indigo-50 hover:text-indigo-700">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             </button>
                         </div>
@@ -409,10 +452,10 @@
             </div>
 
             <div id="reportes-view" class="hidden">
-                <div class="bg-white p-4 border-b border-slate-200">
+                <div class="bg-indigo-500 p-4 border-b border-indigo-600">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-4">
-                            <h2 class="text-2xl font-bold text-slate-900">REPORTE DE STOCK INMOVILIZADO</h2>
+                            <h2 class="text-2xl font-bold text-white">REPORTE DE STOCK INMOVILIZADO</h2>
                         </div>
                     </div>
                 </div>
@@ -424,10 +467,10 @@
                                <span id="immobilized-counter" class="text-sm font-medium text-slate-500"></span>
                                <div class="relative">
                                    <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                   <input type="text" id="immobilized-search-input" placeholder="Buscar..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg">
+                                   <input type="text" id="immobilized-search-input" placeholder="Buscar..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9">
                                </div>
                             </div>
-                            <button id="export-immobilized-btn" class="btn-main-style p-2 hover:bg-green-50 hover:text-green-700">
+                            <button id="export-immobilized-btn" class="btn-main-style hover:bg-green-50 hover:text-green-700">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             </button>
                         </div>
@@ -437,16 +480,16 @@
             </div>
 
             <div id="history-view" class="hidden">
-                <div class="bg-white p-4 border-b border-slate-200">
+                <div class="bg-indigo-500 p-4 border-b border-indigo-600">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-4">
-                            <h2 class="text-2xl font-bold text-slate-900">HISTORIAL DE REVISIONES</h2>
+                            <h2 class="text-2xl font-bold text-white">HISTORIAL DE REVISIONES</h2>
                             <div class="relative">
                                <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                <input type="text" id="history-search-input" placeholder="Buscar grupo..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg">
+                                <input type="text" id="history-search-input" placeholder="Buscar grupo..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9">
                             </div>
                         </div>
-                        <button id="export-history-btn" class="btn-main-style p-2 hover:bg-green-50 hover:text-green-700">
+                        <button id="export-history-btn" class="btn-main-style hover:bg-green-50 hover:text-green-700">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         </button>
                     </div>
@@ -590,12 +633,48 @@
         </div>
         <div id="record-consumption-modal" class="fixed inset-0 bg-slate-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
             <div class="relative top-20 mx-auto p-5 border w-full max-w-xl shadow-lg rounded-md bg-white">
-                <div class="flex justify-between items-center mb-4">
+                <div class="flex justify-between items-center mb-2">
                     <h3 class="text-lg leading-6 font-medium text-slate-900">Insumos con Consumo Récord</h3>
                     <button id="close-record-consumption-modal-button" class="text-slate-400 hover:text-slate-600 text-3xl">&times;</button>
                 </div>
+                <p class="text-sm text-slate-500 mb-4">Este reporte muestra los insumos cuyo consumo en el último mes ha superado su pico histórico registrado.</p>
                 <div id="record-consumption-item-list" class="max-h-60 overflow-y-auto">
                     <!-- Item list will be injected here -->
+                </div>
+            </div>
+        </div>
+        <div id="group-stats-modal" class="fixed inset-0 bg-slate-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-20 mx-auto p-5 border w-full max-w-xl shadow-lg rounded-md bg-white">
+                <div class="flex justify-between items-center mb-4 pb-4 border-b">
+                    <h3 class="text-lg leading-6 font-medium text-slate-900">Estadísticas por Grupo</h3>
+                    <button id="close-group-stats-modal-button" class="text-slate-400 hover:text-slate-600 text-3xl">&times;</button>
+                </div>
+                <div id="group-stats-list" class="max-h-[60vh] overflow-y-auto">
+                    <!-- Content will be injected here -->
+                </div>
+            </div>
+        </div>
+        <div id="delayed-solpeds-modal" class="fixed inset-0 bg-slate-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-20 mx-auto p-5 border w-full max-w-xl shadow-lg rounded-md bg-white">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg leading-6 font-medium text-slate-900">Solpeds Vencidas por Grupo de Compras</h3>
+                    <button id="close-delayed-solpeds-modal-button" class="text-slate-400 hover:text-slate-600 text-3xl">&times;</button>
+                </div>
+                <p class="text-sm text-slate-500 mb-4">Este reporte desglosa las Solicitudes de Pedido cuya fecha de liberación ya ha pasado, agrupadas por responsable de compras.</p>
+                <div id="delayed-solpeds-list" class="max-h-[60vh] overflow-y-auto">
+                    <!-- Content will be injected here -->
+                </div>
+            </div>
+        </div>
+        <div id="delayed-ocs-modal" class="fixed inset-0 bg-slate-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-20 mx-auto p-5 border w-full max-w-xl shadow-lg rounded-md bg-white">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-lg leading-6 font-medium text-slate-900">O/C Vencidas por Grupo de Compras</h3>
+                    <button id="close-delayed-ocs-modal-button" class="text-slate-400 hover:text-slate-600 text-3xl">&times;</button>
+                </div>
+                <p class="text-sm text-slate-500 mb-4">Este reporte desglosa las Órdenes de Compra cuya fecha de entrega ya ha pasado, agrupadas por responsable de compras.</p>
+                <div id="delayed-ocs-list" class="max-h-[60vh] overflow-y-auto">
+                    <!-- Content will be injected here -->
                 </div>
             </div>
         </div>
@@ -754,7 +833,14 @@
         let consumoComparisonSelectedGroup = 'all';
         let consumoComparisonShowOnlyFavorites = false;
         let showOnlyDelayedOCs = false;
+        let ocsSelectedGroup = 'all';
+        let ocsSelectedStatus = 'all';
+        let ocsSelectedYear = 'all';
+        let ocsSelectedMonths = [];
         let showOnlyDelayedSolpeds = false;
+        let solpedsSelectedGroup = 'all';
+        let solpedsSelectedYear = 'all';
+        let solpedsSelectedMonths = [];
         let showOnlyFavoriteCriticals = false;
         let criticalsSelectedGroup = 'all';
         let indiceSearchTerm = '';
@@ -782,6 +868,25 @@
         // --- FUNCIONES DE UTILIDAD ---
         function showToast(message, type = 'info') { const container = document.getElementById('toast-container'); const toast = document.createElement('div'); toast.className = `toast ${type}`; toast.textContent = message; container.appendChild(toast); setTimeout(() => { toast.remove(); }, 5000); }
         
+        function handleCopyText(textToCopy, buttonElement) {
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = textToCopy;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            try {
+                document.execCommand('copy');
+                const originalContent = buttonElement.innerHTML;
+                buttonElement.innerHTML = `<span class="text-xs font-bold text-green-600">Copiado!</span>`;
+                setTimeout(() => {
+                    buttonElement.innerHTML = originalContent;
+                }, 2000);
+            } catch (err) {
+                console.error('Error al copiar texto: ', err);
+                showToast('No se pudo copiar el texto.', 'error');
+            }
+            document.body.removeChild(tempTextArea);
+        }
+
         function formatDate(isoDateString) {
             if (!isoDateString) return '';
             const date = parseDateString(isoDateString);
@@ -845,6 +950,21 @@
         }
         function daysBetween(date1, date2) { return Math.round((new Date(date2) - new Date(date1)) / (1000 * 60 * 60 * 24)); }
         function formatNumber(num) { return new Intl.NumberFormat('es-AR').format(num); }
+
+        function transformOCStatus(status) {
+            if (!status) return '';
+            const lowerStatus = status.toLowerCase();
+            if (lowerStatus.includes('enviados') || lowerStatus.includes('docum.subsiguientes')) return 'Aprobada';
+            if (lowerStatus.includes('en proceso de autorización')) return 'Pendiente';
+            if (lowerStatus.includes('rechazado')) return 'Rechazada';
+            return status;
+        }
+
+        function extractGroupCode(groupName) {
+            if (!groupName || typeof groupName !== 'string') return '';
+            const match = groupName.match(/\(([^)]+)\)/);
+            return match ? match[1].trim() : groupName;
+        }
 
         // --- LÓGICA DE AUTENTICACIÓN Y UI INICIAL ---
         function handleAuthError(error, elementId) { const errorEl = document.getElementById(elementId); let message = "Ocurrió un error."; switch (error.code) { case 'auth/user-not-found': case 'auth/invalid-credential': message = "Credenciales incorrectas."; break; case 'auth/wrong-password': message = "Contraseña incorrecta."; break; case 'auth/email-already-in-use': message = "El email ya está registrado."; break; case 'auth/weak-password': message = "La contraseña debe tener al menos 6 caracteres."; break; case 'auth/invalid-email': message = "El formato del email no es válido."; break; } errorEl.textContent = message; }
@@ -985,23 +1105,6 @@
                 });
             });
 
-            const favoriteItemCodes = new Set(items.filter(i => i.isFavorite).map(i => i.code));
-            const delayedOCs = ocs.filter(oc => {
-                const deliveryDate = parseDateString(oc.proxFechaEntrega);
-                return deliveryDate && deliveryDate < today && favoriteItemCodes.has(oc.codigo);
-            });
-            delayedOCs.forEach(oc => {
-                const deliveryDate = parseDateString(oc.proxFechaEntrega);
-                const delayDays = daysBetween(deliveryDate, today);
-                newNotifications.push({
-                    id: `ocdelayed_${oc.ordenDeCompra}_${oc.posicion}`,
-                    type: 'oc_delayed',
-                    text: `La O/C <strong>${oc.ordenDeCompra}</strong> está demorada ${delayDays} día(s).`,
-                    targetId: oc.ordenDeCompra,
-                    timestamp: new Date().toISOString()
-                });
-            });
-
             const existingNotificationsMap = new Map(notifications.map(n => [n.id, n]));
             newNotifications.forEach(newNotif => {
                 const existing = existingNotificationsMap.get(newNotif.id);
@@ -1042,10 +1145,7 @@
                     <div class="p-3 border-b text-sm notification-item ${!n.read ? 'unread' : ''}" data-id="${n.id}" data-type="${n.type}" data-target-id="${n.targetId}">
                         <div class="flex items-start gap-3">
                            <div class="flex-shrink-0 mt-1">
-                                ${n.type === 'low_stock' 
-                                    ? '<svg class="w-5 h-5 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>'
-                                    : '<svg class="w-5 h-5 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>'
-                                }
+                                <svg class="w-5 h-5 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                            </div>
                            <div>${n.text}</div>
                         </div>
@@ -1072,10 +1172,6 @@
                 selectedConsumptionItemId = targetId;
                 comparisonItemId = null;
                 switchMainView('consumos');
-            } else if (type === 'oc_delayed') {
-                switchMainView('ocs');
-                document.getElementById('ocs-search-input').value = targetId;
-                renderOCsView();
             }
         }
 
@@ -1330,7 +1426,8 @@
                 creadoPor: row['Creado por'] || '',
                 status: row['Status'] || '',
                 fechaLiberacion: parseAndFormatDateToISO(row['Fecha de liberación']),
-                grupoDeCompras: row['Grupo de compras'] || ''
+                grupoDeCompras: row['Grupo de compras'] || '',
+                grupoDeArticulos: row['Grupo de artículos'] || ''
             }));
             return { solpedsData };
         }
@@ -1350,7 +1447,7 @@
                 cantEntregaSiguiente: parseFloat(String(row['Cantidad de entrega siguiente']).replace(',', '.')) || 0,
                 codigo: row['Codigo'] || '',
                 denominacion: row['Denominación de material'] || '',
-                cantPedido: parseFloat(String(row['Cantidad de pedido']).replace(',', '.')) || 0,
+                grupoDeArticulos: row['Grupo de artículos'] || '',
                 grupoDeCompras: row['Grupo de compras'] || '',
                 status: row['Status de la orden'] || ''
             }));
@@ -1552,7 +1649,7 @@
             
             lowStockItems.sort((a, b) => a.coverageDays - b.coverageDays);
 
-            let groupFilterHTML = `<select id="low-stock-group-filter" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 w-full"><option value="all">TODOS LOS GRUPOS</option>`;
+            let groupFilterHTML = `<select id="low-stock-group-filter" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 w-full h-9"><option value="all">TODOS LOS GRUPOS</option>`;
             allGroups.forEach(group => {
                 const selected = group === criticalsSelectedGroup ? 'selected' : '';
                 groupFilterHTML += `<option value="${group}" ${selected}>${group}</option>`;
@@ -1577,7 +1674,7 @@
                  <div class="p-4 border-b">
                      <div class="flex items-center gap-2">
                         <div class="flex-1">${groupFilterHTML}</div>
-                        <input type="text" id="low-stock-search" value="${searchTerm}" placeholder="Buscar en críticos..." class="w-full flex-1 p-2 bg-white border border-slate-300 rounded-lg">
+                        <input type="text" id="low-stock-search" value="${searchTerm}" placeholder="Buscar en críticos..." class="w-full flex-1 p-2 bg-white border border-slate-300 rounded-lg h-9">
                     </div>
                 </div>
                 <div id="low-stock-list" class="max-h-[580px] overflow-y-auto">
@@ -1676,13 +1773,11 @@
             } else if (kpiType === 'consumption-peak') {
                 openRecordConsumptionModal();
             } else if (kpiType === 'groups') {
-                switchMainView('consumos');
+                openGroupStatsModal();
             } else if (kpiType === 'solpeds-vencidas') {
-                showOnlyDelayedSolpeds = true;
-                switchMainView('solpeds');
+                openDelayedSolpedsModal();
             } else if (kpiType === 'ocs-vencidas') {
-                showOnlyDelayedOCs = true;
-                switchMainView('ocs');
+                openDelayedOCsModal();
             }
         }
         
@@ -1704,21 +1799,212 @@
                 return;
             }
             
-            if (recordConsumptionItems.length === 1) {
-                switchMainView('consumos');
-                selectedConsumptionItemId = recordConsumptionItems[0].id;
-                renderConsumosView();
+            const modal = document.getElementById('record-consumption-modal');
+            const listContainer = document.getElementById('record-consumption-item-list');
+
+            listContainer.innerHTML = recordConsumptionItems.map(item => {
+                const currentConsumption = item.consumos[item.consumos.length - 1];
+                return `
+                <div class="p-3 flex items-center justify-between hover:bg-slate-50 border-b cursor-pointer record-consumption-item" data-item-id="${item.id}">
+                    <div>
+                        <p class="font-semibold text-slate-800">${item.name}</p>
+                        <p class="text-sm text-slate-500">Grupo: ${item.group}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-green-600">${formatNumber(currentConsumption)}</p>
+                        <p class="text-xs text-slate-500">Cons. Actual</p>
+                    </div>
+                </div>
+            `}).join('');
+
+            modal.classList.remove('hidden');
+        }
+
+        function openGroupStatsModal() {
+            const stats = calculateGroupStats();
+            renderGroupStatsModal(stats);
+            document.getElementById('group-stats-modal').classList.remove('hidden');
+        }
+
+        function openDelayedSolpedsModal() {
+            const stats = calculateDelayedSolpedsStats();
+            renderDelayedSolpedsModal(stats);
+            document.getElementById('delayed-solpeds-modal').classList.remove('hidden');
+        }
+
+        function openDelayedOCsModal() {
+            const stats = calculateDelayedOCsStats();
+            renderDelayedOCsModal(stats);
+            document.getElementById('delayed-ocs-modal').classList.remove('hidden');
+        }
+
+        function calculateDelayedSolpedsStats() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const delayed = solpeds.filter(s => {
+                const releaseDate = parseDateString(s.fechaLiberacion);
+                return releaseDate && releaseDate < today;
+            });
+
+            if (delayed.length === 0) {
+                return [];
+            }
+
+            const groupData = {};
+            delayed.forEach(s => {
+                const groupName = s.grupoDeCompras || 'Sin Grupo';
+                groupData[groupName] = (groupData[groupName] || 0) + 1;
+            });
+            
+            const totalDelayed = delayed.length;
+
+            return Object.entries(groupData).map(([name, count]) => {
+                const percentage = totalDelayed > 0 ? (count / totalDelayed) * 100 : 0;
+                return { name, count, percentage: percentage.toFixed(1) };
+            }).sort((a, b) => b.count - a.count);
+        }
+
+        function renderDelayedSolpedsModal(stats) {
+            const listContainer = document.getElementById('delayed-solpeds-list');
+            if (!stats || stats.length === 0) {
+                listContainer.innerHTML = '<p class="text-center text-slate-500 p-8">No hay Solpeds vencidas para mostrar.</p>';
                 return;
             }
+
+            let tableHTML = `
+                <table class="w-full text-sm text-left text-slate-500">
+                    <thead class="text-xs text-slate-700 uppercase bg-slate-50 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-2">Grupo de Compras</th>
+                            <th class="px-4 py-2 text-right">Cantidad Vencidas</th>
+                            <th class="px-4 py-2 text-right">% del Total</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">`;
+
+            stats.forEach(group => {
+                tableHTML += `
+                    <tr class="hover:bg-slate-50 cursor-pointer" data-group-compras="${group.name}">
+                        <td class="px-4 py-2 font-medium text-slate-900">${group.name}</td>
+                        <td class="px-4 py-2 text-right font-bold text-red-600">${group.count}</td>
+                        <td class="px-4 py-2 text-right">${group.percentage}%</td>
+                    </tr>`;
+            });
+
+            tableHTML += `</tbody></table>`;
+            listContainer.innerHTML = tableHTML;
+        }
+
+        function calculateDelayedOCsStats() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
             
-            const modal = document.getElementById('record-consumption-modal');
-            const listEl = document.getElementById('record-consumption-item-list');
+            const delayed = ocs.filter(oc => {
+                const deliveryDate = parseDateString(oc.proxFechaEntrega);
+                return deliveryDate && deliveryDate < today;
+            });
+
+            if (delayed.length === 0) {
+                return [];
+            }
+
+            const groupData = {};
+            delayed.forEach(oc => {
+                const groupName = oc.grupoDeCompras || 'Sin Grupo';
+                groupData[groupName] = (groupData[groupName] || 0) + 1;
+            });
             
-            listEl.innerHTML = recordConsumptionItems.map(item => 
-                `<div class="p-3 hover:bg-slate-100 cursor-pointer border-b record-consumption-item" data-item-id="${item.id}">${item.name}</div>`
-            ).join('');
-            
-            modal.classList.remove('hidden');
+            const totalDelayed = delayed.length;
+
+            return Object.entries(groupData).map(([name, count]) => {
+                const percentage = totalDelayed > 0 ? (count / totalDelayed) * 100 : 0;
+                return { name, count, percentage: percentage.toFixed(1) };
+            }).sort((a, b) => b.count - a.count);
+        }
+
+        function renderDelayedOCsModal(stats) {
+            const listContainer = document.getElementById('delayed-ocs-list');
+            if (!stats || stats.length === 0) {
+                listContainer.innerHTML = '<p class="text-center text-slate-500 p-8">No hay O/C vencidas para mostrar.</p>';
+                return;
+            }
+
+            let tableHTML = `
+                <table class="w-full text-sm text-left text-slate-500">
+                    <thead class="text-xs text-slate-700 uppercase bg-slate-50 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-2">Grupo de Compras</th>
+                            <th class="px-4 py-2 text-right">Cantidad Vencidas</th>
+                            <th class="px-4 py-2 text-right">% del Total</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">`;
+
+            stats.forEach(group => {
+                tableHTML += `
+                    <tr class="hover:bg-slate-50 cursor-pointer" data-group-compras="${group.name}">
+                        <td class="px-4 py-2 font-medium text-slate-900">${group.name}</td>
+                        <td class="px-4 py-2 text-right font-bold text-red-600">${group.count}</td>
+                        <td class="px-4 py-2 text-right">${group.percentage}%</td>
+                    </tr>`;
+            });
+
+            tableHTML += `</tbody></table>`;
+            listContainer.innerHTML = tableHTML;
+        }
+
+        function calculateGroupStats() {
+            const groupData = {};
+
+            items.forEach(item => {
+                const groupName = item.group || 'General';
+                if (!groupData[groupName]) {
+                    groupData[groupName] = { totalItems: 0, favoriteItems: 0 };
+                }
+                groupData[groupName].totalItems++;
+                if (item.isFavorite) {
+                    groupData[groupName].favoriteItems++;
+                }
+            });
+
+            return Object.entries(groupData).map(([name, data]) => {
+                const percentage = data.totalItems > 0 ? (data.favoriteItems / data.totalItems) * 100 : 0;
+                return { name, ...data, percentage: percentage.toFixed(1) };
+            }).sort((a, b) => a.name.localeCompare(b.name));
+        }
+
+        function renderGroupStatsModal(stats) {
+            const listContainer = document.getElementById('group-stats-list');
+            if (!stats || stats.length === 0) {
+                listContainer.innerHTML = '<p class="text-center text-slate-500 p-8">No hay grupos para mostrar.</p>';
+                return;
+            }
+
+            let tableHTML = `
+                <table class="w-full text-sm text-left text-slate-500">
+                    <thead class="text-xs text-slate-700 uppercase bg-slate-50 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-2">Grupo</th>
+                            <th class="px-4 py-2 text-right">Total Insumos</th>
+                            <th class="px-4 py-2 text-right">Favoritos</th>
+                            <th class="px-4 py-2 text-right">% Favoritos</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">`;
+
+            stats.forEach(group => {
+                tableHTML += `
+                    <tr class="hover:bg-slate-50 cursor-pointer" data-group-name="${group.name}">
+                        <td class="px-4 py-2 font-medium text-slate-900">${group.name}</td>
+                        <td class="px-4 py-2 text-right">${group.totalItems}</td>
+                        <td class="px-4 py-2 text-right text-yellow-600 font-semibold">${group.favoriteItems}</td>
+                        <td class="px-4 py-2 text-right">${group.percentage}%</td>
+                    </tr>`;
+            });
+
+            tableHTML += `</tbody></table>`;
+            listContainer.innerHTML = tableHTML;
         }
 
         // --- LÓGICA DE REVISIÓN SEMANAL (FIRESTORE) ---
@@ -1861,6 +2147,25 @@
             renderIndiceView();
         }
 
+        function handleClearSolpedsFilters() {
+            showOnlyDelayedSolpeds = false;
+            solpedsSelectedGroup = 'all';
+            solpedsSelectedYear = 'all';
+            solpedsSelectedMonths = [];
+            document.getElementById('solpeds-search-input').value = '';
+            renderSolpedsView();
+        }
+
+        function handleClearOCsFilters() {
+            showOnlyDelayedOCs = false;
+            ocsSelectedGroup = 'all';
+            ocsSelectedStatus = 'all';
+            ocsSelectedYear = 'all';
+            ocsSelectedMonths = [];
+            document.getElementById('ocs-search-input').value = '';
+            renderOCsView();
+        }
+
         function renderIndiceView() {
             const container = document.getElementById('indice-table-container');
             const searchInput = document.getElementById('indice-search-input');
@@ -1891,7 +2196,7 @@
             
             const uniqueGroups = [...new Set(items.map(item => item.group))].sort();
             if (uniqueGroups.length > 0) {
-                let filterHTML = `<select id="indice-group-filter" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2"><option value="all">TODOS LOS GRUPOS</option>`;
+                let filterHTML = `<select id="indice-group-filter" class="bg-white border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 h-9"><option value="all">TODOS LOS GRUPOS</option>`;
                 uniqueGroups.forEach(group => {
                     const selected = group === indiceSelectedGroup ? 'selected' : '';
                     filterHTML += `<option value="${group}" ${selected}>${group}</option>`;
@@ -2074,7 +2379,7 @@
 
             const uniqueGroups = [...new Set(items.map(item => item.group))].sort();
             if (uniqueGroups.length > 0) {
-                let filterHTML = `<select id="consumo${prefix}-group-filter" data-type="${type}" class="consumo-group-filter bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2"><option value="all">TODOS</option>`;
+                let filterHTML = `<select id="consumo${prefix}-group-filter" data-type="${type}" class="consumo-group-filter bg-white border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 h-9"><option value="all">TODOS</option>`;
                 uniqueGroups.forEach(group => {
                     const selected = group === selectedGroup ? 'selected' : '';
                     filterHTML += `<option value="${group}" ${selected}>${group}</option>`;
@@ -2085,9 +2390,7 @@
                 groupFilterContainer.innerHTML = '';
             }
             
-            favoritesBtn.classList.toggle('bg-yellow-200', showFavorites);
-            favoritesBtn.classList.toggle('border-yellow-400', showFavorites);
-            favoritesBtn.classList.toggle('text-yellow-800', showFavorites);
+            favoritesBtn.classList.toggle('is-favorite', showFavorites);
         }
         
         function renderConsumosContent() {
@@ -2115,16 +2418,26 @@
 
             panel.innerHTML = `
             <div class="p-4">
-                <div class="flex justify-between items-center">
-                    <h3 id="consumo-kpi-name-${type}" class="text-lg font-bold text-slate-900 flex-1 truncate">-</h3>
-                    <div id="consumo-favorite-btn-container-${type}"></div>
+                <div class="flex justify-between items-start gap-2">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                         <div id="consumo-favorite-btn-container-${type}" class="flex-shrink-0"></div>
+                         <div>
+                            <div class="flex items-center gap-2">
+                                <h3 id="consumo-kpi-name-${type}" class="text-base font-semibold text-slate-800">-</h3>
+                                <button id="copy-consumo-name-${type}" class="btn-main-style !p-1.5 !h-auto flex-shrink-0 hidden" title="Copiar al portapapeles">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </button>
+                            </div>
+                            <p id="consumo-kpi-code-${type}" class="text-xs font-mono text-slate-500"></p>
+                        </div>
+                    </div>
                 </div>
-                <div class="grid grid-cols-5 gap-4 mt-6">
-                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.stock}</div> <p id="consumo-kpi-stock-${type}" class="text-3xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Stock Actual</p></div>
-                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.avg}</div> <p id="consumo-kpi-avg-${type}" class="text-3xl font-bold text-indigo-600">-</p><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Promedio</p></div>
-                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.peak}</div> <p id="consumo-kpi-peak-${type}" class="text-3xl font-bold text-green-600">-</p><div class="flex justify-center items-baseline gap-2"><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Pico</p><p id="consumo-kpi-peak-month-${type}" class="text-xs text-slate-500 truncate"></p></div></div>
-                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center border-2 border-sky-400"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.monthly}</div> <p id="consumo-kpi-monthly-consumption-${type}" class="text-3xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Consumo Mensual</p></div>
-                    <div class="relative bg-white p-4 pt-8 rounded-lg shadow text-center border-2 border-sky-400"> <div class="absolute -top-2 -left-2 p-2 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.coverage}</div> <p id="consumo-kpi-coverage-today-${type}" class="text-3xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-1 uppercase">Cobertura (Días)</p></div>
+                <div class="grid grid-cols-5 gap-3 mt-4">
+                    <div class="relative bg-white p-3 pt-6 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.stock}</div> <p id="consumo-kpi-stock-${type}" class="text-2xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Stock</p></div>
+                    <div class="relative bg-white p-3 pt-6 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.avg}</div> <p id="consumo-kpi-avg-${type}" class="text-2xl font-bold text-indigo-600">-</p><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Promedio</p></div>
+                    <div class="relative bg-white p-3 pt-6 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.peak}</div> <p id="consumo-kpi-peak-${type}" class="text-2xl font-bold text-green-600">-</p><div class="flex justify-center items-baseline gap-1"><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Pico</p><p id="consumo-kpi-peak-month-${type}" class="text-xs text-slate-500 truncate"></p></div></div>
+                    <div class="relative bg-white p-3 pt-6 rounded-lg shadow text-center border-2 border-indigo-500"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.monthly}</div> <p id="consumo-kpi-monthly-consumption-${type}" class="text-2xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Cons. Mensual</p></div>
+                    <div class="relative bg-white p-3 pt-6 rounded-lg shadow text-center border-2 border-indigo-500"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.coverage}</div> <p id="consumo-kpi-coverage-today-${type}" class="text-2xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Cobertura</p></div>
                 </div>
                 <div id="consumo-chart-wrapper-${type}" class="consumo-chart-wrapper">
                     <p class="text-slate-500 m-auto">Seleccione un producto para ver su historial.</p>
@@ -2156,7 +2469,16 @@
             favoriteBtnContainer.innerHTML = '';
             favoriteBtnContainer.appendChild(favoriteBtn);
 
-            document.getElementById(`consumo-kpi-name-${type}`).textContent = item.name;
+            const textToCopy = `${item.code} - ${item.name.replace(new RegExp(`^${item.code}\\s*`), '')}`;
+            document.getElementById(`consumo-kpi-name-${type}`).textContent = item.name.replace(new RegExp(`^${item.code}\\s*`), '');
+             document.getElementById(`consumo-kpi-code-${type}`).textContent = item.code;
+
+            const copyBtn = document.getElementById(`copy-consumo-name-${type}`);
+            if (copyBtn) {
+                copyBtn.classList.remove('hidden');
+                copyBtn.onclick = () => handleCopyText(textToCopy, copyBtn);
+            }
+
             document.getElementById(`consumo-kpi-stock-${type}`).textContent = formatNumber(item.stock);
             
             const allConsumos = item.consumos || [];
@@ -2229,8 +2551,8 @@
                     
                     let barClass = 'bg-indigo-500';
                     if (value > 0 && uniqueValues.length > 1) {
-                        if (value === Math.max(...nonZeroConsumos)) barClass = 'bg-green-500';
-                        else if (value === minValue) barClass = 'bg-red-500';
+                        if (value === Math.max(...nonZeroConsumos)) barClass = 'bg-green-600';
+                        else if (value === minValue) barClass = 'bg-red-600';
                     }
 
                     return `<div class="consumo-chart-bar-wrapper"><div class="consumo-chart-bar ${barClass}" style="height: ${barHeight}%;"><div class="consumo-chart-value">${displayValue}</div></div><div class="consumo-chart-label">${monthLabels[index]}</div></div>`;
@@ -2288,6 +2610,7 @@
                     const deliveryDate = parseDateString(oc.proxFechaEntrega);
                     const isDelayed = deliveryDate && deliveryDate < today;
                     const dateClass = isDelayed ? 'text-red-600 font-bold' : '';
+                    const transformedStatus = transformOCStatus(oc.status);
                     
                     let rowClass = 'consumo-oc-link cursor-pointer hover:bg-slate-50';
                      if (oc.status && oc.status.toLowerCase().includes('en proceso de autorización')) {
@@ -2297,7 +2620,7 @@
                         rowClass += ' bg-red-50 hover:bg-red-100';
                     }
 
-                    ocsTableHTML += `<tr class="${rowClass}" data-oc-id="${oc.ordenDeCompra}"><td class="px-3 py-2 truncate font-medium text-slate-800">${oc.ordenDeCompra}</td><td class="px-3 py-2 text-xs truncate">${oc.status || ''}</td><td class="px-3 py-2 text-right">${formatNumber(oc.cantEntregaSiguiente)}</td><td class="px-3 py-2 whitespace-nowrap ${dateClass}">${formatDate(oc.proxFechaEntrega)}</td></tr>`;
+                    ocsTableHTML += `<tr class="${rowClass}" data-oc-id="${oc.ordenDeCompra}"><td class="px-3 py-2 truncate font-medium text-slate-800">${oc.ordenDeCompra}</td><td class="px-3 py-2 text-xs truncate">${transformedStatus}</td><td class="px-3 py-2 text-right">${formatNumber(oc.cantEntregaSiguiente)}</td><td class="px-3 py-2 whitespace-nowrap ${dateClass}">${formatDate(oc.proxFechaEntrega)}</td></tr>`;
                 });
                 ocsTableHTML += `</tbody></table></div>`;
             } else {
@@ -2316,8 +2639,8 @@
             handleConsumosSearch({ target: { value: document.getElementById(`consumo${type === 'primary' ? '' : '-comparison'}-search-input`).value } }, type);
         }
 
-        function handleConsumosFavoritesToggle(event) {
-            const type = event.target.dataset.type;
+        function handleConsumosFavoritesToggle(buttonElement) {
+            const type = buttonElement.dataset.type;
             if (type === 'primary') {
                 consumoShowOnlyFavorites = !consumoShowOnlyFavorites;
             } else {
@@ -2327,18 +2650,30 @@
             handleConsumosSearch({ target: { value: document.getElementById(`consumo${type === 'primary' ? '' : '-comparison'}-search-input`).value } }, type);
         }
 
-        function handleClearConsumosFilters() {
-            selectedConsumptionItemId = null;
-            comparisonItemId = null;
-            consumoSelectedGroup = 'all';
-            consumoShowOnlyFavorites = false;
-            consumoComparisonSelectedGroup = 'all';
-            consumoComparisonShowOnlyFavorites = false;
-            document.getElementById('consumo-search-input').value = '';
-            document.getElementById('consumo-search-results').innerHTML = '';
-            document.getElementById('consumo-comparison-search-input').value = '';
-            document.getElementById('consumo-comparison-search-results').innerHTML = '';
-            renderConsumosView();
+        function handleClearConsumoPanel(type) {
+            const prefix = type === 'primary' ? '' : '-comparison';
+            
+            if (type === 'primary') {
+                selectedConsumptionItemId = null;
+                consumoSelectedGroup = 'all';
+                consumoShowOnlyFavorites = false;
+            } else { // comparison
+                comparisonItemId = null;
+                consumoComparisonSelectedGroup = 'all';
+                consumoComparisonShowOnlyFavorites = false;
+            }
+            
+            const searchInput = document.getElementById(`consumo${prefix}-search-input`);
+            const searchResults = document.getElementById(`consumo${prefix}-search-results`);
+            
+            if(searchInput) searchInput.value = '';
+            if(searchResults) {
+                searchResults.innerHTML = '';
+                searchResults.classList.add('hidden');
+            }
+            
+            renderConsumoFilters(type);
+            renderSingleConsumoPanel(null, type);
         }
 
         function handleConsumosSearch(event, type) {
@@ -2362,9 +2697,12 @@
 
             if (searchTerm.length < 2 && selectedGroup === 'all' && !showFavorites) {
                  resultsContainer.innerHTML = '';
+                 resultsContainer.classList.add('hidden');
                  return;
             }
             
+            resultsContainer.classList.remove('hidden');
+
             if (filteredItems.length > 0) {
                 resultsContainer.innerHTML = filteredItems
                     .map(item => `<div class="p-2 hover:bg-slate-100 cursor-pointer" data-item-id="${item.id}" data-type="${type}">${item.name}</div>`)
@@ -2385,7 +2723,9 @@
                     comparisonItemId = itemId;
                 }
                 document.getElementById(`consumo${prefix}-search-input`).value = target.textContent;
-                document.getElementById(`consumo${prefix}-search-results`).innerHTML = '';
+                const resultsContainer = document.getElementById(`consumo${prefix}-search-results`);
+                resultsContainer.innerHTML = '';
+                resultsContainer.classList.add('hidden');
                 renderSingleConsumoPanel(itemId, type);
             }
         }
@@ -2414,6 +2754,19 @@
             const searchInput = document.getElementById('solpeds-search-input');
             const delayedFilterBtn = document.getElementById('solpeds-delayed-filter-btn');
             const searchTerm = searchInput.value.toLowerCase();
+            const groupFilterContainer = document.getElementById('solpeds-group-filter-container');
+            const dateFilterContainer = document.getElementById('solpeds-date-filter-container');
+            const clearFiltersBtn = document.getElementById('solpeds-clear-filters-btn');
+
+            const isAnyFilterActive = showOnlyDelayedSolpeds || solpedsSelectedGroup !== 'all' || solpedsSelectedYear !== 'all' || solpedsSelectedMonths.length > 0 || searchTerm !== '';
+            if (clearFiltersBtn) {
+                clearFiltersBtn.classList.toggle('hidden', !isAnyFilterActive);
+                if (isAnyFilterActive) {
+                    clearFiltersBtn.classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-200');
+                } else {
+                    clearFiltersBtn.classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-200');
+                }
+            }
 
             delayedFilterBtn.classList.toggle('bg-red-200', showOnlyDelayedSolpeds);
             delayedFilterBtn.classList.toggle('border-red-400', showOnlyDelayedSolpeds);
@@ -2421,8 +2774,75 @@
 
             if (solpeds.length === 0) {
                 container.innerHTML = '<p class="text-center text-slate-500 py-10">No hay datos de Solpeds. Precarga un archivo para visualizarlos.</p>';
+                dateFilterContainer.innerHTML = '';
+                groupFilterContainer.innerHTML = '';
                 return;
             }
+
+            const uniqueGroups = [...new Set(solpeds.map(s => s.grupoDeArticulos).filter(Boolean))].sort();
+            if (uniqueGroups.length > 0) {
+                let groupFilterHTML = `<select id="solpeds-group-filter" class="bg-white border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 h-9"><option value="all">TODOS</option>`;
+                uniqueGroups.forEach(group => {
+                    const selected = group === solpedsSelectedGroup ? 'selected' : '';
+                    groupFilterHTML += `<option value="${group}" ${selected}>${group}</option>`;
+                });
+                groupFilterHTML += `</select>`;
+                groupFilterContainer.innerHTML = groupFilterHTML;
+            } else {
+                groupFilterContainer.innerHTML = '';
+            }
+
+            const allYears = [...new Set(solpeds.map(s => s.fechaLiberacion ? s.fechaLiberacion.substring(0, 4) : null).filter(Boolean))].sort((a, b) => b - a);
+
+            let yearButtonsHTML = '<div class="flex items-center p-0.5 bg-indigo-600 rounded-lg">';
+            yearButtonsHTML += `<button class="solpeds-year-btn indice-coverage-btn ${solpedsSelectedYear === 'all' ? 'active' : ''}" data-year="all">Todos</button>`;
+            allYears.forEach(year => {
+                yearButtonsHTML += `<button class="solpeds-year-btn indice-coverage-btn ${solpedsSelectedYear === year ? 'active' : ''}" data-year="${year}">${year}</button>`;
+            });
+            yearButtonsHTML += '</div>';
+
+            let monthDropdownHTML = '<div id="solpeds-month-filter-dropdown" class="relative ml-2">';
+            let monthButtonText = 'Seleccione Año';
+            let monthButtonDisabled = 'disabled';
+            let monthPanelContent = '';
+
+            if (solpedsSelectedYear !== 'all') {
+                monthButtonDisabled = '';
+                const monthsInYear = [...new Set(solpeds
+                    .filter(s => s.fechaLiberacion && s.fechaLiberacion.startsWith(solpedsSelectedYear))
+                    .map(s => s.fechaLiberacion.substring(5, 7))
+                )].sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+
+                if (monthsInYear.length > 0) {
+                    if (solpedsSelectedMonths.length === 0 || solpedsSelectedMonths.length === monthsInYear.length) {
+                        monthButtonText = 'Todos los Meses';
+                    } else {
+                        monthButtonText = `${solpedsSelectedMonths.length} Mes(es) Seleccionado(s)`;
+                    }
+
+                    monthPanelContent = monthsInYear.map(monthNum => {
+                        const date = new Date(solpedsSelectedYear, parseInt(monthNum, 10) - 1);
+                        let monthName = date.toLocaleString('es-AR', { month: 'long', timeZone: 'UTC' });
+                        monthName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+                        const isChecked = solpedsSelectedMonths.includes(monthNum);
+                        return `
+                            <label class="flex items-center space-x-2 cursor-pointer p-1 rounded hover:bg-slate-100">
+                                <input type="checkbox" class="solpeds-month-checkbox h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" value="${monthNum}" ${isChecked ? 'checked' : ''}>
+                                <span class="text-sm">${monthNum} - ${monthName}</span>
+                            </label>`;
+                    }).join('');
+                } else {
+                     monthButtonText = 'Sin Meses';
+                     monthButtonDisabled = 'disabled';
+                }
+            }
+
+            monthDropdownHTML += `<button id="solpeds-month-filter-btn" class="btn-main-style w-48 text-left justify-start" ${monthButtonDisabled}>${monthButtonText}</button>`;
+            monthDropdownHTML += `<div id="solpeds-month-filter-panel" class="hidden absolute top-full left-0 mt-1 bg-white border rounded-lg shadow-lg z-30 p-2 space-y-1 w-48 max-h-60 overflow-y-auto">${monthPanelContent}</div>`;
+            monthDropdownHTML += `</div>`;
+            
+            dateFilterContainer.innerHTML = yearButtonsHTML + monthDropdownHTML;
+
 
             const itemsByCode = new Map(items.map(item => [item.code, item.id]));
 
@@ -2431,7 +2851,8 @@
                         s.cod.toString().toLowerCase().includes(searchTerm) || 
                         s.descripcion.toLowerCase().includes(searchTerm) || 
                         s.creadoPor.toLowerCase().includes(searchTerm) ||
-                        (s.grupoDeCompras || '').toLowerCase().includes(searchTerm)
+                        (s.grupoDeCompras || '').toLowerCase().includes(searchTerm) ||
+                        (s.grupoDeArticulos || '').toLowerCase().includes(searchTerm)
                 );
             });
 
@@ -2443,6 +2864,21 @@
                     const releaseDate = parseDateString(s.fechaLiberacion);
                     return releaseDate && releaseDate <= today;
                 });
+            }
+
+            if (solpedsSelectedGroup !== 'all') {
+                filteredSolpeds = filteredSolpeds.filter(s => s.grupoDeArticulos === solpedsSelectedGroup);
+            }
+
+            if (solpedsSelectedYear !== 'all') {
+                filteredSolpeds = filteredSolpeds.filter(s => s.fechaLiberacion && s.fechaLiberacion.startsWith(solpedsSelectedYear));
+                if (solpedsSelectedMonths.length > 0) {
+                    filteredSolpeds = filteredSolpeds.filter(s => {
+                        if (!s.fechaLiberacion) return false;
+                        const month = s.fechaLiberacion.substring(5, 7);
+                        return solpedsSelectedMonths.includes(month);
+                    });
+                }
             }
 
             const solpedsCounterEl = document.getElementById('solpeds-counter');
@@ -2480,6 +2916,7 @@
                 { key: 'diasDesdeCreacion', label: 'Días Activa', noSort: true, class: 'text-center' },
                 { key: 'creadoPor', label: 'Creado Por' }, { key: 'solicitud', label: 'Solicitud' },
                 { key: 'fechaSolicitud', label: 'Fecha Sol.' }, { key: 'status', label: 'Status', noSort: true, class: 'text-center' },
+                { key: 'grupoDeArticulos', label: 'Grupo Artículos' },
                 { key: 'cod', label: 'Código' }, { key: 'descripcion', label: 'Descripción' },
                 { key: 'cantidad', label: 'Cantidad', class: 'justify-end' },
                 { key: 'grupoDeCompras', label: 'Grupo Compras' },
@@ -2518,6 +2955,7 @@
                     <td class="px-4 py-2 font-medium text-slate-900">${s.solicitud}</td>
                     <td class="px-4 py-2">${formatDate(s.fechaSolicitud)}</td>
                     <td class="px-4 py-2 text-center">${s.status}</td>
+                    <td class="px-4 py-2">${s.grupoDeArticulos || ''}</td>
                     <td class="px-4 py-2">${s.cod}</td>
                     <td class="px-4 py-2">${s.descripcion}</td>
                     <td class="px-4 py-2 text-right">${formatNumber(s.cantidad)}</td>
@@ -2541,13 +2979,110 @@
             const searchInput = document.getElementById('ocs-search-input');
             const searchTerm = searchInput.value.toLowerCase();
             const delayedFilterBtn = document.getElementById('ocs-delayed-filter-btn');
+            const groupFilterContainer = document.getElementById('ocs-group-filter-container');
+            const statusFilterContainer = document.getElementById('ocs-status-filter-container');
+            const dateFilterContainer = document.getElementById('ocs-date-filter-container');
+            const clearFiltersBtn = document.getElementById('ocs-clear-filters-btn');
+
+            const isAnyFilterActive = showOnlyDelayedOCs || ocsSelectedGroup !== 'all' || ocsSelectedStatus !== 'all' || ocsSelectedYear !== 'all' || ocsSelectedMonths.length > 0 || searchTerm !== '';
+            if (clearFiltersBtn) {
+                clearFiltersBtn.classList.toggle('hidden', !isAnyFilterActive);
+                if (isAnyFilterActive) {
+                    clearFiltersBtn.classList.add('bg-indigo-100', 'text-indigo-700', 'border-indigo-200');
+                } else {
+                    clearFiltersBtn.classList.remove('bg-indigo-100', 'text-indigo-700', 'border-indigo-200');
+                }
+            }
+
             delayedFilterBtn.classList.toggle('bg-red-200', showOnlyDelayedOCs);
             delayedFilterBtn.classList.toggle('border-red-400', showOnlyDelayedOCs);
             delayedFilterBtn.classList.toggle('text-red-800', showOnlyDelayedOCs);
 
             if (ocs.length === 0) {
                 container.innerHTML = '<p class="text-center text-slate-500 py-10">No hay datos de O/C. Precarga un archivo para visualizarlos.</p>';
+                dateFilterContainer.innerHTML = '';
+                groupFilterContainer.innerHTML = '';
+                statusFilterContainer.innerHTML = '';
                 return;
+            }
+
+            const uniqueGroups = [...new Set(ocs.map(oc => extractGroupCode(oc.grupoDeArticulos)).filter(Boolean))].sort();
+            if (uniqueGroups.length > 0) {
+                let filterHTML = `<select id="ocs-group-filter" class="bg-white border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 h-9"><option value="all">TODOS</option>`;
+                uniqueGroups.forEach(group => {
+                    const selected = group === ocsSelectedGroup ? 'selected' : '';
+                    filterHTML += `<option value="${group}" ${selected}>${group}</option>`;
+                });
+                filterHTML += `</select>`;
+                groupFilterContainer.innerHTML = filterHTML;
+            } else {
+                groupFilterContainer.innerHTML = '';
+            }
+
+            // --- Lógica del filtro de Fecha (Año y Mes) ---
+            const allYears = [...new Set(ocs.map(oc => oc.proxFechaEntrega ? oc.proxFechaEntrega.substring(0, 4) : null).filter(Boolean))].sort((a, b) => b - a);
+
+            let yearButtonsHTML = '<div class="flex items-center p-0.5 bg-indigo-600 rounded-lg">';
+            yearButtonsHTML += `<button class="ocs-year-btn indice-coverage-btn ${ocsSelectedYear === 'all' ? 'active' : ''}" data-year="all">Todos</button>`;
+            allYears.forEach(year => {
+                yearButtonsHTML += `<button class="ocs-year-btn indice-coverage-btn ${ocsSelectedYear === year ? 'active' : ''}" data-year="${year}">${year}</button>`;
+            });
+            yearButtonsHTML += '</div>';
+
+            let monthDropdownHTML = '<div id="ocs-month-filter-dropdown" class="relative ml-2">';
+            let monthButtonText = 'Seleccione Año';
+            let monthButtonDisabled = 'disabled';
+            let monthPanelContent = '';
+
+            if (ocsSelectedYear !== 'all') {
+                monthButtonDisabled = '';
+                const monthsInYear = [...new Set(ocs
+                    .filter(oc => oc.proxFechaEntrega && oc.proxFechaEntrega.startsWith(ocsSelectedYear))
+                    .map(oc => oc.proxFechaEntrega.substring(5, 7))
+                )].sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+
+                if (monthsInYear.length > 0) {
+                    if (ocsSelectedMonths.length === 0 || ocsSelectedMonths.length === monthsInYear.length) {
+                        monthButtonText = 'Todos los Meses';
+                    } else {
+                        monthButtonText = `${ocsSelectedMonths.length} Mes(es) Seleccionado(s)`;
+                    }
+
+                    monthPanelContent = monthsInYear.map(monthNum => {
+                        const date = new Date(ocsSelectedYear, parseInt(monthNum, 10) - 1);
+                        let monthName = date.toLocaleString('es-AR', { month: 'long', timeZone: 'UTC' });
+                        monthName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+                        const isChecked = ocsSelectedMonths.includes(monthNum);
+                        return `
+                            <label class="flex items-center space-x-2 cursor-pointer p-1 rounded hover:bg-slate-100">
+                                <input type="checkbox" class="ocs-month-checkbox h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" value="${monthNum}" ${isChecked ? 'checked' : ''}>
+                                <span class="text-sm">${monthNum} - ${monthName}</span>
+                            </label>`;
+                    }).join('');
+                } else {
+                     monthButtonText = 'Sin Meses';
+                     monthButtonDisabled = 'disabled';
+                }
+            }
+
+            monthDropdownHTML += `<button id="ocs-month-filter-btn" class="btn-main-style w-48 text-left justify-start" ${monthButtonDisabled}>${monthButtonText}</button>`;
+            monthDropdownHTML += `<div id="ocs-month-filter-panel" class="hidden absolute top-full left-0 mt-1 bg-white border rounded-lg shadow-lg z-30 p-2 space-y-1 w-48 max-h-60 overflow-y-auto">${monthPanelContent}</div>`;
+            monthDropdownHTML += `</div>`;
+            
+            dateFilterContainer.innerHTML = yearButtonsHTML + monthDropdownHTML;
+
+
+            const uniqueStatuses = [...new Set(ocs.map(oc => transformOCStatus(oc.status)).filter(Boolean))].sort();
+            if (uniqueStatuses.length > 0) {
+                let statusFilterHTML = `<select id="ocs-status-filter" class="bg-white border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 h-9"><option value="all">TODOS LOS STATUS</option>`;
+                uniqueStatuses.forEach(status => {
+                    const selected = status === ocsSelectedStatus ? 'selected' : '';
+                    statusFilterHTML += `<option value="${status}" ${selected}>${status}</option>`;
+                });
+                statusFilterHTML += `</select>`;
+                statusFilterContainer.innerHTML = statusFilterHTML;
+            } else {
+                statusFilterContainer.innerHTML = '';
             }
 
             const itemsByCode = new Map(items.map(item => [item.code, item.id]));
@@ -2557,6 +3092,7 @@
                         oc.ordenDeCompra.toString().toLowerCase().includes(searchTerm) || 
                         oc.codigo.toString().toLowerCase().includes(searchTerm) || 
                         oc.denominacion.toLowerCase().includes(searchTerm) ||
+                        (oc.grupoDeArticulos || '').toLowerCase().includes(searchTerm) ||
                         (oc.grupoDeCompras || '').toLowerCase().includes(searchTerm) ||
                         (oc.status || '').toLowerCase().includes(searchTerm)
                 );
@@ -2571,7 +3107,26 @@
                     return deliveryDate && deliveryDate < today;
                 });
             }
+
+            if (ocsSelectedGroup !== 'all') {
+                filteredOCs = filteredOCs.filter(oc => extractGroupCode(oc.grupoDeArticulos) === ocsSelectedGroup);
+            }
             
+            if (ocsSelectedStatus !== 'all') {
+                filteredOCs = filteredOCs.filter(oc => transformOCStatus(oc.status) === ocsSelectedStatus);
+            }
+
+            if (ocsSelectedYear !== 'all') {
+                filteredOCs = filteredOCs.filter(oc => oc.proxFechaEntrega && oc.proxFechaEntrega.startsWith(ocsSelectedYear));
+                if (ocsSelectedMonths.length > 0) {
+                    filteredOCs = filteredOCs.filter(oc => {
+                        if (!oc.proxFechaEntrega) return false;
+                        const month = oc.proxFechaEntrega.substring(5, 7);
+                        return ocsSelectedMonths.includes(month);
+                    });
+                }
+            }
+
             const ocsCounterEl = document.getElementById('ocs-counter');
             if (ocsCounterEl) {
                 ocsCounterEl.textContent = `(${filteredOCs.length} de ${ocs.length})`;
@@ -2583,7 +3138,7 @@
                 let valA = a[key] ?? '';
                 let valB = b[key] ?? '';
 
-                if (['cantEntregaSiguiente', 'cantPedido', 'posicion'].includes(key)) {
+                if (['cantEntregaSiguiente', 'posicion'].includes(key)) {
                     valA = parseFloat(valA) || 0;
                     valB = parseFloat(valB) || 0;
                 } else if (key === 'proxFechaEntrega') {
@@ -2604,24 +3159,29 @@
                 return;
             }
             
-            const sortIconSVG = `<svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+            const sortIconSVG = `<svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
             const headers = [
                 { key: 'diasParaEntrega', label: 'Días Entrega', noSort: true, class: 'text-center' },
                 { key: 'solped', label: 'Solped' }, 
                 { key: 'ordenDeCompra', label: 'O/C' },
                 { key: 'posicion', label: 'Pos.' }, 
                 { key: 'proxFechaEntrega', label: 'Próx. Entrega' },
+                { key: 'grupoDeArticulos', label: 'Grupo Artículos' },
                 { key: 'codigo', label: 'Código' },
                 { key: 'denominacion', label: 'Denominación' }, 
                 { key: 'cantEntregaSiguiente', label: 'Cant. Entrega', class: 'justify-end' },
-                { key: 'cantPedido', label: 'Cant. Pedido', class: 'justify-end' },
-                { key: 'grupoDeCompras', label: 'Grupo Compras' }, { key: 'status', label: 'Status' }
+                { key: 'grupoDeCompras', label: 'Grupo Compras' }, 
+                { key: 'status', label: 'Status' }
             ];
 
             let tableHTML = `<table class="w-full text-sm text-left text-slate-500"><thead class="text-xs text-slate-700 uppercase bg-slate-50 sticky top-0"><tr>`;
             headers.forEach(h => {
                 const thClass = `px-4 py-2 ${h.class && !h.noSort ? 'text-left' : h.class || ''}`;
-                tableHTML += `<th scope="col" class="${thClass}"><button class="table-sort-button ${h.class || ''}" data-sort="${h.key}">${h.label}</button></th>`;
+                if (h.noSort) {
+                    tableHTML += `<th scope="col" class="${thClass}">${h.label}</th>`;
+                } else {
+                    tableHTML += `<th scope="col" class="${thClass}"><button class="table-sort-button ${h.class || ''}" data-sort="${h.key}">${h.label}</button></th>`;
+                }
             });
             tableHTML += `</tr></thead><tbody>`;
 
@@ -2641,6 +3201,7 @@
                  }
                 const isDelayed = deliveryDate && deliveryDate < today;
                 const dateClass = isDelayed ? 'text-red-600 font-bold' : '';
+                const transformedStatus = transformOCStatus(oc.status);
 
                 let rowClass = 'border-b hover:bg-slate-100 even:bg-slate-50';
                 if (itemId) rowClass += ' cursor-pointer oc-item-row';
@@ -2657,12 +3218,12 @@
                     <td class="px-4 py-2 font-medium">${oc.ordenDeCompra}</td>
                     <td class="px-4 py-2">${oc.posicion}</td>
                     <td class="px-4 py-2 ${dateClass}">${formatDate(oc.proxFechaEntrega)}</td>
+                    <td class="px-4 py-2">${extractGroupCode(oc.grupoDeArticulos)}</td>
                     <td class="px-4 py-2">${oc.codigo}</td>
                     <td class="px-4 py-2">${oc.denominacion}</td>
                     <td class="px-4 py-2 text-right font-bold">${formatNumber(oc.cantEntregaSiguiente)}</td>
-                    <td class="px-4 py-2 text-right">${formatNumber(oc.cantPedido)}</td>
                     <td class="px-4 py-2">${oc.grupoDeCompras}</td>
-                    <td class="px-4 py-2">${oc.status}</td>
+                    <td class="px-4 py-2">${transformedStatus}</td>
                 </tr>`;
             });
 
@@ -2947,7 +3508,8 @@
                  s.cod.toString().toLowerCase().includes(searchTerm) || 
                  s.descripcion.toLowerCase().includes(searchTerm) || 
                  s.creadoPor.toLowerCase().includes(searchTerm) ||
-                 (s.grupoDeCompras || '').toLowerCase().includes(searchTerm))
+                 (s.grupoDeCompras || '').toLowerCase().includes(searchTerm) ||
+                 (s.grupoDeArticulos || '').toLowerCase().includes(searchTerm))
             );
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -2956,6 +3518,19 @@
                     const releaseDate = parseDateString(s.fechaLiberacion);
                     return releaseDate && releaseDate <= today;
                 });
+            }
+            if (solpedsSelectedGroup !== 'all') {
+                dataToExport = dataToExport.filter(s => s.grupoDeArticulos === solpedsSelectedGroup);
+            }
+            if (solpedsSelectedYear !== 'all') {
+                dataToExport = dataToExport.filter(s => s.fechaLiberacion && s.fechaLiberacion.startsWith(solpedsSelectedYear));
+                if (solpedsSelectedMonths.length > 0) {
+                    dataToExport = dataToExport.filter(s => {
+                        if (!s.fechaLiberacion) return false;
+                        const month = s.fechaLiberacion.substring(5, 7);
+                        return solpedsSelectedMonths.includes(month);
+                    });
+                }
             }
             if(dataToExport.length === 0) {
                 showToast('No hay datos para exportar.', 'info');
@@ -2967,6 +3542,7 @@
                 'Solicitud': s.solicitud,
                 'Fecha Solicitud': formatDate(s.fechaSolicitud),
                 'Status': s.status,
+                'Grupo Artículos': s.grupoDeArticulos || '',
                 'Código': s.cod,
                 'Descripción': s.descripcion,
                 'Cantidad': s.cantidad,
@@ -2984,6 +3560,7 @@
                  oc.ordenDeCompra.toString().toLowerCase().includes(searchTerm) || 
                  oc.codigo.toString().toLowerCase().includes(searchTerm) || 
                  oc.denominacion.toLowerCase().includes(searchTerm) ||
+                 (oc.grupoDeArticulos || '').toLowerCase().includes(searchTerm) ||
                  (oc.grupoDeCompras || '').toLowerCase().includes(searchTerm) ||
                  (oc.status || '').toLowerCase().includes(searchTerm))
             );
@@ -2995,6 +3572,22 @@
                     return deliveryDate && deliveryDate < today;
                 });
             }
+            if (ocsSelectedGroup !== 'all') {
+                dataToExport = dataToExport.filter(oc => oc.grupoDeArticulos === ocsSelectedGroup);
+            }
+            if (ocsSelectedStatus !== 'all') {
+                dataToExport = dataToExport.filter(oc => oc.status === ocsSelectedStatus);
+            }
+            if (ocsSelectedYear !== 'all') {
+                dataToExport = dataToExport.filter(oc => oc.proxFechaEntrega && oc.proxFechaEntrega.startsWith(ocsSelectedYear));
+                if (ocsSelectedMonths.length > 0) {
+                    dataToExport = dataToExport.filter(oc => {
+                        if (!oc.proxFechaEntrega) return false;
+                        const month = oc.proxFechaEntrega.substring(5, 7);
+                        return ocsSelectedMonths.includes(month);
+                    });
+                }
+            }
             if(dataToExport.length === 0) {
                 showToast('No hay datos para exportar.', 'info');
                 return;
@@ -3005,10 +3598,10 @@
                 'O/C': oc.ordenDeCompra,
                 'Posición': oc.posicion,
                 'Próxima Entrega': formatDate(oc.proxFechaEntrega),
+                'Grupo Artículos': oc.grupoDeArticulos,
                 'Código': oc.codigo,
                 'Denominación': oc.denominacion,
                 'Cant. Entrega': oc.cantEntregaSiguiente,
-                'Cant. Pedido': oc.cantPedido,
                 'Grupo Compras': oc.grupoDeCompras,
                 'Status': oc.status
             }));
@@ -3378,7 +3971,7 @@
                     indiceShowFavorites = !indiceShowFavorites;
                     renderIndiceView();
                 }
-                if (e.target.id === 'indice-clear-filters-btn') {
+                if (e.target.closest('#indice-clear-filters-btn')) {
                     handleClearIndiceFilters();
                 }
                 const favBtn = e.target.closest('.favorite-btn[data-btn-type="indice-fav"]');
@@ -3410,10 +4003,25 @@
             document.getElementById('consumos-view')?.addEventListener('click', (e) => {
                 if(e.target.closest('#consumo-search-results')) handleSelectConsumosItem(e);
                 if(e.target.closest('#consumo-comparison-search-results')) handleSelectConsumosItem(e);
-                if(e.target.matches('#consumo-favorites-filter-btn')) handleConsumosFavoritesToggle(e);
-                if(e.target.matches('#consumo-comparison-favorites-filter-btn')) handleConsumosFavoritesToggle(e);
-                if(e.target.matches('#consumo-clear-filters-btn')) handleClearConsumosFilters();
-                const favBtn = e.target.closest('.favorite-btn');
+                
+                const favFilterBtn = e.target.closest('#consumo-favorites-filter-btn, #consumo-comparison-favorites-filter-btn');
+                if (favFilterBtn) {
+                    handleConsumosFavoritesToggle(favFilterBtn);
+                    return;
+                }
+
+                const clearPrimaryBtn = e.target.closest('#consumo-clear-primary-btn');
+                if (clearPrimaryBtn) {
+                    handleClearConsumoPanel('primary');
+                    return;
+                }
+                const clearComparisonBtn = e.target.closest('#consumo-clear-comparison-btn');
+                if (clearComparisonBtn) {
+                    handleClearConsumoPanel('comparison');
+                    return;
+                }
+
+                const favBtn = e.target.closest('.favorite-btn[data-item-id]');
                 if (favBtn) {
                     handleToggleFavorite(favBtn.dataset.itemId);
                 }
@@ -3442,14 +4050,37 @@
             document.getElementById('solpeds-view')?.addEventListener('click', (e) => { 
                 const btn = e.target.closest('.table-sort-button'); 
                 const row = e.target.closest('.solped-item-row');
+                const yearBtn = e.target.closest('.solpeds-year-btn');
+                const monthBtn = e.target.closest('#solpeds-month-filter-btn');
 
                 if (btn) { handleSolpedsSort(btn.dataset.sort); }
                 else if (e.target.id === 'solpeds-delayed-filter-btn') { showOnlyDelayedSolpeds = !showOnlyDelayedSolpeds; renderSolpedsView(); }
                 else if (e.target.closest('#export-solpeds-btn')) { handleExportSolpeds(); }
+                else if (e.target.closest('#solpeds-clear-filters-btn')) { handleClearSolpedsFilters(); }
                 else if (row && row.dataset.itemId) {
                     selectedConsumptionItemId = row.dataset.itemId;
                     comparisonItemId = null;
                     switchMainView('consumos');
+                }
+                else if (yearBtn) {
+                    solpedsSelectedYear = yearBtn.dataset.year;
+                    solpedsSelectedMonths = [];
+                    renderSolpedsView();
+                }
+                else if (monthBtn) {
+                    e.stopPropagation();
+                    document.getElementById('solpeds-month-filter-panel').classList.toggle('hidden');
+                }
+            });
+            document.getElementById('solpeds-view')?.addEventListener('change', (e) => {
+                if (e.target.id === 'solpeds-group-filter') {
+                    solpedsSelectedGroup = e.target.value;
+                    renderSolpedsView();
+                }
+                if (e.target.matches('.solpeds-month-checkbox')) {
+                    const checkedMonths = Array.from(document.querySelectorAll('.solpeds-month-checkbox:checked')).map(cb => cb.value);
+                    solpedsSelectedMonths = checkedMonths;
+                    renderSolpedsView();
                 }
             });
             
@@ -3457,14 +4088,41 @@
            document.getElementById('ocs-view')?.addEventListener('click', (e) => { 
                 const btn = e.target.closest('.table-sort-button'); 
                 const row = e.target.closest('.oc-item-row');
+                const yearBtn = e.target.closest('.ocs-year-btn');
+                const monthBtn = e.target.closest('#ocs-month-filter-btn');
 
                 if (btn) { handleOCsSort(btn.dataset.sort); }
                 else if (e.target.id === 'ocs-delayed-filter-btn') { showOnlyDelayedOCs = !showOnlyDelayedOCs; renderOCsView(); }
                 else if (e.target.closest('#export-ocs-btn')) { handleExportOCs(); }
+                else if (e.target.closest('#ocs-clear-filters-btn')) { handleClearOCsFilters(); }
+                else if (yearBtn) {
+                    ocsSelectedYear = yearBtn.dataset.year;
+                    ocsSelectedMonths = [];
+                    renderOCsView();
+                }
+                else if (monthBtn) {
+                    e.stopPropagation();
+                    document.getElementById('ocs-month-filter-panel').classList.toggle('hidden');
+                }
                 else if (row && row.dataset.itemId) {
                     selectedConsumptionItemId = row.dataset.itemId;
                     comparisonItemId = null;
                     switchMainView('consumos');
+                }
+            });
+            document.getElementById('ocs-view')?.addEventListener('change', (e) => {
+                if (e.target.id === 'ocs-group-filter') {
+                    ocsSelectedGroup = e.target.value;
+                    renderOCsView();
+                }
+                if (e.target.id === 'ocs-status-filter') {
+                    ocsSelectedStatus = e.target.value;
+                    renderOCsView();
+                }
+                if (e.target.matches('.ocs-month-checkbox')) {
+                    const checkedMonths = Array.from(document.querySelectorAll('.ocs-month-checkbox:checked')).map(cb => cb.value);
+                    ocsSelectedMonths = checkedMonths;
+                    renderOCsView();
                 }
             });
 
@@ -3536,6 +4194,54 @@
             });
             document.getElementById('close-record-consumption-modal-button')?.addEventListener('click', () => document.getElementById('record-consumption-modal').classList.add('hidden'));
 
+            document.getElementById('close-group-stats-modal-button')?.addEventListener('click', () => document.getElementById('group-stats-modal').classList.add('hidden'));
+
+            document.getElementById('group-stats-modal')?.addEventListener('click', (e) => {
+                 const row = e.target.closest('tr[data-group-name]');
+                 if (row) {
+                     const groupName = row.dataset.groupName;
+                     indiceSelectedGroup = groupName;
+                     indiceShowFavorites = false;
+                     indiceCoverageFilter = 'all';
+                     indiceSearchTerm = '';
+                     document.getElementById('group-stats-modal').classList.add('hidden');
+                     switchMainView('indice');
+                 }
+            });
+
+            document.getElementById('close-delayed-solpeds-modal-button')?.addEventListener('click', () => document.getElementById('delayed-solpeds-modal').classList.add('hidden'));
+
+            document.getElementById('delayed-solpeds-modal')?.addEventListener('click', (e) => {
+                 const row = e.target.closest('tr[data-group-compras]');
+                 if (row) {
+                     const groupName = row.dataset.groupCompras;
+                     document.getElementById('solpeds-search-input').value = groupName === 'Sin Grupo' ? '' : groupName;
+                     showOnlyDelayedSolpeds = true;
+                     solpedsSelectedGroup = 'all';
+                     solpedsSelectedYear = 'all';
+                     solpedsSelectedMonths = [];
+                     document.getElementById('delayed-solpeds-modal').classList.add('hidden');
+                     switchMainView('solpeds');
+                 }
+            });
+
+            document.getElementById('close-delayed-ocs-modal-button')?.addEventListener('click', () => document.getElementById('delayed-ocs-modal').classList.add('hidden'));
+
+            document.getElementById('delayed-ocs-modal')?.addEventListener('click', (e) => {
+                 const row = e.target.closest('tr[data-group-compras]');
+                 if (row) {
+                     const groupName = row.dataset.groupCompras;
+                     document.getElementById('ocs-search-input').value = groupName === 'Sin Grupo' ? '' : groupName;
+                     showOnlyDelayedOCs = true;
+                     ocsSelectedGroup = 'all';
+                     ocsSelectedStatus = 'all';
+                     ocsSelectedYear = 'all';
+                     ocsSelectedMonths = [];
+                     document.getElementById('delayed-ocs-modal').classList.add('hidden');
+                     switchMainView('ocs');
+                 }
+            });
+
             document.getElementById('add-new-item-btn')?.addEventListener('click', handleOpenItemModal);
             document.getElementById('close-item-modal')?.addEventListener('click', handleCloseItemModal);
             document.getElementById('item-form')?.addEventListener('submit', handleSaveItem);
@@ -3543,6 +4249,16 @@
             window.addEventListener('click', (e) => {
                 if (!e.target.closest('#notification-container') && !e.target.closest('#user-menu-container')) {
                     document.querySelectorAll('.dropdown-content.show').forEach(d => d.classList.remove('show'));
+                }
+                const ocsMonthFilterDropdown = document.getElementById('ocs-month-filter-dropdown');
+                if (ocsMonthFilterDropdown && !ocsMonthFilterDropdown.contains(e.target)) {
+                    const panel = document.getElementById('ocs-month-filter-panel');
+                    if (panel) panel.classList.add('hidden');
+                }
+                const solpedsMonthFilterDropdown = document.getElementById('solpeds-month-filter-dropdown');
+                if (solpedsMonthFilterDropdown && !solpedsMonthFilterDropdown.contains(e.target)) {
+                    const panel = document.getElementById('solpeds-month-filter-panel');
+                    if (panel) panel.classList.add('hidden');
                 }
             });
         });
@@ -3662,4 +4378,4 @@
 </body>
 </html>
 
-- - -  F.A  - - - 06/09/2025 - - -
+- - FA __07/09/2025__
