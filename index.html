@@ -171,17 +171,26 @@
         }
         .notification-item.unread { background-color: #eef2ff; }
         .notification-item:hover { background-color: #f8fafc; }
-        .history-table th:first-child, .history-table td:first-child {
+        .history-table thead th {
             position: sticky;
-            left: 0;
+            top: 0;
+            background-color: #f1f5f9; /* slate-100 */
             z-index: 10;
-            background-color: white;
         }
         .history-table thead th:first-child {
-            background-color: #f8fafc;
+            left: 0;
+            z-index: 20;
+            border-right: 1px solid #e2e8f0;
         }
-        .history-table tr:hover td:first-child {
-            background-color: #f8fafc;
+        .history-table tbody td:first-child {
+            position: sticky;
+            left: 0;
+            background-color: white;
+            z-index: 10;
+            border-right: 1px solid #e2e8f0;
+        }
+        .history-table tbody tr:hover td:first-child {
+            background-color: #f8fafc; /* slate-50 */
         }
     </style>
 </head>
@@ -2643,7 +2652,9 @@
                     <td class="px-4 py-2 text-right truncate indice-item-details cursor-pointer text-xl font-bold border-l border-r border-slate-300" data-item-id="${item.id}">${formatNumber(item.stock)}</td>
                     <td class="px-4 py-2 text-right truncate indice-item-details cursor-pointer text-base" data-item-id="${item.id}">${formatNumber(item.monthlyConsumption)}</td>
                     <td class="px-4 py-2 text-right ${coverageClass} text-base">${coverageText}</td>
-                    <td class="px-4 py-2 text-xs text-slate-600 truncate indice-item-details cursor-pointer" data-item-id="${item.id}">${item.description_notes || ''}</td>
+                    <td class="px-4 py-2">
+                        <input type="text" value="${item.description_notes || ''}" data-item-id="${item.id}" class="w-full bg-transparent text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white rounded p-1 notes-input-indice placeholder:text-center placeholder:text-slate-400 placeholder:text-lg" placeholder="+" ${currentUserRole === 'viewer' ? 'disabled' : ''}>
+                    </td>
                 `;
 
                 if (currentUserRole === 'owner' || currentUserRole === 'editor') {
@@ -2745,7 +2756,7 @@
                          <div id="consumo-favorite-btn-container-${type}" class="flex-shrink-0"></div>
                          <div>
                             <div class="flex items-center gap-2">
-                                <h3 id="consumo-kpi-name-${type}" class="text-lg font-bold text-[#6366f1]">-</h3>
+                                <h3 id="consumo-kpi-name-${type}" class="text-lg font-bold text-[#6366f1] consumo-name-link cursor-pointer hover:underline">-</h3>
                                 <button id="copy-consumo-name-${type}" class="btn-main-style !p-1.5 !h-auto flex-shrink-0 hidden" title="Copiar al portapapeles">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                                 </button>
@@ -2755,7 +2766,7 @@
                     </div>
                     <div class="text-right flex-shrink-0">
                         <p class="text-xs font-medium text-slate-500 uppercase">Grupo</p>
-                        <p id="consumo-kpi-group-${type}" class="text-base font-semibold text-[#6366f1]">-</p>
+                        <p id="consumo-kpi-group-${type}" class="text-base font-semibold text-[#6366f1] consumo-group-link cursor-pointer hover:underline">-</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-5 gap-3 mt-4">
@@ -2795,10 +2806,17 @@
             favoriteBtnContainer.innerHTML = '';
             favoriteBtnContainer.appendChild(favoriteBtn);
 
+            const nameEl = document.getElementById(`consumo-kpi-name-${type}`);
+            nameEl.textContent = item.name.replace(new RegExp(`^${item.code}\\s*`), '');
+            nameEl.dataset.itemCode = item.code;
+
+            const groupEl = document.getElementById(`consumo-kpi-group-${type}`);
+            groupEl.textContent = item.group || 'N/A';
+            groupEl.dataset.groupName = item.group;
+
             const textToCopy = `${item.code} - ${item.name.replace(new RegExp(`^${item.code}\\s*`), '')}`;
-            document.getElementById(`consumo-kpi-name-${type}`).textContent = item.name.replace(new RegExp(`^${item.code}\\s*`), '');
-             document.getElementById(`consumo-kpi-code-${type}`).textContent = item.code;
-            document.getElementById(`consumo-kpi-group-${type}`).textContent = item.group || 'N/A';
+            document.getElementById(`consumo-kpi-code-${type}`).textContent = item.code;
+            
 
             const copyBtn = document.getElementById(`copy-consumo-name-${type}`);
             if (copyBtn) {
@@ -2876,10 +2894,10 @@
                     const barHeight = maxValue > 0 ? (value / maxValue) * 100 : 0;
                     const displayValue = value > 5000 ? (value/1000).toFixed(0) + 'k' : formatNumber(value);
                     
-                    let barClass = 'bg-indigo-500';
+                    let barClass = 'bg-indigo-500'; // Azul por defecto
                     if (value > 0 && uniqueValues.length > 1) {
-                        if (value === Math.max(...nonZeroConsumos)) barClass = 'bg-green-600';
-                        else if (value === minValue) barClass = 'bg-red-600';
+                        if (value === Math.max(...nonZeroConsumos)) barClass = 'bg-green-600'; // Verde más intenso pero apagado
+                        else if (value === minValue) barClass = 'bg-red-600'; // Rojo más intenso pero apagado
                     }
 
                     return `<div class="consumo-chart-bar-wrapper"><div class="consumo-chart-bar ${barClass}" style="height: ${barHeight}%;"><div class="consumo-chart-value">${displayValue}</div></div><div class="consumo-chart-label">${monthLabels[index]}</div></div>`;
@@ -4182,18 +4200,18 @@
                     historyMatrix[record.weekId] = new Set(record.reviewedGroups);
                 });
 
-                let tableHTML = `<table class="w-full text-sm text-left text-slate-500 history-table"><thead class="text-xs text-slate-700 uppercase bg-slate-100 sticky top-0 z-10"><tr><th class="px-2 py-2 font-bold" style="width: 8px;">Grupo</th>`;
+                let tableHTML = `<table class="w-full text-sm text-left text-slate-500 history-table table-fixed"><thead class="text-xs text-slate-700 uppercase"><tr><th class="px-2 py-3 font-bold w-32">Grupo</th>`;
                 allWeeks.forEach(weekId => {
                     const weekNum = weekId.split('-')[1];
-                    tableHTML += `<th class="px-1 py-2 text-center">${weekNum}</th>`;
+                    tableHTML += `<th class="px-1 py-3 text-center">${weekNum}</th>`;
                 });
                 tableHTML += `</tr></thead><tbody>`;
 
                 allGroups.forEach(groupName => {
-                    tableHTML += `<tr class="border-b hover:bg-slate-50"><td class="px-2 py-2 font-medium text-slate-900 whitespace-nowrap" style="width: 8px;">${groupName}</td>`;
+                    tableHTML += `<tr class="border-b hover:bg-slate-50"><td class="px-2 py-3 font-medium text-slate-900 whitespace-nowrap">${groupName}</td>`;
                     allWeeks.forEach(weekId => {
                         const isChecked = historyMatrix[weekId] && historyMatrix[weekId].has(groupName);
-                        tableHTML += `<td class="px-1 py-2 text-center text-green-500 font-bold">${isChecked ? '✓' : ''}</td>`;
+                        tableHTML += `<td class="px-1 py-3 text-center text-green-500 font-bold">${isChecked ? '✓' : ''}</td>`;
                     });
                     tableHTML += `</tr>`;
                 });
@@ -4363,6 +4381,9 @@
                     indiceSearchTerm = e.target.value.toLowerCase();
                     renderIndiceView();
                 }
+                if(e.target.classList.contains('notes-input-indice')) {
+                    handleNotesInput(e);
+                }
             });
              document.getElementById('indice-view').addEventListener('change', (e) => {
                 if(e.target.id === 'indice-group-filter') {
@@ -4454,12 +4475,23 @@
                     return;
                 }
 
-                const clearComparisonTextBtn = e.target.closest('#consumo-comparison-clear-text-btn');
-                if(clearComparisonTextBtn) {
-                    const searchInput = document.getElementById('consumo-comparison-search-input');
-                    searchInput.value = '';
-                    handleConsumosSearch({ target: searchInput }, 'comparison');
-                    searchInput.focus();
+                const nameLink = e.target.closest('.consumo-name-link');
+                if (nameLink && nameLink.dataset.itemCode) {
+                    indiceSearchTerm = nameLink.dataset.itemCode;
+                    indiceSelectedGroup = 'all';
+                    indiceShowFavorites = false;
+                    indiceCoverageFilter = 'all';
+                    switchMainView('indice');
+                    return;
+                }
+
+                const groupLink = e.target.closest('.consumo-group-link');
+                if (groupLink && groupLink.dataset.groupName) {
+                    indiceSelectedGroup = groupLink.dataset.groupName;
+                    indiceSearchTerm = '';
+                    indiceShowFavorites = false;
+                    indiceCoverageFilter = 'all';
+                    switchMainView('indice');
                     return;
                 }
 
@@ -4820,3 +4852,4 @@
 </body>
 </html>
 
+____________________________________________________________________ FA - 10/09/2025 - _________________
