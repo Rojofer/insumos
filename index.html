@@ -217,6 +217,44 @@
             -ms-overflow-style: none;  /* for IE and Edge */
             scrollbar-width: none;  /* for Firefox */
         }
+        .calendar { background-color: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; text-align: center; }
+        .calendar-day-name { font-weight: 600; font-size: 0.75rem; color: #64748b; padding-bottom: 0.5rem; }
+        .calendar-day { display: flex; justify-content: center; align-items: center; height: 2.5rem; width: 2.5rem; margin: auto; border-radius: 50%; font-size: 0.875rem; color: #334155; }
+        .calendar-day.other-month { color: #cbd5e1; }
+        .calendar-day.today { background-color: #6366f1; color: white; font-weight: 700; }
+        #incoming-items-list {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        #incoming-items-list.is-open {
+            max-height: 1000px; /* Large enough value to not clip content */
+            transition: max-height 0.5s ease-in;
+        }
+        #incoming-items-chevron.is-open {
+            transform: rotate(180deg);
+        }
+        .calendar-week-row { cursor: pointer; }
+        .calendar-week-row:hover .calendar-day:not(.other-month) { background-color: #eef2ff; }
+        .calendar-day.has-income { position: relative; }
+        .calendar-day.has-income::after {
+            content: ''; position: absolute; bottom: 4px; left: 50%;
+            transform: translateX(-50%); width: 5px; height: 5px;
+            border-radius: 50%; background-color: #16a34a;
+        }
+        .calendar-week-row.selected-week .calendar-day:not(.other-month) {
+            background-color: #6366f1; color: white; font-weight: bold;
+        }
+        .calendar-week-row.selected-week .calendar-day.today {
+            background-color: #4338ca;
+        }
+        .calendar-week-row.selected-week .calendar-day.has-income::after { background-color: white; }
+        .week-number-cell {
+            font-size: 0.75rem; color: #94a3b8; font-weight: 500;
+            vertical-align: middle; text-align: center; padding-right: 0.5rem;
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800">
@@ -234,7 +272,7 @@
             
             <div id="login-view" class="bg-white p-8 rounded-2xl shadow-lg hidden">
                 <h2 class="text-2xl font-bold text-center text-slate-800">ALMACEN</h2>
-                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v2.40 (13-09-2025)</p>
+                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v2.50 (15-09-2025)</p>
                 <form id="login-form" class="space-y-4">
                     <div>
                         <label for="login-email" class="text-sm font-medium text-slate-700">Email</label>
@@ -288,19 +326,20 @@
                                 <button data-view="indice" class="nav-link uppercase">Insumos</button>
                                 <button data-view="solpeds" class="nav-link uppercase">SOLPEDS</button>
                                 <button data-view="ocs" class="nav-link uppercase">O/C</button>
-                                <button data-view="reportes" class="nav-link uppercase">Reportes</button>
+                                <button data-view="ingresos" class="nav-link uppercase">INGRESOS</button>
                                 <button data-view="revision" class="nav-link hidden uppercase">CHECK</button>
+                                <button data-view="reportes" class="nav-link uppercase">EXTRAS</button>
                             </div>
                         </div>
                     </div>
-                    <div class="flex-grow flex items-center justify-center px-4">
-                        <button id="open-global-search-btn" class="flex items-center gap-2 p-2 w-full max-w-md rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 font-medium text-sm transition-colors">
+                    <div class="flex-1 flex items-center justify-center px-2 md:px-4">
+                        <button id="open-global-search-btn" class="flex items-center gap-2 p-2 w-full max-w-xl sm:w-96 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 font-medium text-sm transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                            <span class="flex-1 text-left">Buscar...</span>
-                            <kbd class="font-sans font-semibold text-slate-400"><span class="text-xs">⌘</span>K</kbd>
+                            <span class="flex-1 text-left hidden sm:inline">Buscar...</span>
+                            <kbd class="font-sans font-semibold text-slate-400 hidden sm:inline"><span class="text-xs">⌘</span>K</kbd>
                         </button>
                     </div>
-                    <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2 sm:gap-4">
                         <div id="db-info-container"></div>
                         <div id="notification-container" class="relative hidden">
                             <button id="notification-bell-btn" class="p-2 rounded-full hover:bg-slate-100 relative">
@@ -352,7 +391,7 @@
                                 </div>
                                 <div class="dropdown-divider"></div>
                                 <div class="px-4 py-2 text-center text-xs text-slate-400">
-                                    Versión 2.40 (13-09-2025)
+                                    Versión 2.50 (15-09-2025)
                                 </div>
                             </div>
                         </div>
@@ -364,18 +403,16 @@
         <main>
             <div id="dashboard-view">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 sm:p-6 lg:p-8 items-start">
-                    <!-- Columna Izquierda -->
+                    
                     <div class="flex flex-col gap-6 lg:col-span-8">
-                        <div id="kpi-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4"></div>
+                        <div id="kpi-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4"></div>
                         <div id="kpi-detail-container" class="hidden"></div>
                     </div>
-                    <!-- Columna Derecha -->
+                    
                     <div class="flex flex-col gap-6 lg:col-span-4">
-                        <div id="date-week-container">
-                            <!-- JS will inject date and week here -->
-                        </div>
+                        
                         <div id="low-stock-container" class="bg-white rounded-lg shadow">
-                            <!-- Content will be injected by JS -->
+                            
                         </div>
                     </div>
                 </div>
@@ -383,38 +420,40 @@
 
             <div id="indice-view" class="hidden">
                 <div class="bg-indigo-500 p-4 border-b border-indigo-600">
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-4">
-                            <h2 class="text-2xl font-bold text-white">INSUMOS</h2>
-                            <span id="indice-counter" class="text-sm font-medium text-indigo-200"></span>
-                            <div id="indice-group-filter-container" class="mr-4"></div>
-                            <div class="relative">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-4 w-full md:w-auto">
+                            <div class="flex items-center gap-4 flex-shrink-0">
+                                <h2 class="text-2xl font-bold text-white">INSUMOS</h2>
+                                <span id="indice-counter" class="text-sm font-medium text-indigo-200"></span>
+                            </div>
+                            <div id="indice-group-filter-container" class="min-w-[200px]"></div>
+                            <div class="relative flex-grow">
                                 <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                <input type="text" id="indice-search-input" placeholder="Buscar por nombre o código..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off">
+                                <input type="text" id="indice-search-input" placeholder="Buscar por nombre o código..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off">
                             </div>
                             <button id="indice-clear-filters-btn" class="btn-main-style w-9 h-9 !p-0 flex-shrink-0 hidden">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
                             </button>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <div id="indice-coverage-filter-buttons" class="flex items-center p-1 bg-indigo-600 rounded-lg">
+                        <div class="flex items-center justify-end gap-2 w-full md:w-auto flex-shrink-0">
+                            <div id="indice-coverage-filter-buttons" class="flex items-center p-1 bg-indigo-600 rounded-lg overflow-x-auto">
                                 <button data-filter="all" class="indice-coverage-btn active">Todos</button>
                                 <button data-filter="red" class="indice-coverage-btn"></button>
                                 <button data-filter="yellow" class="indice-coverage-btn"></button>
                                 <button data-filter="green" class="indice-coverage-btn"></button>
                             </div>
                             <div class="h-6 border-l border-slate-200 mx-2"></div>
-                            <button id="export-indice-btn" class="btn-main-style hover:bg-indigo-50 hover:text-indigo-700">
+                            <button id="export-indice-btn" class="btn-main-style hover:bg-indigo-50 hover:text-indigo-700 flex-shrink-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             </button>
                             <div class="h-6 border-l border-slate-200 mx-2"></div>
-                            <button id="add-new-item-btn" class="btn-main-style bg-blue-600 text-white hover:bg-blue-700 border-blue-600 hidden">
+                            <button id="add-new-item-btn" class="btn-main-style bg-blue-600 text-white hover:bg-blue-700 border-blue-600 hidden flex-shrink-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                             </button>
                         </div>
                     </div>
                 </div>
-                <div id="indice-table-container" class="max-h-[calc(100vh-145px)] overflow-y-auto">
+                <div id="indice-table-container" class="max-h-[calc(100vh-210px)] md:max-h-[calc(100vh-145px)] overflow-auto">
                     <!-- La tabla del indice se inyectará aquí -->
                 </div>
             </div>
@@ -422,8 +461,8 @@
             <div id="consumos-view" class="hidden">
                 <div class="flex flex-col h-full">
                     <div class="bg-indigo-500 p-4 z-10">
-                        <div class="flex items-center gap-4">
-                            <div id="primary-search-wrapper" class="w-[55%]">
+                        <div class="flex flex-col lg:flex-row items-center gap-4">
+                            <div id="primary-search-wrapper" class="w-full lg:w-[55%]">
                                 <div class="flex items-center gap-2 w-full">
                                     <div id="consumo-group-filter-container"></div>
                                     <button id="consumo-favorites-filter-btn" data-type="primary" class="favorite-btn flex-shrink-0">
@@ -442,8 +481,8 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="h-6 border-l border-white/40 mx-2"></div>
-                            <div id="comparison-search-wrapper" class="w-[45%]">
+                            <div class="h-px lg:h-6 w-full lg:w-px border-t lg:border-t-0 lg:border-l border-white/40 my-2 lg:my-0 lg:mx-2"></div>
+                            <div id="comparison-search-wrapper" class="w-full lg:w-[45%]">
                                 <div class="flex items-center gap-2 w-full">
                                     <div id="consumo-comparison-group-filter-container"></div>
                                     <button id="consumo-comparison-favorites-filter-btn" data-type="comparison" class="favorite-btn flex-shrink-0">
@@ -464,7 +503,7 @@
                             </div>
                         </div>
                     </div>
-                    <div id="consumo-content-area" class="flex-grow flex">
+                    <div id="consumo-content-area" class="flex-grow flex flex-col lg:flex-row">
                         <!-- Contenido dinámico (2 paneles) -->
                     </div>
                 </div>
@@ -472,117 +511,118 @@
 
             <div id="solpeds-view" class="hidden">
                 <div class="bg-indigo-500 p-4 border-b border-indigo-600">
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-4">
-                            <h2 class="text-2xl font-bold text-white">SOLPEDS</h2>
-                            <span id="solpeds-counter" class="text-sm font-medium text-indigo-200"></span>
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-4 w-full md:w-auto">
+                            <div class="flex items-center gap-4 flex-shrink-0">
+                                <h2 class="text-2xl font-bold text-white">SOLPEDS</h2>
+                                <span id="solpeds-counter" class="text-sm font-medium text-indigo-200"></span>
+                            </div>
                             <div id="solpeds-group-filter-container" class="mr-2"></div>
                             <div id="solpeds-date-filter-container" class="flex items-center gap-2"></div>
-                            <div class="relative">
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full md:w-auto">
+                            <div class="relative flex-grow">
                                 <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                <input type="text" id="solpeds-search-input" placeholder="Buscar..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off">
+                                <input type="text" id="solpeds-search-input" placeholder="Buscar..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off">
                             </div>
                             <button id="solpeds-clear-filters-btn" class="btn-main-style w-9 h-9 !p-0 flex-shrink-0 hidden">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
                             </button>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button id="solpeds-delayed-filter-btn" class="btn-main-style">Demoradas</button>
-                            <div class="h-6 border-l border-slate-200 mx-2"></div>
-                            <button id="export-solpeds-btn" class="btn-main-style hover:bg-indigo-50 hover:text-indigo-700">
+                            <button id="solpeds-delayed-filter-btn" class="btn-main-style flex-shrink-0">Demoradas</button>
+                            <div class="h-6 border-l border-slate-200 mx-2 hidden sm:block"></div>
+                            <button id="export-solpeds-btn" class="btn-main-style hover:bg-indigo-50 hover:text-indigo-700 flex-shrink-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             </button>
                         </div>
                     </div>
                 </div>
-                <div id="solpeds-table-container" class="max-h-[calc(100vh-145px)] overflow-y-auto">
+                <div id="solpeds-table-container" class="max-h-[calc(100vh-210px)] md:max-h-[calc(100vh-145px)] overflow-auto">
                     <!-- La tabla de Solpeds se inyectará aquí -->
                 </div>
             </div>
             
             <div id="ocs-view" class="hidden">
                 <div class="bg-indigo-500 p-4 border-b border-indigo-600">
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-4">
-                           <h2 class="text-2xl font-bold text-white">O/C</h2>
-                           <span id="ocs-counter" class="text-sm font-medium text-indigo-200"></span>
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-4 w-full md:w-auto">
+                           <div class="flex items-center gap-4 flex-shrink-0">
+                               <h2 class="text-2xl font-bold text-white">O/C</h2>
+                               <span id="ocs-counter" class="text-sm font-medium text-indigo-200"></span>
+                           </div>
                            <div id="ocs-group-filter-container" class="mr-2"></div>
                            <div id="ocs-date-filter-container" class="flex items-center gap-2"></div>
-                           <div class="relative">
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full md:w-auto">
+                           <div id="ocs-status-filter-container" class="flex-grow"></div>
+                           <div class="relative flex-grow">
                                 <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                <input type="text" id="ocs-search-input" placeholder="Buscar..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off">
+                                <input type="text" id="ocs-search-input" placeholder="Buscar..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off">
                            </div>
                            <button id="ocs-clear-filters-btn" class="btn-main-style w-9 h-9 !p-0 flex-shrink-0 hidden">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
                            </button>
-                        </div>
-                        <div class="flex items-center gap-2">
-                           <div id="ocs-status-filter-container" class="mr-2"></div>
-                           <button id="ocs-delayed-filter-btn" class="btn-main-style">Demoradas</button>
-                           <div class="h-6 border-l border-slate-200 mx-2"></div>
-                           <button id="export-ocs-btn" class="btn-main-style hover:bg-indigo-50 hover:text-indigo-700">
+                           <button id="ocs-delayed-filter-btn" class="btn-main-style flex-shrink-0">Demoradas</button>
+                           <div class="h-6 border-l border-slate-200 mx-2 hidden sm:block"></div>
+                           <button id="export-ocs-btn" class="btn-main-style hover:bg-indigo-50 hover:text-indigo-700 flex-shrink-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             </button>
                         </div>
                     </div>
                 </div>
-                <div id="ocs-table-container" class="max-h-[calc(100vh-145px)] overflow-y-auto">
+                <div id="ocs-table-container" class="max-h-[calc(100vh-210px)] md:max-h-[calc(100vh-145px)] overflow-auto">
                     <!-- La tabla de OCs se inyectará aquí -->
                 </div>
             </div>
 
             <div id="reportes-view" class="hidden">
                 <div class="bg-indigo-500 p-4 border-b border-indigo-600">
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-4">
-                            <h2 class="text-2xl font-bold text-white">REPORTE DE STOCK INMOVILIZADO</h2>
-                             <span id="immobilized-counter" class="text-sm font-medium text-indigo-200"></span>
-                            <div class="relative">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                        <div class="flex items-center gap-4 w-full sm:w-auto">
+                            <h2 class="text-xl md:text-2xl font-bold text-white">STOCK INMOVILIZADO</h2>
+                             <span id="immobilized-counter" class="text-sm font-medium text-indigo-200 hidden sm:inline-block"></span>
+                            <div class="relative flex-grow">
                                <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                               <input type="text" id="immobilized-search-input" placeholder="Buscar..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off">
+                               <input type="text" id="immobilized-search-input" placeholder="Buscar..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off">
                            </div>
                         </div>
-                        <button id="export-immobilized-btn" class="btn-main-style hover:bg-indigo-50 hover:text-indigo-700">
+                        <button id="export-immobilized-btn" class="btn-main-style hover:bg-indigo-50 hover:text-indigo-700 flex-shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         </button>
                     </div>
                 </div>
                 
                 <div id="immobilized-report-content">
-                    <div id="immobilized-stock-table-container" class="max-h-[calc(100vh-145px)] overflow-y-auto"></div>
+                    <div id="immobilized-stock-table-container" class="max-h-[calc(100vh-145px)] overflow-auto"></div>
                 </div>
             </div>
 
             <div id="revision-view" class="hidden">
-            <div class="flex h-[calc(100vh-56px)]"> <!-- 56px is nav height -->
+            <div class="flex flex-col lg:flex-row lg:h-[calc(100vh-56px)]"> <!-- 56px is nav height -->
                 <!-- Columna Izquierda: Revisión Semanal (20%) -->
-                <div class="w-1/5 p-4 border-r border-slate-200 flex flex-col bg-slate-50">
+                <div class="w-full lg:w-1/5 p-4 border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col bg-slate-50">
                     <div id="review-container" class="bg-white rounded-lg shadow overflow-hidden hidden flex-grow flex flex-col min-h-0">
-                        <div class="bg-indigo-500 p-4 flex justify-between items-center flex-shrink-0 rounded-t-lg gap-4 h-20">
-                            <div id="progress-bar-container" class="w-full hidden flex-grow items-center gap-4">
-                                <span id="week-number-display" class="text-2xl font-bold text-white whitespace-nowrap"></span>
-                                <div class="w-full bg-indigo-400 rounded-full h-8 relative">
-                                    <div id="progress-bar" class="bg-white h-8 rounded-full transition-all duration-500" style="width: 0%"></div>
-                                    <span id="progress-bar-text" class="absolute inset-0 flex items-center justify-center text-xl font-bold text-indigo-700">0%</span>
-                                </div>
+                        <div class="bg-indigo-500 p-4 flex flex-col sm:flex-row justify-between items-center flex-shrink-0 rounded-t-lg gap-2 sm:gap-4 h-auto sm:h-20">
+                            <span id="week-number-display" class="text-2xl font-bold text-white whitespace-nowrap"></span>
+                            <div id="progress-bar-container" class="w-full sm:w-auto hidden flex items-center justify-center sm:justify-end gap-4 mt-2 sm:mt-0">
+                                <span id="progress-bar-text" class="text-2xl font-bold text-white">0%</span>
+                                <button id="save-review-btn" class="btn-main-style !bg-white/90 !text-indigo-700 hover:!bg-white flex-shrink-0">Guardar</button>
                             </div>
-                            <button id="save-review-btn" class="btn-main-style !bg-white/90 !text-indigo-700 hover:!bg-white flex-shrink-0">Guardar</button>
                         </div>
                         <div id="groups-review-list" class="flex-grow overflow-y-auto">
                         </div>
                     </div>
                 </div>
                 <!-- Columna Derecha: Log de Revisiones (80%) -->
-                <div class="w-4/5 p-4 flex flex-col bg-slate-50">
+                <div class="w-full lg:w-4/5 p-4 flex flex-col bg-slate-50">
                     <div class="bg-white rounded-lg shadow overflow-hidden flex-grow flex flex-col min-h-0">
-                        <div class="bg-indigo-500 p-4 flex justify-between items-center flex-shrink-0 rounded-t-lg h-20">
+                        <div class="bg-indigo-500 p-4 flex flex-col sm:flex-row justify-between items-center flex-shrink-0 rounded-t-lg h-auto sm:h-20 gap-2">
                             <h2 class="text-2xl font-bold text-white">LOG DE REVISIONES</h2>
-                            <div class="flex items-center gap-4">
-                                <div class="relative">
+                            <div class="flex items-center gap-4 w-full sm:w-auto">
+                                <div class="relative flex-grow">
                                    <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                    <input type="text" id="history-search-input" placeholder="Buscar grupo..." class="w-80 p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off">
+                                    <input type="text" id="history-search-input" placeholder="Buscar grupo..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off">
                                 </div>
-                                <button id="export-history-btn" class="btn-main-style hover:bg-green-50 hover:text-green-700">
+                                <button id="export-history-btn" class="btn-main-style hover:bg-green-50 hover:text-green-700 flex-shrink-0">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                                 </button>
                             </div>
@@ -593,6 +633,17 @@
                 </div>
             </div>
         </div>
+
+            <div id="ingresos-view" class="hidden">
+                <div class="flex flex-col lg:flex-row h-[calc(100vh-56px)] bg-white">
+                    <div id="ingresos-calendar-container" class="w-full lg:w-2/3 p-4 border-b lg:border-b-0 lg:border-r border-slate-200">
+                        <!-- El calendario mensual se renderizará aquí -->
+                    </div>
+                    <div id="ingresos-details-container" class="w-full lg:w-1/3 p-4 overflow-y-auto bg-slate-50">
+                         <!-- Los detalles de la semana se renderizarán aquí -->
+                    </div>
+                </div>
+            </div>
     </main>
     
         <!-- Modales -->
@@ -950,6 +1001,7 @@
         let groupNotes = new Map();
         let activeKpi = null;
         let isInitialLoad = true;
+        let calendarCurrentDate = new Date();
         
         // --- VARIABLES DE FIREBASE Y USUARIO ---
         let app, db, auth, userId, appId;
@@ -1051,12 +1103,13 @@
         };
 
         function getWeekId(d) {
-            const date = new Date(d.getTime());
-            date.setHours(0, 0, 0, 0);
-            date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
-            const week1 = new Date(date.getFullYear(), 0, 4);
-            const weekNumber = 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
-            return `${date.getFullYear()}-${String(weekNumber).padStart(2, '0')}`;
+            // Create a new UTC date to avoid modifying the original date object
+            const date = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+            // ISO 8601 week number logic
+            date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
+            const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+            const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+            return `${date.getUTCFullYear()}-${String(weekNo).padStart(2, '0')}`;
         }
         function daysBetween(date1, date2) { return Math.round((new Date(date2) - new Date(date1)) / (1000 * 60 * 60 * 24)); }
         function formatNumber(num) { return new Intl.NumberFormat('es-AR').format(num); }
@@ -1175,6 +1228,7 @@
             document.getElementById('consumos-view').classList.toggle('hidden', view !== 'consumos');
             document.getElementById('solpeds-view').classList.toggle('hidden', view !== 'solpeds');
             document.getElementById('ocs-view').classList.toggle('hidden', view !== 'ocs');
+            document.getElementById('ingresos-view').classList.toggle('hidden', view !== 'ingresos');
             document.getElementById('reportes-view').classList.toggle('hidden', view !== 'reportes');
             document.getElementById('revision-view').classList.toggle('hidden', view !== 'revision');
             
@@ -1192,6 +1246,8 @@
                 renderSolpedsView();
             } else if (view === 'ocs') {
                 renderOCsView();
+            } else if (view === 'ingresos') {
+                renderIngresosView();
             } else if (view === 'reportes') {
                 renderReportesView();
             } else if (view === 'revision') {
@@ -1302,6 +1358,162 @@
             
             notifications = newNotifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             renderNotifications();
+        }
+
+        function renderIngresosView() {
+            // Set current date to the first of the month to ensure the whole month is shown
+            calendarCurrentDate.setDate(1); 
+            renderMonthlyCalendar(calendarCurrentDate);
+            const detailsContainer = document.getElementById('ingresos-details-container');
+            if (detailsContainer) {
+                detailsContainer.innerHTML = `
+                    <div class="flex flex-col h-full justify-center items-center text-center">
+                        <svg class="w-16 h-16 text-slate-300 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        <h3 class="text-lg font-semibold text-slate-600">Ingresos Semanales</h3>
+                        <p class="text-sm text-slate-500">Seleccione una semana del calendario para ver los ingresos programados.</p>
+                    </div>`;
+            }
+        }
+
+        function renderMonthlyCalendar(dateToShow) {
+            const wrapper = document.getElementById('ingresos-calendar-container');
+            if (!wrapper) return;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const month = dateToShow.getMonth();
+            const year = dateToShow.getFullYear();
+
+            const firstDayOfMonth = new Date(year, month, 1);
+            const lastDayOfMonth = new Date(year, month + 1, 0);
+
+            const startDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7; // Monday = 0
+            
+            const calendarStartDate = new Date(firstDayOfMonth);
+            calendarStartDate.setDate(calendarStartDate.getDate() - startDayOfWeek);
+
+            const monthName = firstDayOfMonth.toLocaleString('es-AR', { month: 'long', year: 'numeric' });
+
+            let calendarHTML = `
+                <div class="calendar !p-0 !shadow-none h-full flex flex-col">
+                    <div class="calendar-header">
+                        <button id="calendar-prev-month" class="p-2 rounded-full hover:bg-slate-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        </button>
+                        <h3 class="text-xl font-semibold text-slate-800 capitalize">${monthName}</h3>
+                        <button id="calendar-next-month" class="p-2 rounded-full hover:bg-slate-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                        </button>
+                    </div>
+                    <table class="w-full h-full border-separate" style="border-spacing: 0.25rem;">
+                        <thead>
+                            <tr>
+                                <th class="w-10"></th> <!-- Week number column -->
+                                ${['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(day => `<th class="calendar-day-name">${day}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            const incomingDates = new Set(ocs.map(oc => oc.proxFechaEntrega).filter(Boolean));
+            let currentDay = new Date(calendarStartDate);
+
+            for (let week = 0; week < 6; week++) {
+                const weekId = getWeekId(currentDay);
+                calendarHTML += `<tr class="calendar-week-row" data-week-id="${weekId}">`;
+                const weekNum = parseInt(weekId.split('-')[1], 10);
+                calendarHTML += `<td class="week-number-cell">${weekNum}</td>`;
+
+                for (let day = 0; day < 7; day++) {
+                    let dayClass = 'calendar-day';
+                    if (currentDay.getTime() === today.getTime()) dayClass += ' today';
+                    if (currentDay.getMonth() !== month) dayClass += ' other-month';
+
+                    const dateISO = currentDay.toISOString().split('T')[0];
+                    if (incomingDates.has(dateISO)) dayClass += ' has-income';
+
+                    calendarHTML += `<td class="p-0"><div class="${dayClass}" data-date="${dateISO}" data-week-id="${weekId}">${currentDay.getDate()}</div></td>`;
+                    currentDay.setDate(currentDay.getDate() + 1);
+                }
+                calendarHTML += `</tr>`;
+                if (currentDay > lastDayOfMonth && week >= 4) break;
+            }
+
+            calendarHTML += `</tbody></table></div>`;
+            wrapper.innerHTML = calendarHTML;
+        }
+
+        function renderIncomingItemsForWeek(startOfWeek, endOfWeek) {
+            const container = document.getElementById('ingresos-details-container');
+            if (!container) return;
+
+            const incomingOCs = ocs.filter(oc => {
+                const deliveryDate = parseDateString(oc.proxFechaEntrega);
+                return deliveryDate && deliveryDate >= startOfWeek && deliveryDate <= endOfWeek;
+            });
+            
+            const weekId = getWeekId(startOfWeek);
+            const weekNumber = parseInt(weekId.split('-')[1], 10);
+
+            let headerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                     <h3 class="text-lg font-bold text-indigo-700">Semana ${weekNumber}</h3>
+                     ${incomingOCs.length > 0 ? `<button id="export-incoming-items-btn" title="Exportar a Excel" class="btn-main-style !p-2 !h-auto">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    </button>` : ''}
+                </div>`;
+
+            if (incomingOCs.length === 0) {
+                container.innerHTML = headerHTML + '<p class="text-center text-slate-500 py-4">No hay ingresos programados para esta semana.</p>';
+                return;
+            }
+
+            const groupedByDate = incomingOCs.reduce((acc, oc) => {
+                const dateStr = formatDate(oc.proxFechaEntrega);
+                if (!acc[dateStr]) { acc[dateStr] = []; }
+                acc[dateStr].push(oc);
+                return acc;
+            }, {});
+
+            const sortedDates = Object.keys(groupedByDate).sort((a, b) => {
+                const dateA = a.split('-').reverse().join('-');
+                const dateB = b.split('-').reverse().join('-');
+                return new Date(dateA) - new Date(dateB);
+            });
+            
+            let listHtml = '<div class="space-y-3">';
+            sortedDates.forEach(dateStr => {
+                const date = parseDateString(dateStr);
+                const dayName = date.toLocaleDateString('es-AR', { weekday: 'long', timeZone: 'UTC' });
+                
+                listHtml += `<div>
+                    <p class="font-bold text-indigo-600">${dayName.charAt(0).toUpperCase() + dayName.slice(1)} ${date.getUTCDate()}</p>
+                    <ul class="divide-y divide-slate-200 border rounded-md mt-1 shadow-sm bg-white">`;
+                
+                groupedByDate[dateStr].forEach(oc => {
+                    const item = items.find(i => i.code === oc.codigo);
+                    const itemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
+                    const itemGroup = extractGroupCode(oc.grupoDeArticulos || 'Sin Grupo');
+                    const itemId = item ? item.id : null;
+                    const cursorClass = itemId ? 'cursor-pointer' : '';
+                    const dataAttr = itemId ? `data-item-id="${itemId}"` : '';
+
+                    listHtml += `<li class="px-3 py-2 hover:bg-slate-50 incoming-item-row ${cursorClass}" ${dataAttr}>
+                        <div>
+                            <p class="text-sm font-semibold text-indigo-600">${itemGroup}</p>
+                            <p class="font-medium text-slate-800 truncate" title="${itemName}">${itemName}</p>
+                            <div class="flex justify-between items-center text-xs text-slate-500 mt-1">
+                                <span>O/C: ${oc.ordenDeCompra || 'N/A'}</span>
+                                <span class="font-bold text-slate-800 text-sm">${formatNumber(oc.cantEntregaSiguiente)}</span>
+                            </div>
+                        </div>
+                    </li>`;
+                });
+                listHtml += `</ul></div>`;
+            });
+            listHtml += '</div>';
+
+            container.innerHTML = headerHTML + listHtml;
         }
 
         function renderNotifications() {
@@ -1540,7 +1752,7 @@
                     existingItem = {
                         code: code,
                         group: String(row[colMap.group] || 'General').trim(),
-                        name: `${code} ${name}`,
+                        name: `${code} ${name}`.toUpperCase(),
                         stock: parseNumeric(row[colMap.stock]),
                         monthlyConsumption: parseNumeric(row[colMap.monthlyConsumption]),
                         delayedQuantity: parseNumeric(row[colMap.delayedQuantity]),
@@ -1838,6 +2050,9 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
+            const weekId = getWeekId(today);
+            const weekNumber = parseInt(weekId.split('-')[1], 10);
+
             const processedItems = getProcessedItems(true);
             const totalProducts = processedItems.length;
             const favoriteCount = processedItems.filter(item => item.isFavorite).length;
@@ -1878,6 +2093,9 @@
                 let iconClass = 'bg-indigo-100 text-indigo-600';
                 let cardClass = '';
 
+                if (kpi.color === 'blue') {
+                    iconClass = 'bg-blue-100 text-blue-600';
+                }
                 if ((kpi.type === 'consumption-peak' || kpi.type === 'solpeds-vencidas' || kpi.type === 'ocs-vencidas') && kpi.value > 0) {
                     iconClass = 'bg-red-100 text-red-600';
                     cardClass = 'border-2 border-red-400';
@@ -1891,7 +2109,6 @@
                 </div>`;
             }).join('');
             
-            renderDateAndWeek();
             renderCriticalItemsTable();
 
             if (isInitialLoad && items.length > 0) {
@@ -1972,7 +2189,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
                         </button>
                         <div class="flex-1 cursor-pointer low-stock-item-details" data-item-id="${item.id}">
-                            <p class="font-semibold text-sm text-slate-800 truncate">${item.name}</p>
+                            <p class="font-semibold text-sm text-slate-800 truncate">${item.name.toUpperCase()}</p>
                             <p class="text-xs text-slate-500">Grupo: ${item.group}</p>
                         </div>
                     </div>
@@ -1992,6 +2209,14 @@
             groupsReviewContainer.innerHTML = '<div class="p-6 text-center text-slate-500"><div class="loader inline-block"></div> Cargando...</div>';
 
             const today = new Date();
+            const weekId = getWeekId(today);
+            const weekNumber = parseInt(weekId.split('-')[1], 10);
+            
+            const weekNumberDisplay = document.getElementById('week-number-display');
+            if (weekNumberDisplay) {
+                weekNumberDisplay.textContent = `SEMANA ${weekNumber}`;
+            }
+
             const prevWeekDate = new Date();
             prevWeekDate.setDate(today.getDate() - 7);
             const prevWeekId = getWeekId(prevWeekDate);
@@ -2015,6 +2240,7 @@
             const sortedGroups = Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]));
 
             if (sortedGroups.length > 0) {
+                document.getElementById('progress-bar-container').classList.remove('hidden');
                 groupsReviewContainer.innerHTML = `<table class="w-full text-sm text-left text-slate-500 review-table">
                     <thead class="text-xs text-slate-700 uppercase invisible">
                         <tr>
@@ -2154,7 +2380,7 @@
                 listHTML += `
                 <div class="p-4 flex items-center justify-between hover:bg-slate-50 border-b cursor-pointer kpi-detail-item-row" data-item-id="${item.id}">
                     <div>
-                        <p class="font-semibold text-slate-800">${item.name}</p>
+                        <p class="font-semibold text-slate-800">${item.name.toUpperCase()}</p>
                         <p class="text-sm text-slate-500">Grupo: ${item.group}</p>
                     </div>
                     <div class="text-right">
@@ -2188,7 +2414,7 @@
                 return `
                 <div class="p-3 flex items-center justify-between hover:bg-slate-50 border-b cursor-pointer kpi-detail-item-row" data-item-id="${item.id}">
                     <div>
-                        <p class="font-semibold text-slate-800">${item.name}</p>
+                        <p class="font-semibold text-slate-800">${item.name.toUpperCase()}</p>
                         <p class="text-sm text-slate-500">Grupo: ${item.group}</p>
                     </div>
                     <div class="text-right">
@@ -2528,10 +2754,8 @@
             const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
             const percentage = Math.round((checkedCount / total) * 100);
             
-            const progressBar = document.getElementById('progress-bar');
             const progressBarText = document.getElementById('progress-bar-text');
             
-            progressBar.style.width = `${percentage}%`;
             progressBarText.textContent = `${percentage}%`;
         }
 
@@ -2810,7 +3034,7 @@
                     </td>
                     <td class="px-4 py-1 truncate indice-item-details cursor-pointer" data-item-id="${item.id}">${item.group}</td>
                     <td class="px-4 py-1 truncate indice-item-details cursor-pointer" data-item-id="${item.id}">${item.code}</td>
-                    <td class="px-4 py-2 font-medium text-slate-900 truncate indice-item-details cursor-pointer" data-item-id="${item.id}">${item.name.replace(new RegExp(`^${item.code}\\s*`), '')}</td>
+                    <td class="px-4 py-2 font-medium text-slate-900 truncate indice-item-details cursor-pointer" data-item-id="${item.id}">${item.name.replace(new RegExp(`^${item.code}\\s*`), '').toUpperCase()}</td>
                     <td class="px-4 py-2 text-right truncate indice-item-details cursor-pointer text-xl font-bold border-l border-r border-slate-300" data-item-id="${item.id}">${formatNumber(item.stock)}</td>
                     <td class="px-4 py-2 text-right truncate indice-item-details cursor-pointer text-base" data-item-id="${item.id}">${formatNumber(item.monthlyConsumption)}</td>
                     <td class="px-4 py-2 text-right ${coverageClass} text-base">${coverageText}</td>
@@ -2821,7 +3045,7 @@
 
                 if (currentUserRole === 'owner' || currentUserRole === 'editor') {
                     tableHTML += `<td class="px-4 py-2 text-center">
-                        <button class="p-1 text-slate-400 hover:text-red-600 delete-item-btn" data-item-id="${item.id}" data-item-name="${item.name}">
+                        <button class="p-1 text-slate-400 hover:text-red-600 delete-item-btn" data-item-id="${item.id}" data-item-name="${item.name.toUpperCase()}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                         </button>
                     </td>`;
@@ -2891,9 +3115,9 @@
         function renderConsumosContent() {
             const contentArea = document.getElementById('consumo-content-area');
             contentArea.innerHTML = `
-                <div id="consumo-panel-primary" class="w-[55%] bg-white overflow-y-auto"></div>
-                <div class="w-px bg-slate-300"></div>
-                <div id="consumo-panel-comparison" class="w-[45%] bg-white overflow-y-auto"></div>
+                <div id="consumo-panel-primary" class="w-full lg:w-[55%] bg-white overflow-y-auto"></div>
+                <div class="w-full lg:w-px h-px lg:h-full bg-slate-300"></div>
+                <div id="consumo-panel-comparison" class="w-full lg:w-[45%] bg-white overflow-y-auto"></div>
             `;
             renderSingleConsumoPanel(selectedConsumptionItemId, 'primary');
             renderSingleConsumoPanel(comparisonItemId, 'comparison');
@@ -2931,7 +3155,7 @@
                         <p id="consumo-kpi-group-${type}" class="text-base font-semibold text-[#6366f1] consumo-group-link cursor-pointer hover:underline">-</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-5 gap-3 mt-4">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mt-4">
                     <div class="relative bg-white p-3 pt-6 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.stock}</div> <p id="consumo-kpi-stock-${type}" class="text-2xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Stock</p></div>
                     <div class="relative bg-white p-3 pt-6 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.avg}</div> <p id="consumo-kpi-avg-${type}" class="text-2xl font-bold text-indigo-600">-</p><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Promedio</p></div>
                     <div class="relative bg-white p-3 pt-6 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.peak}</div> <p id="consumo-kpi-peak-${type}" class="text-2xl font-bold text-green-600">-</p><div class="flex justify-center items-baseline gap-1"><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Pico</p><p id="consumo-kpi-peak-month-${type}" class="text-xs text-slate-500 truncate"></p></div></div>
@@ -2969,14 +3193,14 @@
             favoriteBtnContainer.appendChild(favoriteBtn);
 
             const nameEl = document.getElementById(`consumo-kpi-name-${type}`);
-            nameEl.textContent = item.name.replace(new RegExp(`^${item.code}\\s*`), '');
+            nameEl.textContent = item.name.replace(new RegExp(`^${item.code}\\s*`), '').toUpperCase();
             nameEl.dataset.itemCode = item.code;
 
             const groupEl = document.getElementById(`consumo-kpi-group-${type}`);
             groupEl.textContent = item.group || 'N/A';
             groupEl.dataset.groupName = item.group;
 
-            const textToCopy = `${item.code} - ${item.name.replace(new RegExp(`^${item.code}\\s*`), '')}`;
+            const textToCopy = `${item.code} - ${item.name.replace(new RegExp(`^${item.code}\\s*`), '').toUpperCase()}`;
             document.getElementById(`consumo-kpi-code-${type}`).textContent = item.code;
             
 
@@ -3112,7 +3336,7 @@
                 const today = new Date();
                 today.setHours(0,0,0,0);
                 ocsTableHTML += `<div class="max-h-60 overflow-y-auto rounded-lg border border-slate-200"><table class="w-full text-sm table-fixed">
-                    <thead class="bg-slate-50 sticky top-0"><tr class="border-b border-slate-200"><th class="px-3 py-2 text-left w-[20%] font-semibold text-slate-600">N° O/C</th><th class="px-3 py-2 text-left w-[35%] font-semibold text-slate-600">Status</th><th class="px-3 py-2 text-right w-[15%] font-semibold text-slate-600">Cant.</th><th class="px-3 py-2 text-left w-[30%] font-semibold text-slate-600">Entrega</th></tr></thead><tbody class="divide-y divide-slate-100">`;
+                    <thead class="bg-slate-50 sticky top-0"><tr class="border-b border-slate-200"><th class="px-3 py-2 text-left w-[30%] font-semibold text-slate-600">N° O/C</th><th class="px-3 py-2 text-left w-[25%] font-semibold text-slate-600">Status</th><th class="px-3 py-2 text-right w-[15%] font-semibold text-slate-600">Cant.</th><th class="px-3 py-2 text-left w-[30%] font-semibold text-slate-600">Entrega</th></tr></thead><tbody class="divide-y divide-slate-100">`;
                 itemOCs.forEach(oc => {
                     const deliveryDate = parseDateString(oc.proxFechaEntrega);
                     const isDelayed = deliveryDate && deliveryDate < today;
@@ -3225,7 +3449,7 @@
 
             if (filteredItems.length > 0) {
                 resultsContainer.innerHTML = filteredItems
-                    .map(item => `<div class="p-2 hover:bg-slate-100 cursor-pointer" data-item-id="${item.id}" data-type="${type}">${item.name}</div>`)
+                    .map(item => `<div class="p-2 hover:bg-slate-100 cursor-pointer" data-item-id="${item.id}" data-type="${type}">${item.name.toUpperCase()}</div>`)
                     .join('');
             } else {
                 resultsContainer.innerHTML = '<div class="p-2 text-slate-500">No se encontraron productos.</div>';
@@ -4028,6 +4252,41 @@
         }
 
         // --- LÓGICA DE EXPORTACIÓN ---
+        function handleExportIncomingItems(startOfWeek, endOfWeek) {
+            const incomingOCs = ocs.filter(oc => {
+                const deliveryDate = parseDateString(oc.proxFechaEntrega);
+                return deliveryDate && deliveryDate >= startOfWeek && deliveryDate <= endOfWeek;
+            });
+
+            if (incomingOCs.length === 0) {
+                showToast('No hay ingresos programados para exportar.', 'info');
+                return;
+            }
+
+            const dataToExport = incomingOCs.map(oc => {
+                const item = items.find(i => i.code === oc.codigo);
+                const itemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
+                const itemGroup = extractGroupCode(oc.grupoDeArticulos || 'Sin Grupo');
+
+                return {
+                    'Fecha Entrega': formatDate(oc.proxFechaEntrega),
+                    'Grupo': itemGroup,
+                    'Material': itemName,
+                    'O/C': oc.ordenDeCompra || 'N/A',
+                    'Cantidad': oc.cantEntregaSiguiente
+                };
+            }).sort((a, b) => {
+                const dateA = a['Fecha Entrega'].split('-').reverse().join('-');
+                const dateB = b['Fecha Entrega'].split('-').reverse().join('-');
+                return new Date(dateA) - new Date(dateB);
+            });
+            
+            const weekId = getWeekId(startOfWeek);
+            const weekNumber = parseInt(weekId.split('-')[1], 10);
+            const filename = `Ingresos_Programados_Semana_${weekNumber}_${startOfWeek.getFullYear()}.xlsx`;
+            exportToExcel(dataToExport, filename);
+        }
+
         function exportToExcel(data, filename) {
             const worksheet = XLSX.utils.json_to_sheet(data);
             const workbook = XLSX.utils.book_new();
@@ -4473,6 +4732,14 @@
                     return;
                 }
                 
+                const incomingItemRow = e.target.closest('.incoming-item-row');
+                if (incomingItemRow && incomingItemRow.dataset.itemId) {
+                    selectedConsumptionItemId = incomingItemRow.dataset.itemId;
+                    comparisonItemId = null;
+                    switchMainView('consumos');
+                    return;
+                }
+
                 const groupItem = e.target.closest('.group-item-name');
                 if (groupItem) {
                     const groupName = groupItem.dataset.groupName;
@@ -4742,6 +5009,65 @@
                 }
             });
             document.getElementById('consumos-view').addEventListener('change', (e) => { if (e.target.matches('.consumo-group-filter')) { handleConsumosFilterChange(e); } });
+
+            document.getElementById('ingresos-view')?.addEventListener('click', (e) => {
+                // Month navigation
+                if (e.target.closest('#calendar-prev-month')) {
+                    calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1);
+                    renderMonthlyCalendar(calendarCurrentDate);
+                    return;
+                }
+                if (e.target.closest('#calendar-next-month')) {
+                    calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
+                    renderMonthlyCalendar(calendarCurrentDate);
+                    return;
+                }
+
+                // Week selection
+                const dayCell = e.target.closest('.calendar-day');
+                if (dayCell && dayCell.dataset.weekId) {
+                    const weekId = dayCell.dataset.weekId;
+                    
+                    document.querySelectorAll('.calendar-week-row.selected-week').forEach(row => row.classList.remove('selected-week'));
+                    document.querySelector(`.calendar-week-row[data-week-id="${weekId}"]`)?.classList.add('selected-week');
+                    
+                    const dateParts = dayCell.dataset.date.split('-').map(Number);
+                    const clickedDate = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]));
+                    const dayOfWeek = (clickedDate.getUTCDay() + 6) % 7; // Monday = 0
+                    const startOfWeek = new Date(clickedDate);
+                    startOfWeek.setUTCDate(startOfWeek.getUTCDate() - dayOfWeek);
+                    const endOfWeek = new Date(startOfWeek);
+                    endOfWeek.setUTCDate(endOfWeek.getUTCDate() + 6);
+
+                    renderIncomingItemsForWeek(startOfWeek, endOfWeek);
+                }
+                
+                // Export button
+                const detailsContainer = e.target.closest('#ingresos-details-container');
+                if(detailsContainer && e.target.closest('#export-incoming-items-btn')) {
+                    const selectedWeekRow = document.querySelector('.calendar-week-row.selected-week');
+                    if(selectedWeekRow) {
+                        const firstDayCell = selectedWeekRow.querySelector('.calendar-day');
+                        const dateParts = firstDayCell.dataset.date.split('-').map(Number);
+                        const clickedDate = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]));
+                        const dayOfWeek = (clickedDate.getUTCDay() + 6) % 7;
+                        const startOfWeek = new Date(clickedDate);
+                        startOfWeek.setUTCDate(startOfWeek.getUTCDate() - dayOfWeek);
+                        const endOfWeek = new Date(startOfWeek);
+                        endOfWeek.setUTCDate(endOfWeek.getUTCDate() + 6);
+                        handleExportIncomingItems(startOfWeek, endOfWeek);
+                    }
+                }
+
+                // Click on item to go to consumos view
+                const incomingItemRow = e.target.closest('.incoming-item-row');
+                if (incomingItemRow && incomingItemRow.dataset.itemId) {
+                    selectedConsumptionItemId = incomingItemRow.dataset.itemId;
+                    comparisonItemId = null;
+                    switchMainView('consumos');
+                    return;
+                }
+            });
 
             document.getElementById('solpeds-search-input')?.addEventListener('input', renderSolpedsView);
             document.getElementById('solpeds-view')?.addEventListener('click', (e) => { 
@@ -5281,7 +5607,7 @@
                         <li class="p-4 hover:bg-indigo-50 cursor-pointer search-result-item" data-type="insumo" data-id="${item.id}">
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <p class="font-medium text-slate-800 uppercase">${item.name}</p>
+                                    <p class="font-medium text-slate-800 uppercase">${item.name.toUpperCase()}</p>
                                     <p class="text-sm text-slate-500 uppercase">Código: ${item.code} | Grupo: ${item.group}</p>
                                 </div>
                                 <div class="text-right ml-4 flex-shrink-0">
@@ -5419,7 +5745,7 @@
             const newItem = {
                 group,
                 code,
-                name: `${code} ${name}`,
+                name: `${code} ${name}`.toUpperCase(),
                 stock,
                 monthlyConsumption: 0,
                 delayedQuantity: 0,
