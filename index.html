@@ -259,6 +259,22 @@
 </head>
 <body class="bg-slate-100 text-slate-800">
 
+    <!-- 
+    ======================================================================
+    NOTAS DE DESARROLLO Y SIMULACIÓN
+    ======================================================================
+    Fernando, usemos esta sección para anotar las ideas sobre la 
+    simulación y no perder el progreso.
+
+    IDEAS ACTUALES:
+    1.  Crear una nueva pestaña/vista llamada "Simulación".
+    2.  Permitir al usuario seleccionar un producto.
+    3.  Añadir controles para modificar variables (ej. "aumento de demanda %", "retraso en entrega de O/C en días").
+    4.  Mostrar un gráfico o tabla con el stock proyectado a futuro basado en la simulación.
+    
+    ======================================================================
+    -->
+
     <div id="auth-container" class="hidden min-h-screen bg-slate-100 flex flex-col justify-center items-center p-4">
         <div class="w-full max-w-sm">
             <div class="text-center mb-8">
@@ -636,11 +652,21 @@
 
             <div id="ingresos-view" class="hidden">
                 <div class="flex flex-col lg:flex-row h-[calc(100vh-56px)] bg-white">
-                    <div id="ingresos-calendar-container" class="w-full lg:w-2/3 p-4 border-b lg:border-b-0 lg:border-r border-slate-200">
-                        <!-- El calendario mensual se renderizará aquí -->
+                    <div class="w-full lg:w-1/3 p-4 border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col">
+                        <div id="ingresos-calendar-container">
+                            <!-- El calendario mensual se renderizará aquí -->
+                        </div>
+                        <div id="ingresos-kpi-container" class="mt-4 pt-4 border-t border-slate-200">
+                            <!-- KPIs will be rendered here -->
+                        </div>
                     </div>
-                    <div id="ingresos-details-container" class="w-full lg:w-1/3 p-4 overflow-y-auto bg-slate-50">
-                         <!-- Los detalles de la semana se renderizarán aquí -->
+                    <div class="w-full lg:w-2/3 flex flex-col bg-slate-50">
+                        <div id="ingresos-header-container" class="p-4 border-b border-slate-200">
+                            <!-- Header will be rendered here -->
+                        </div>
+                        <div id="ingresos-details-container" class="flex-grow overflow-y-auto p-4">
+                             <!-- Los detalles de la semana se renderizarán aquí -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -720,51 +746,57 @@
                     <div id="permissions-list" class="max-h-[50vh] overflow-y-auto"></div>
                 </div>
                 <div id="admin-content-settings" class="py-4 hidden">
-                     <div class="space-y-6">
-                        <div>
-                            <h3 class="text-lg font-medium text-slate-900">Umbrales de Cobertura (Días)</h3>
-                            <p class="text-sm text-slate-500 mt-1">Define los rangos para los indicadores de color en toda la aplicación.</p>
-                            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="setting-red-threshold" class="block text-sm font-medium text-slate-700">Rojo (Crítico) - Límite superior</label>
-                                    <input type="number" id="setting-red-threshold" class="mt-1 block w-full bg-white border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                     <div class="space-y-4">
+                        <div class="p-4 rounded-lg bg-slate-50 border">
+                            <h3 class="text-base font-semibold text-slate-900">Umbrales de Cobertura (Días)</h3>
+                            <p class="text-sm text-slate-500 mt-1 mb-4">Define los rangos para los indicadores de color en toda la aplicación.</p>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <label for="setting-red-threshold" class="text-sm font-medium text-slate-700">Rojo (Crítico) - Límite superior</label>
+                                    <input type="number" id="setting-red-threshold" class="block w-24 bg-white border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                                 </div>
-                                <div>
-                                    <label for="setting-yellow-threshold" class="block text-sm font-medium text-slate-700">Amarillo (Precaución) - Límite superior</label>
-                                    <input type="number" id="setting-yellow-threshold" class="mt-1 block w-full bg-white border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <div class="flex justify-between items-center">
+                                    <label for="setting-yellow-threshold" class="text-sm font-medium text-slate-700">Amarillo (Precaución) - Límite superior</label>
+                                    <input type="number" id="setting-yellow-threshold" class="block w-24 bg-white border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                                 </div>
                             </div>
                         </div>
-                        <div class="border-t border-slate-200 pt-6">
-                             <h3 class="text-lg font-medium text-slate-900">Notificaciones</h3>
-                             <p class="text-sm text-slate-500 mt-1">Define cuándo se deben generar las notificaciones de stock bajo.</p>
-                             <div class="mt-4">
-                                 <label for="setting-notification-threshold" class="block text-sm font-medium text-slate-700">Alertar insumos con cobertura menor a (días)</label>
-                                 <input type="number" id="setting-notification-threshold" class="mt-1 block w-full md:w-1/2 bg-white border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        
+                        <div class="p-4 rounded-lg bg-slate-50 border">
+                             <h3 class="text-base font-semibold text-slate-900">Notificaciones</h3>
+                             <p class="text-sm text-slate-500 mt-1 mb-4">Define cuándo se deben generar las notificaciones de stock bajo.</p>
+                             <div class="flex justify-between items-center">
+                                 <label for="setting-notification-threshold" class="text-sm font-medium text-slate-700">Alertar insumos con cobertura menor a (días)</label>
+                                 <input type="number" id="setting-notification-threshold" class="block w-24 bg-white border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                              </div>
                         </div>
-                         <div class="border-t border-slate-200 pt-6">
-                             <h3 class="text-lg font-medium text-slate-900">Análisis de Reportes</h3>
-                             <p class="text-sm text-slate-500 mt-1">Configuraciones para los reportes generados.</p>
-                             <div class="mt-4">
-                                 <label for="setting-immobilization-months" class="block text-sm font-medium text-slate-700">Meses para análisis de stock inmovilizado</label>
-                                 <input type="number" id="setting-immobilization-months" class="mt-1 block w-full md:w-1/2 bg-white border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+
+                         <div class="p-4 rounded-lg bg-slate-50 border">
+                             <h3 class="text-base font-semibold text-slate-900">Análisis de Reportes</h3>
+                             <p class="text-sm text-slate-500 mt-1 mb-4">Configuraciones para los reportes generados.</p>
+                             <div class="flex justify-between items-center">
+                                 <label for="setting-immobilization-months" class="text-sm font-medium text-slate-700">Meses para análisis de stock inmovilizado</label>
+                                 <input type="number" id="setting-immobilization-months" class="block w-24 bg-white border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                              </div>
                          </div>
-                        <div class="border-t border-slate-200 pt-6">
-                            <h3 class="text-lg font-medium text-slate-900">Enlaces Externos</h3>
-                            <p class="text-sm text-slate-500 mt-1">Configura URLs para enlaces en el menú de usuario.</p>
-                            <div class="mt-4">
-                                <label for="setting-iweb-sap-url" class="block text-sm font-medium text-slate-700">URL para "IWEB vs SAP"</label>
-                                <input type="url" id="setting-iweb-sap-url" placeholder="https://ejemplo.com" class="mt-1 block w-full md:w-1/2 bg-white border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                            <div class="mt-4">
-                                <label for="setting-depositos-externos-url" class="block text-sm font-medium text-slate-700">URL para "DEPOSITOS EXTERNOS"</label>
-                                <input type="url" id="setting-depositos-externos-url" placeholder="https://ejemplo.com" class="mt-1 block w-full md:w-1/2 bg-white border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+
+                        <div class="p-4 rounded-lg bg-slate-50 border">
+                            <h3 class="text-base font-semibold text-slate-900">Enlaces Externos</h3>
+                            <p class="text-sm text-slate-500 mt-1 mb-4">Configura URLs para enlaces en el menú de usuario.</p>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center gap-4">
+                                    <label for="setting-iweb-sap-url" class="text-sm font-medium text-slate-700 flex-shrink-0">URL para "IWEB vs SAP"</label>
+                                    <input type="url" id="setting-iweb-sap-url" placeholder="https://ejemplo.com" class="block w-full max-w-md bg-white border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
+                                <div class="flex justify-between items-center gap-4">
+                                    <label for="setting-depositos-externos-url" class="text-sm font-medium text-slate-700 flex-shrink-0">URL para "DEPOSITOS EXTERNOS"</label>
+                                    <input type="url" id="setting-depositos-externos-url" placeholder="https://ejemplo.com" class="block w-full max-w-md bg-white border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                </div>
                             </div>
                         </div>
-                         <div class="border-t border-slate-200 pt-6">
-                             <h3 class="text-lg font-medium text-slate-900">Visualización de Consumos</h3>
+
+                         <div class="p-4 rounded-lg bg-slate-50 border">
+                             <h3 class="text-base font-semibold text-slate-900">Visualización de Consumos</h3>
                              <p class="text-sm text-slate-500 mt-1">Selecciona los meses del historial de consumo que se mostrarán en el gráfico.</p>
                              <div id="consumption-months-checkboxes" class="mt-4 grid grid-cols-4 sm:grid-cols-6 gap-x-6 gap-y-3">
                                 <!-- Checkboxes for months -->
@@ -1002,6 +1034,9 @@
         let activeKpi = null;
         let isInitialLoad = true;
         let calendarCurrentDate = new Date();
+        let ingresosSelectedGroup = 'all';
+        let ingresosSearchTerm = '';
+        let currentIngresosWeek = { start: null, end: null };
         
         // --- VARIABLES DE FIREBASE Y USUARIO ---
         let app, db, auth, userId, appId;
@@ -1220,6 +1255,42 @@
         async function handleLogout() { try { await signOut(auth); window.location.reload(); } catch (error) { console.error("Error al cerrar sesión:", error); showToast('Error al cerrar sesión.', 'error'); } }
         function switchAuthView(view) { document.getElementById('login-view').classList.add('hidden'); document.getElementById('register-view').classList.add('hidden'); if (document.getElementById(view)) { document.getElementById(view).classList.remove('hidden'); } }
 
+        function adaptUiToRole(role, user, tag) {
+            const userAvatar = document.getElementById('user-avatar');
+            const userNameEl = document.getElementById('user-name');
+            const userEmailEl = document.getElementById('user-dropdown-email');
+            const userRoleEl = document.getElementById('user-dropdown-role');
+            const adminButton = document.getElementById('admin-button-dropdown');
+            const preloadButton = document.getElementById('dashboard-preload-btn-dropdown');
+            const clearButton = document.getElementById('dashboard-clear-btn-dropdown');
+            const adminDivider = document.getElementById('admin-actions-divider');
+            const addItemBtn = document.getElementById('add-new-item-btn');
+            const checkNavlink = document.querySelector('button[data-view="revision"]');
+            const notificationContainer = document.getElementById('notification-container');
+
+            // Update user info in dropdown
+            const displayTag = tag || user.email.split('@')[0];
+            if (userAvatar) userAvatar.textContent = displayTag.charAt(0).toUpperCase();
+            if (userNameEl) userNameEl.textContent = displayTag.toUpperCase();
+            if (userEmailEl) userEmailEl.textContent = user.email;
+            if (userRoleEl) userRoleEl.textContent = role.toUpperCase();
+            
+            // Show/hide based on roles
+            const isOwner = role === 'owner';
+            const isEditor = role === 'editor';
+
+            if (adminButton) adminButton.classList.toggle('hidden', !isOwner);
+            if (adminDivider) adminDivider.classList.toggle('hidden', !isOwner && !isEditor);
+            if (preloadButton) preloadButton.classList.toggle('hidden', !isOwner && !isEditor);
+            if (clearButton) clearButton.classList.toggle('hidden', !isOwner && !isEditor);
+            if (addItemBtn) addItemBtn.classList.toggle('hidden', !isOwner && !isEditor);
+            if (checkNavlink) checkNavlink.classList.toggle('hidden', !isOwner);
+            if (notificationContainer) notificationContainer.classList.toggle('hidden', !isOwner);
+            
+            const userMenuButton = document.getElementById('user-menu-button');
+            if (userMenuButton) userMenuButton.disabled = !user;
+        }
+
         // --- LÓGICA DE NAVEGACIÓN Y VISTAS ---
         function switchMainView(view) {
             currentView = view;
@@ -1258,262 +1329,288 @@
             }
         }
 
-        // --- LÓGICA DE PERMISOS Y UI ---
-        function adaptUiToRole(role, user, tag) {
-            const isOwner = role === 'owner';
-            const isEditorOrOwner = role === 'owner' || role === 'editor';
-            const userMenuButton = document.getElementById('user-menu-button');
-            const userEmail = user.email || '';
-            
-            // Populate dropdown header
-            document.getElementById('user-dropdown-email').textContent = userEmail;
-            document.getElementById('user-dropdown-role').textContent = role;
-
-            // --- Menu Dropdown ---
-            const adminBtn = document.getElementById('admin-button-dropdown');
-            const preloadBtn = document.getElementById('dashboard-preload-btn-dropdown');
-            const clearBtn = document.getElementById('dashboard-clear-btn-dropdown');
-            const iwebLink = document.getElementById('iweb-sap-link-dropdown');
-            const depositosLink = document.getElementById('depositos-externos-link-dropdown');
-            const adminActionsDivider = document.getElementById('admin-actions-divider');
-            const linksDivider = document.getElementById('links-divider');
-            
-            // Set visibility of role-based items
-            adminBtn.classList.toggle('hidden', !isOwner);
-            preloadBtn.classList.toggle('hidden', !isEditorOrOwner);
-            clearBtn.classList.toggle('hidden', !isEditorOrOwner);
-            
-            // Set visibility of dividers
-            const adminSectionVisible = !adminBtn.classList.contains('hidden');
-            const dataMgmtSectionVisible = !preloadBtn.classList.contains('hidden') || !clearBtn.classList.contains('hidden');
-            adminActionsDivider.classList.toggle('hidden', !(adminSectionVisible || dataMgmtSectionVisible));
-            
-            const externalLinksVisible = !iwebLink.classList.contains('hidden') || !depositosLink.classList.contains('hidden');
-            linksDivider.classList.toggle('hidden', !externalLinksVisible);
-
-
-            // --- Otros elementos de la UI ---
-            document.querySelector('[data-view="reportes"]').classList.toggle('hidden', !isEditorOrOwner);
-            document.querySelector('[data-view="revision"]').classList.toggle('hidden', !isOwner);
-            document.getElementById('notification-container').classList.toggle('hidden', !isEditorOrOwner);
-            
-            userMenuButton.disabled = false;
-
-            document.getElementById('review-container').classList.toggle('hidden', !isOwner);
-            document.getElementById('appConfigDocRef is not defined')?.classList.toggle('hidden', !isOwner);
-            
-            const addNewItemBtn = document.getElementById('add-new-item-btn');
-            if (addNewItemBtn) {
-                addNewItemBtn.classList.toggle('hidden', !isEditorOrOwner);
-            }
-
-            const userNameFromEmail = userEmail.split('@')[0];
-            const displayName = tag || userNameFromEmail;
-            const userAvatar = document.getElementById('user-avatar');
-            document.getElementById('user-name').textContent = displayName;
-            
-            // Asigna color e ícono al avatar según el rol
-            userAvatar.classList.remove('bg-indigo-500', 'bg-green-500', 'bg-slate-500');
-            let avatarIcon = '';
-
-            if (role === 'owner') {
-                userAvatar.classList.add('bg-indigo-500');
-                avatarIcon = `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M50 18L15 85H31L50 46L69 85H85L50 18ZM50 58L40 85H60L50 58Z" fill="white"/></svg>`;
-            } else if (role === 'editor') {
-                userAvatar.classList.add('bg-green-500');
-                avatarIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>`;
-            } else { // viewer
-                userAvatar.classList.add('bg-slate-500');
-                avatarIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
-            }
-            userAvatar.innerHTML = avatarIcon;
-        }
-
-        // --- LÓGICA DE NOTIFICACIONES ---
-        function generateNotifications() {
-            const newNotifications = [];
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            const lowStockItems = getProcessedItems().filter(item => item.isFavorite && item.coverageDays < appSettings.notificationThreshold && item.coverageDays !== Infinity);
-            lowStockItems.forEach(item => {
-                newNotifications.push({
-                    id: `lowstock_${item.id}`,
-                    type: 'low_stock',
-                    text: `Cobertura baja para <strong>${item.name}</strong> (${Math.round(item.coverageDays)} días).`,
-                    targetId: item.id,
-                    timestamp: new Date().toISOString()
-                });
-            });
-
-            const existingNotificationsMap = new Map(notifications.map(n => [n.id, n]));
-            newNotifications.forEach(newNotif => {
-                const existing = existingNotificationsMap.get(newNotif.id);
-                if (existing) {
-                    newNotif.read = existing.read;
-                } else {
-                    newNotif.read = false;
-                }
-            });
-            
-            notifications = newNotifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            renderNotifications();
-        }
-
         function renderIngresosView() {
-            // Set current date to the first of the month to ensure the whole month is shown
-            calendarCurrentDate.setDate(1); 
             renderMonthlyCalendar(calendarCurrentDate);
-            const detailsContainer = document.getElementById('ingresos-details-container');
-            if (detailsContainer) {
-                detailsContainer.innerHTML = `
-                    <div class="flex flex-col h-full justify-center items-center text-center">
-                        <svg class="w-16 h-16 text-slate-300 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                        <h3 class="text-lg font-semibold text-slate-600">Ingresos Semanales</h3>
-                        <p class="text-sm text-slate-500">Seleccione una semana del calendario para ver los ingresos programados.</p>
-                    </div>`;
+
+            // Automatically select and render details for the current week on first load of this view
+            const today = new Date();
+            const startOfWeek = new Date(today);
+            startOfWeek.setHours(0,0,0,0);
+            const dayOfWeek = (startOfWeek.getUTCDay() + 6) % 7; // Monday = 0
+            startOfWeek.setUTCDate(startOfWeek.getUTCDate() - dayOfWeek);
+
+            const weekId = getWeekId(startOfWeek);
+            const selectedWeekRow = document.querySelector(`.calendar-week-row[data-week-id="${weekId}"]`);
+            if (selectedWeekRow) {
+                selectedWeekRow.classList.add('selected-week');
             }
+            
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setUTCDate(endOfWeek.getUTCDate() + 6);
+            renderIncomingItemsForWeek(startOfWeek, endOfWeek);
         }
 
-        function renderMonthlyCalendar(dateToShow) {
-            const wrapper = document.getElementById('ingresos-calendar-container');
-            if (!wrapper) return;
+        function renderMonthlyCalendar(date) {
+            const container = document.getElementById('ingresos-calendar-container');
+            if (!container) return;
 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            const month = dateToShow.getMonth();
-            const year = dateToShow.getFullYear();
+            const year = date.getFullYear();
+            const month = date.getMonth();
 
-            const firstDayOfMonth = new Date(year, month, 1);
-            const lastDayOfMonth = new Date(year, month + 1, 0);
+            const firstDay = new Date(Date.UTC(year, month, 1));
+            const lastDay = new Date(Date.UTC(year, month + 1, 0));
 
-            const startDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7; // Monday = 0
-            
-            const calendarStartDate = new Date(firstDayOfMonth);
-            calendarStartDate.setDate(calendarStartDate.getDate() - startDayOfWeek);
+            const monthName = firstDay.toLocaleString('es-AR', { month: 'long', timeZone: 'UTC' });
+            const capitalizedMonthName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
-            const monthName = firstDayOfMonth.toLocaleString('es-AR', { month: 'long', year: 'numeric' });
+            const incomeDates = new Set(ocs.map(oc => oc.proxFechaEntrega).filter(Boolean));
 
-            let calendarHTML = `
-                <div class="calendar !p-0 !shadow-none h-full flex flex-col">
+            let html = `
+                <div class="calendar">
                     <div class="calendar-header">
-                        <button id="calendar-prev-month" class="p-2 rounded-full hover:bg-slate-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                        </button>
-                        <h3 class="text-xl font-semibold text-slate-800 capitalize">${monthName}</h3>
-                        <button id="calendar-next-month" class="p-2 rounded-full hover:bg-slate-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                        </button>
+                        <button id="calendar-prev-month" class="p-2 rounded-full hover:bg-slate-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+                        <h3 class="text-lg font-bold text-slate-800">${capitalizedMonthName} ${year}</h3>
+                        <button id="calendar-next-month" class="p-2 rounded-full hover:bg-slate-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
                     </div>
-                    <table class="w-full h-full border-separate" style="border-spacing: 0.25rem;">
-                        <thead>
-                            <tr>
-                                <th class="w-10"></th> <!-- Week number column -->
-                                ${['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(day => `<th class="calendar-day-name">${day}</th>`).join('')}
-                            </tr>
-                        </thead>
-                        <tbody>`;
+                    <div class="calendar-grid">
+                        <div class="week-number-cell"></div> <!-- Empty cell for week number header -->
+                        ${['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'].map(day => `<div class="calendar-day-name">${day}</div>`).join('')}
+                    </div>
+                    <div id="calendar-body"></div>
+                </div>`;
+            container.innerHTML = html;
 
-            const incomingDates = new Set(ocs.map(oc => oc.proxFechaEntrega).filter(Boolean));
-            let currentDay = new Date(calendarStartDate);
+            const calendarBody = document.getElementById('calendar-body');
+            let calendarHtml = '';
+            
+            const startDate = new Date(firstDay);
+            const startDayOfWeek = (firstDay.getUTCDay() + 6) % 7; // Monday = 0
+            startDate.setUTCDate(startDate.getUTCDate() - startDayOfWeek);
 
-            for (let week = 0; week < 6; week++) {
-                const weekId = getWeekId(currentDay);
-                calendarHTML += `<tr class="calendar-week-row" data-week-id="${weekId}">`;
-                const weekNum = parseInt(weekId.split('-')[1], 10);
-                calendarHTML += `<td class="week-number-cell">${weekNum}</td>`;
+            for (let i = 0; i < 6; i++) { // Render up to 6 weeks
+                const weekId = getWeekId(startDate);
+                const weekNumber = parseInt(weekId.split('-')[1], 10);
+                
+                calendarHtml += `<div class="calendar-week-row flex items-center" data-week-id="${weekId}">
+                                    <div class="week-number-cell">${weekNumber}</div>
+                                    <div class="calendar-grid flex-grow">`;
+                
+                for (let j = 0; j < 7; j++) {
+                    const currentDate = new Date(startDate);
+                    const isOtherMonth = currentDate.getUTCMonth() !== month;
+                    const isToday = currentDate.getTime() === today.getTime();
+                    const dateISO = currentDate.toISOString().split('T')[0];
+                    const hasIncome = incomeDates.has(dateISO);
 
-                for (let day = 0; day < 7; day++) {
-                    let dayClass = 'calendar-day';
-                    if (currentDay.getTime() === today.getTime()) dayClass += ' today';
-                    if (currentDay.getMonth() !== month) dayClass += ' other-month';
-
-                    const dateISO = currentDay.toISOString().split('T')[0];
-                    if (incomingDates.has(dateISO)) dayClass += ' has-income';
-
-                    calendarHTML += `<td class="p-0"><div class="${dayClass}" data-date="${dateISO}" data-week-id="${weekId}">${currentDay.getDate()}</div></td>`;
-                    currentDay.setDate(currentDay.getDate() + 1);
+                    let dayClasses = 'calendar-day';
+                    if (isOtherMonth) dayClasses += ' other-month';
+                    if (isToday) dayClasses += ' today';
+                    if (hasIncome) dayClasses += ' has-income';
+                    
+                    calendarHtml += `<div class="${dayClasses}" data-date="${currentDate.getUTCFullYear()}-${currentDate.getUTCMonth()+1}-${currentDate.getUTCDate()}" data-week-id="${weekId}">${currentDate.getUTCDate()}</div>`;
+                    startDate.setUTCDate(startDate.getUTCDate() + 1);
                 }
-                calendarHTML += `</tr>`;
-                if (currentDay > lastDayOfMonth && week >= 4) break;
+                calendarHtml += `</div></div>`;
+
+                if (startDate > lastDay && i > 3) break;
             }
 
-            calendarHTML += `</tbody></table></div>`;
-            wrapper.innerHTML = calendarHTML;
+            calendarBody.innerHTML = calendarHtml;
         }
 
-        function renderIncomingItemsForWeek(startOfWeek, endOfWeek) {
-            const container = document.getElementById('ingresos-details-container');
-            if (!container) return;
+        function renderIncomingItemsForWeek(startOfWeek, endOfWeek, renderHeader = true) {
+            currentIngresosWeek.start = startOfWeek;
+            currentIngresosWeek.end = endOfWeek;
+            const headerContainer = document.getElementById('ingresos-header-container');
+            const detailsContainer = document.getElementById('ingresos-details-container');
+            const kpiContainer = document.getElementById('ingresos-kpi-container');
+            if (!headerContainer || !detailsContainer || !kpiContainer) return;
 
             const incomingOCs = ocs.filter(oc => {
                 const deliveryDate = parseDateString(oc.proxFechaEntrega);
                 return deliveryDate && deliveryDate >= startOfWeek && deliveryDate <= endOfWeek;
             });
             
-            const weekId = getWeekId(startOfWeek);
-            const weekNumber = parseInt(weekId.split('-')[1], 10);
-
-            let headerHTML = `
-                <div class="flex justify-between items-center mb-4">
-                     <h3 class="text-lg font-bold text-indigo-700">Semana ${weekNumber}</h3>
-                     ${incomingOCs.length > 0 ? `<button id="export-incoming-items-btn" title="Exportar a Excel" class="btn-main-style !p-2 !h-auto">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    </button>` : ''}
-                </div>`;
-
-            if (incomingOCs.length === 0) {
-                container.innerHTML = headerHTML + '<p class="text-center text-slate-500 py-4">No hay ingresos programados para esta semana.</p>';
-                return;
-            }
-
-            const groupedByDate = incomingOCs.reduce((acc, oc) => {
-                const dateStr = formatDate(oc.proxFechaEntrega);
-                if (!acc[dateStr]) { acc[dateStr] = []; }
-                acc[dateStr].push(oc);
+            // --- KPI Calculation & Rendering ---
+            // Dynamic group KPI calculation
+            const groupKpis = incomingOCs.reduce((acc, oc) => {
+                const group = extractGroupCode(oc.grupoDeArticulos);
+                if (group) {
+                    if (!acc[group]) {
+                        acc[group] = new Set();
+                    }
+                    acc[group].add(oc.codigo);
+                }
                 return acc;
             }, {});
 
-            const sortedDates = Object.keys(groupedByDate).sort((a, b) => {
-                const dateA = a.split('-').reverse().join('-');
-                const dateB = b.split('-').reverse().join('-');
-                return new Date(dateA) - new Date(dateB);
-            });
-            
-            let listHtml = '<div class="space-y-3">';
-            sortedDates.forEach(dateStr => {
-                const date = parseDateString(dateStr);
-                const dayName = date.toLocaleDateString('es-AR', { weekday: 'long', timeZone: 'UTC' });
-                
-                listHtml += `<div>
-                    <p class="font-bold text-indigo-600">${dayName.charAt(0).toUpperCase() + dayName.slice(1)} ${date.getUTCDate()}</p>
-                    <ul class="divide-y divide-slate-200 border rounded-md mt-1 shadow-sm bg-white">`;
-                
-                groupedByDate[dateStr].forEach(oc => {
-                    const item = items.find(i => i.code === oc.codigo);
-                    const itemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
-                    const itemGroup = extractGroupCode(oc.grupoDeArticulos || 'Sin Grupo');
-                    const itemId = item ? item.id : null;
-                    const cursorClass = itemId ? 'cursor-pointer' : '';
-                    const dataAttr = itemId ? `data-item-id="${itemId}"` : '';
+            const sortedGroupKpis = Object.entries(groupKpis)
+                .map(([group, itemsSet]) => ({ group, count: itemsSet.size }))
+                .sort((a, b) => b.count - a.count); // Sort by count descending
 
-                    listHtml += `<li class="px-3 py-2 hover:bg-slate-50 incoming-item-row ${cursorClass}" ${dataAttr}>
-                        <div>
-                            <p class="text-sm font-semibold text-indigo-600">${itemGroup}</p>
-                            <p class="font-medium text-slate-800 truncate" title="${itemName}">${itemName}</p>
-                            <div class="flex justify-between items-center text-xs text-slate-500 mt-1">
-                                <span>O/C: ${oc.ordenDeCompra || 'N/A'}</span>
-                                <span class="font-bold text-slate-800 text-sm">${formatNumber(oc.cantEntregaSiguiente)}</span>
+            let kpiHtml = '';
+            if (sortedGroupKpis.length > 0) {
+                kpiHtml = `
+                <div class="grid grid-cols-4 gap-2">
+                    ${sortedGroupKpis.map(kpi => `
+                        <div class="bg-white border border-slate-200/80 rounded-lg overflow-hidden shadow-sm transition hover:shadow-lg hover:-translate-y-1">
+                            <div class="p-2 bg-slate-50/70 border-b border-slate-200/80">
+                                <p class="text-xs font-semibold text-slate-600 uppercase truncate" title="${kpi.group}">${kpi.group}</p>
+                            </div>
+                            <div class="p-2 text-right">
+                                <p class="text-2xl font-bold text-indigo-600">${kpi.count}</p>
                             </div>
                         </div>
-                    </li>`;
-                });
-                listHtml += `</ul></div>`;
-            });
-            listHtml += '</div>';
+                    `).join('')}
+                </div>
+                `;
+            }
 
-            container.innerHTML = headerHTML + listHtml;
+            kpiContainer.innerHTML = kpiHtml;
+            
+            const weekId = getWeekId(startOfWeek);
+            const weekNumber = parseInt(weekId.split('-')[1], 10);
+
+            // Filter logic
+            let filteredOCs = incomingOCs;
+            if (ingresosSelectedGroup !== 'all') {
+                filteredOCs = filteredOCs.filter(oc => extractGroupCode(oc.grupoDeArticulos) === ingresosSelectedGroup);
+            }
+
+            if (ingresosSearchTerm) {
+                const searchWords = ingresosSearchTerm.toLowerCase().split(' ').filter(Boolean);
+                filteredOCs = filteredOCs.filter(oc => {
+                    const item = items.find(i => i.code === oc.codigo);
+                    const itemName = item ? item.name : oc.denominacion;
+                    const textToSearch = `${itemName} ${oc.ordenDeCompra || ''} ${oc.codigo || ''}`.toLowerCase();
+                    return searchWords.every(word => textToSearch.includes(word));
+                });
+            }
+
+            if (renderHeader) {
+                // Generate group filter dropdown HTML
+                const uniqueGroups = [...new Set(incomingOCs.map(oc => extractGroupCode(oc.grupoDeArticulos)).filter(Boolean))].sort();
+                let groupFilterHTML = '';
+                if (uniqueGroups.length > 1) { // Only show filter if there's more than one group
+                    const totalCountInGroups = incomingOCs.filter(oc => uniqueGroups.includes(extractGroupCode(oc.grupoDeArticulos))).length;
+                    groupFilterHTML = `
+                        <select id="ingresos-group-filter" class="w-full max-w-xs bg-white/90 border-2 border-transparent text-slate-900 text-sm rounded-lg focus:ring-indigo-300 focus:border-indigo-300 block p-2 h-9 transition">
+                            <option value="all">TODOS LOS GRUPOS (${totalCountInGroups})</option>
+                            ${uniqueGroups.map(group => {
+                                const groupCount = incomingOCs.filter(oc => extractGroupCode(oc.grupoDeArticulos) === group).length;
+                                return `<option value="${group}" ${ingresosSelectedGroup === group ? 'selected' : ''}>${group} (${groupCount})</option>`
+                            }).join('')}
+                        </select>`;
+                }
+
+                // Header HTML
+                const exportButtonHTML = incomingOCs.length > 0 ? `<button id="export-incoming-items-btn" title="Exportar a Excel" class="btn-main-style !bg-white/90 !text-indigo-700 hover:!bg-white flex-shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            </button>` : '';
+
+                let headerHTML = `
+                    <div class="bg-indigo-500 p-4 -m-4 border-b border-indigo-600 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div class="flex items-center gap-4 w-full sm:w-auto">
+                            <h3 class="text-2xl font-bold text-white whitespace-nowrap">Semana ${weekNumber}</h3>
+                            <span class="text-sm font-medium text-indigo-200">(${filteredOCs.length} de ${incomingOCs.length})</span>
+                        </div>
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                           ${groupFilterHTML}
+                           <div class="relative flex-grow">
+                                <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <input type="text" id="ingresos-search-input" placeholder="Buscar..." class="w-full p-2 pl-10 bg-white/90 text-slate-800 border-2 border-transparent focus:border-indigo-300 focus:bg-white rounded-lg h-9 transition" autocomplete="off" value="${ingresosSearchTerm}">
+                           </div>
+                           ${exportButtonHTML}
+                        </div>
+                    </div>`;
+                headerContainer.innerHTML = headerHTML;
+            }
+            
+
+            // List or empty state HTML
+            let contentHTML;
+            if (incomingOCs.length === 0) {
+                contentHTML = '<p class="text-center text-slate-500 py-4">No hay ingresos programados para esta semana.</p>';
+            } else if (filteredOCs.length === 0) {
+                 contentHTML = '<p class="text-center text-slate-500 py-4">No hay ingresos que coincidan con los filtros.</p>';
+            } else {
+                const groupedByDate = filteredOCs.reduce((acc, oc) => {
+                    const dateStr = formatDate(oc.proxFechaEntrega);
+                    if (!acc[dateStr]) { acc[dateStr] = []; }
+                    acc[dateStr].push(oc);
+                    return acc;
+                }, {});
+
+                const sortedDates = Object.keys(groupedByDate).sort((a, b) => {
+                    const dateA = a.split('-').reverse().join('-');
+                    const dateB = b.split('-').reverse().join('-');
+                    return new Date(dateA) - new Date(dateB);
+                });
+                
+                let listHtml = '<div class="space-y-3">';
+                sortedDates.forEach(dateStr => {
+                    const date = parseDateString(dateStr);
+                    const dayName = date.toLocaleDateString('es-AR', { weekday: 'long', timeZone: 'UTC' });
+                    
+                    listHtml += `<div>
+                        <p class="font-bold text-indigo-600">${dayName.charAt(0).toUpperCase() + dayName.slice(1)} ${date.getUTCDate()}</p>
+                        <ul class="divide-y divide-slate-200 border rounded-md mt-1 shadow-sm bg-white">`;
+                    
+                    groupedByDate[dateStr].forEach(oc => {
+                        const item = items.find(i => i.code === oc.codigo);
+                        const cleanItemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
+                        const displayName = `${oc.codigo || ''} - ${cleanItemName}`;
+                        const itemGroup = extractGroupCode(oc.grupoDeArticulos || 'Sin Grupo');
+                        const itemId = item ? item.id : null;
+                        const cursorClass = itemId ? 'cursor-pointer' : '';
+                        const dataAttr = itemId ? `data-item-id="${itemId}"` : '';
+
+                        listHtml += `<li class="px-3 py-2 hover:bg-slate-50 incoming-item-row ${cursorClass}" ${dataAttr}>
+                            <div>
+                                <p class="text-sm font-semibold text-indigo-600">${itemGroup}</p>
+                                <p class="font-medium text-slate-800 truncate" title="${displayName}">${displayName}</p>
+                                <div class="flex justify-between items-center text-xs text-slate-500 mt-1">
+                                    <span>O/C: ${oc.ordenDeCompra || 'N/A'}</span>
+                                    <span class="font-bold text-slate-800 text-sm">${formatNumber(oc.cantEntregaSiguiente)}</span>
+                                </div>
+                            </div>
+                        </li>`;
+                    });
+                    listHtml += `</ul></div>`;
+                });
+                listHtml += '</div>';
+                contentHTML = listHtml;
+            }
+
+            detailsContainer.innerHTML = contentHTML;
+        }
+
+        function generateNotifications() {
+            if (!items.length) return;
+            const processed = getProcessedItems();
+            notifications = []; // Reset notifications
+
+            const lowStockItems = processed.filter(item => 
+                item.coverageDays < appSettings.notificationThreshold && item.coverageDays !== Infinity
+            );
+
+            lowStockItems.forEach(item => {
+                notifications.push({
+                    id: `low_stock_${item.id}`,
+                    type: 'low_stock',
+                    targetId: item.id,
+                    read: false, // Default to unread
+                    text: `Stock bajo para <strong>${item.name.toUpperCase()}</strong>. Cobertura: ${Math.round(item.coverageDays)} días.`
+                });
+            });
+            
+            // Can add other notification types here later (e.g., delayed OCs)
+
+            notifications.sort((a, b) => a.text.localeCompare(b.text)); // Sort for consistent order
+            renderNotifications();
         }
 
         function renderNotifications() {
@@ -2203,9 +2300,11 @@
 
 
         async function renderReviewTable() {
+            const reviewContainer = document.getElementById('review-container');
             const groupsReviewContainer = document.getElementById('groups-review-list');
-            if (!groupsReviewContainer) return;
+            if (!groupsReviewContainer || !reviewContainer) return;
 
+            reviewContainer.classList.remove('hidden');
             groupsReviewContainer.innerHTML = '<div class="p-6 text-center text-slate-500"><div class="loader inline-block"></div> Cargando...</div>';
 
             const today = new Date();
@@ -3336,9 +3435,14 @@
                 const today = new Date();
                 today.setHours(0,0,0,0);
                 ocsTableHTML += `<div class="max-h-60 overflow-y-auto rounded-lg border border-slate-200"><table class="w-full text-sm table-fixed">
-                    <thead class="bg-slate-50 sticky top-0"><tr class="border-b border-slate-200"><th class="px-3 py-2 text-left w-[30%] font-semibold text-slate-600">N° O/C</th><th class="px-3 py-2 text-left w-[25%] font-semibold text-slate-600">Status</th><th class="px-3 py-2 text-right w-[15%] font-semibold text-slate-600">Cant.</th><th class="px-3 py-2 text-left w-[30%] font-semibold text-slate-600">Entrega</th></tr></thead><tbody class="divide-y divide-slate-100">`;
+                    <thead class="bg-slate-50 sticky top-0"><tr class="border-b border-slate-200"><th class="px-3 py-2 text-left w-[25%] font-semibold text-slate-600">N° O/C</th><th class="px-3 py-2 text-left w-[20%] font-semibold text-slate-600">Status</th><th class="px-3 py-2 text-right w-[15%] font-semibold text-slate-600">Cant.</th><th class="px-3 py-2 text-left w-[25%] font-semibold text-slate-600">Entrega</th><th class="px-3 py-2 text-center w-[15%] font-semibold text-slate-600">Semana</th></tr></thead><tbody class="divide-y divide-slate-100">`;
                 itemOCs.forEach(oc => {
                     const deliveryDate = parseDateString(oc.proxFechaEntrega);
+                    let weekNumber = '';
+                    if (deliveryDate) {
+                        // Extraer solo el número de la semana y quitar ceros a la izquierda
+                        weekNumber = getWeekId(deliveryDate).split('-')[1].replace(/^0+/, '');
+                    }
                     const isDelayed = deliveryDate && deliveryDate < today;
                     const dateClass = isDelayed ? 'text-red-600 font-bold' : '';
                     const transformedStatus = transformOCStatus(oc.status);
@@ -3351,7 +3455,7 @@
                         rowClass += ' bg-red-50 hover:bg-red-100';
                     }
 
-                    ocsTableHTML += `<tr class="${rowClass}" data-oc-id="${oc.ordenDeCompra}"><td class="px-3 py-2 truncate font-medium text-slate-800">${oc.ordenDeCompra}</td><td class="px-3 py-2 text-xs truncate">${transformedStatus}</td><td class="px-3 py-2 text-right">${formatNumber(oc.cantEntregaSiguiente)}</td><td class="px-3 py-2 whitespace-nowrap ${dateClass}">${formatDate(oc.proxFechaEntrega)}</td></tr>`;
+                    ocsTableHTML += `<tr class="${rowClass}" data-oc-id="${oc.ordenDeCompra}"><td class="px-3 py-2 truncate font-medium text-slate-800">${oc.ordenDeCompra}</td><td class="px-3 py-2 text-xs truncate">${transformedStatus}</td><td class="px-3 py-2 text-right">${formatNumber(oc.cantEntregaSiguiente)}</td><td class="px-3 py-2 whitespace-nowrap ${dateClass}">${formatDate(oc.proxFechaEntrega)}</td><td class="px-3 py-2 text-center">${weekNumber}</td></tr>`;
                 });
                 ocsTableHTML += `</tbody></table></div>`;
             } else {
@@ -3919,6 +4023,7 @@
                 { key: 'ordenDeCompra', label: 'O/C' },
                 { key: 'posicion', label: 'POS.' }, 
                 { key: 'proxFechaEntrega', label: 'PRÓX. ENTREGA' },
+                { key: 'semanaEntrega', label: 'SEMANA', noSort: true, class: 'text-center' },
                 { key: 'grupoDeArticulos', label: 'GRUPO ARTÍCULOS' },
                 { key: 'codigo', label: 'CÓDIGO' },
                 { key: 'denominacion', label: 'DENOMINACIÓN' }, 
@@ -3946,6 +4051,11 @@
             filteredOCs.forEach(oc => {
                 const itemId = itemsByCode.get(oc.codigo);
                 const deliveryDate = parseDateString(oc.proxFechaEntrega);
+                let weekNumber = '';
+                if (deliveryDate) {
+                    // Extraer solo el número de la semana y quitar ceros a la izquierda
+                    weekNumber = getWeekId(deliveryDate).split('-')[1].replace(/^0+/, '');
+                }
                 let daysToDelivery = '';
                 let daysClass = '';
                  if (deliveryDate) {
@@ -3976,6 +4086,7 @@
                     <td class="px-4 py-3 font-medium">${oc.ordenDeCompra}</td>
                     <td class="px-4 py-3">${oc.posicion}</td>
                     <td class="px-4 py-3 ${dateClass}">${formatDate(oc.proxFechaEntrega)}</td>
+                    <td class="px-4 py-3 text-center">${weekNumber}</td>
                     <td class="px-4 py-3">${extractGroupCodeAbbr(oc.grupoDeArticulos)}</td>
                     <td class="px-4 py-3">${oc.codigo}</td>
                     <td class="px-4 py-3">${oc.denominacion}</td>
@@ -5010,6 +5121,24 @@
             });
             document.getElementById('consumos-view').addEventListener('change', (e) => { if (e.target.matches('.consumo-group-filter')) { handleConsumosFilterChange(e); } });
 
+            document.getElementById('ingresos-view')?.addEventListener('change', (e) => {
+                if (e.target.id === 'ingresos-group-filter') {
+                    ingresosSelectedGroup = e.target.value;
+                    if (currentIngresosWeek.start && currentIngresosWeek.end) {
+                        renderIncomingItemsForWeek(currentIngresosWeek.start, currentIngresosWeek.end, true);
+                    }
+                }
+            });
+
+            document.getElementById('ingresos-view')?.addEventListener('input', (e) => {
+                if (e.target.id === 'ingresos-search-input') {
+                    ingresosSearchTerm = e.target.value;
+                    if (currentIngresosWeek.start && currentIngresosWeek.end) {
+                        renderIncomingItemsForWeek(currentIngresosWeek.start, currentIngresosWeek.end, false);
+                    }
+                }
+            });
+
             document.getElementById('ingresos-view')?.addEventListener('click', (e) => {
                 // Month navigation
                 if (e.target.closest('#calendar-prev-month')) {
@@ -5043,19 +5172,10 @@
                 }
                 
                 // Export button
-                const detailsContainer = e.target.closest('#ingresos-details-container');
-                if(detailsContainer && e.target.closest('#export-incoming-items-btn')) {
-                    const selectedWeekRow = document.querySelector('.calendar-week-row.selected-week');
-                    if(selectedWeekRow) {
-                        const firstDayCell = selectedWeekRow.querySelector('.calendar-day');
-                        const dateParts = firstDayCell.dataset.date.split('-').map(Number);
-                        const clickedDate = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]));
-                        const dayOfWeek = (clickedDate.getUTCDay() + 6) % 7;
-                        const startOfWeek = new Date(clickedDate);
-                        startOfWeek.setUTCDate(startOfWeek.getUTCDate() - dayOfWeek);
-                        const endOfWeek = new Date(startOfWeek);
-                        endOfWeek.setUTCDate(endOfWeek.getUTCDate() + 6);
-                        handleExportIncomingItems(startOfWeek, endOfWeek);
+                const headerContainer = e.target.closest('#ingresos-header-container');
+                if(headerContainer && e.target.closest('#export-incoming-items-btn')) {
+                    if (currentIngresosWeek.start && currentIngresosWeek.end) {
+                        handleExportIncomingItems(currentIngresosWeek.start, currentIngresosWeek.end);
                     }
                 }
 
