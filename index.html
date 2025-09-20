@@ -261,10 +261,10 @@
 
     <!-- 
     ======================================================================
-    NOTAS DE PENDIENTES
+    NOTAS DE DESARROLLO 
     ======================================================================
-   1-CALENDARIO DE TODO LO PENDIENTE
-    
+    Fernando, usemos esta sección para anotar las ideas 
+
     ======================================================================
     -->
 
@@ -998,6 +998,7 @@
         let comparisonItemId = null;
         let isSimulationModeActive = false;
         let simulatedIncomes = [];
+        let editingSimulatedIncomeWeekId = null;
         let simulationShowAllWeeks = false;
         let consumoSelectedGroup = 'all';
         let consumoShowOnlyFavorites = false;
@@ -3997,15 +3998,17 @@
                 return;
             }
 
+            simulatedIncomes.sort((a,b) => a.weekId.localeCompare(b.weekId));
+
             listContainer.innerHTML = `
                 <ul class="space-y-1 mt-2">
                     ${simulatedIncomes.map(income => {
                         const weekNumber = parseInt(income.weekId.split('-')[1], 10);
                         return `
-                        <li class="flex justify-between items-center p-1 bg-indigo-50 rounded-md">
-                            <span>Ingreso de <strong>${formatNumber(income.quantity)}</strong> en Semana <strong>${weekNumber}</strong></span>
-                            <button class="remove-sim-income-btn p-1 text-red-400 hover:text-red-600" data-week-id="${income.weekId}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        <li class="flex justify-between items-center p-2 bg-indigo-50 rounded-md cursor-pointer hover:bg-indigo-100 sim-income-item transition-colors" data-week-id="${income.weekId}">
+                            <span>Ingreso de <strong>${formatNumber(income.quantity)}</strong> en Semana <strong>S-${weekNumber}</strong></span>
+                            <button class="remove-sim-income-btn p-1 text-red-400 hover:text-red-600 rounded-full hover:bg-red-100" data-week-id="${income.weekId}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                             </button>
                         </li>
                         `
@@ -4016,6 +4019,42 @@
             document.querySelectorAll('.remove-sim-income-btn').forEach(btn => {
                 btn.addEventListener('click', handleRemoveSimulatedIncome);
             });
+            document.querySelectorAll('.sim-income-item').forEach(item => {
+                item.addEventListener('click', handleEditSimulatedIncome);
+            });
+        }
+
+        function handleEditSimulatedIncome(e) {
+            // No activar edición si se hizo clic en el botón de eliminar
+            if (e.target.closest('.remove-sim-income-btn')) {
+                return;
+            }
+
+            const weekIdToEdit = e.currentTarget.dataset.weekId;
+            const incomeToEdit = simulatedIncomes.find(inc => inc.weekId === weekIdToEdit);
+
+            if (!incomeToEdit) return;
+
+            editingSimulatedIncomeWeekId = weekIdToEdit;
+
+            document.getElementById('sim-income-qty').value = formatNumber(incomeToEdit.quantity);
+            document.getElementById('sim-income-week').value = incomeToEdit.weekId;
+
+            const addButton = document.getElementById('add-sim-income-btn');
+            addButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`; // Icono de Check
+            addButton.classList.remove('!bg-indigo-600', 'hover:!bg-indigo-700');
+            addButton.classList.add('!bg-green-600', 'hover:!bg-green-700');
+            document.getElementById('sim-income-qty').focus();
+        }
+
+        function resetSimulatedIncomeForm() {
+            editingSimulatedIncomeWeekId = null;
+            document.getElementById('sim-income-qty').value = '';
+            
+            const addButton = document.getElementById('add-sim-income-btn');
+            addButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`; // Icono de Más
+            addButton.classList.remove('!bg-green-600', 'hover:!bg-green-700');
+            addButton.classList.add('!bg-indigo-600', 'hover:!bg-indigo-700');
         }
 
         function handleAddSimulatedIncome() {
@@ -4023,26 +4062,37 @@
             const weekSelect = document.getElementById('sim-income-week');
             
             const quantity = parseInt(String(qtyInput.value).replace(/\./g, ''), 10);
-            const weekId = weekSelect.value;
+            const newWeekId = weekSelect.value;
 
-            if (!quantity || quantity <= 0 || !weekId) {
+            if (!quantity || quantity <= 0 || !newWeekId) {
                 showToast('Por favor, ingrese una cantidad válida y seleccione una semana.', 'error');
                 return;
             }
-
-            // Remove if exists to replace it, allowing update
-            simulatedIncomes = simulatedIncomes.filter(inc => inc.weekId !== weekId);
             
-            simulatedIncomes.push({ weekId, quantity });
-
-            qtyInput.value = '';
+            // Si estamos en modo edición, siempre eliminamos el registro original
+            if (editingSimulatedIncomeWeekId) {
+                simulatedIncomes = simulatedIncomes.filter(inc => inc.weekId !== editingSimulatedIncomeWeekId);
+            }
             
+            // También eliminamos cualquier registro existente para la *nueva* semana, para evitar duplicados.
+            simulatedIncomes = simulatedIncomes.filter(inc => inc.weekId !== newWeekId);
+            
+            // Añadimos el registro nuevo/actualizado
+            simulatedIncomes.push({ weekId: newWeekId, quantity });
+
+            resetSimulatedIncomeForm();
             runAndRenderSimulation();
         }
 
         function handleRemoveSimulatedIncome(e) {
+            e.stopPropagation(); // Prevenir que el evento active la edición del elemento padre (li)
             const weekIdToRemove = e.currentTarget.dataset.weekId;
             simulatedIncomes = simulatedIncomes.filter(inc => inc.weekId !== weekIdToRemove);
+            
+            if(editingSimulatedIncomeWeekId === weekIdToRemove) {
+                resetSimulatedIncomeForm();
+            }
+
             runAndRenderSimulation();
         }
 
@@ -6419,5 +6469,3 @@
     </script>
 </body>
 </html>
-
-
