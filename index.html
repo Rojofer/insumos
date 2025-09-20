@@ -258,7 +258,23 @@
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800">
- 
+
+    <!-- 
+    ======================================================================
+    NOTAS DE DESARROLLO Y SIMULACIÓN
+    ======================================================================
+    Fernando, usemos esta sección para anotar las ideas sobre la 
+    simulación y no perder el progreso.
+
+    IDEAS ACTUALES:
+    1.  Crear una nueva pestaña/vista llamada "Simulación".
+    2.  Permitir al usuario seleccionar un producto.
+    3.  Añadir controles para modificar variables (ej. "aumento de demanda %", "retraso en entrega de O/C en días").
+    4.  Mostrar un gráfico o tabla con el stock proyectado a futuro basado en la simulación.
+    
+    ======================================================================
+    -->
+
     <div id="auth-container" class="hidden min-h-screen bg-slate-100 flex flex-col justify-center items-center p-4">
         <div class="w-full max-w-sm">
             <div class="text-center mb-8">
@@ -4876,13 +4892,6 @@
                     return;
                 }
 
-                const groupItem = e.target.closest('.group-item-name');
-                if (groupItem) {
-                    const groupName = groupItem.dataset.groupName;
-                    indiceSelectedGroup = groupName;
-                    switchMainView('indice');
-                }
-
                 const criticalItemDetails = e.target.closest('.low-stock-item-details');
                 if (criticalItemDetails) {
                     const itemId = criticalItemDetails.dataset.itemId;
@@ -4918,7 +4927,7 @@
                 if (groupRow) {
                     const groupName = groupRow.dataset.groupName;
                     indiceSelectedGroup = groupName;
-                    indiceShowFavorites = false;
+                    indiceFavoriteFilter = 'all';
                     indiceCoverageFilter = 'all';
                     indiceSearchTerm = '';
                     switchMainView('indice');
@@ -4982,441 +4991,7 @@
                 if (groupItemName) {
                     const groupName = groupItemName.dataset.groupName;
                     indiceSelectedGroup = groupName;
-                    indiceShowFavorites = false;
-                    indiceCoverageFilter = 'all';
-                    indiceSearchTerm = '';
-                    switchMainView('indice');
-                }
-            });
-
-            document.getElementById('indice-view').addEventListener('input', (e) => {
-                if(e.target.id === 'indice-search-input') {
-                    indiceSearchTerm = e.target.value.toLowerCase();
-                    renderIndiceView();
-                }
-                if(e.target.classList.contains('notes-input-indice')) {
-                    handleNotesInput(e);
-                }
-            });
-             document.getElementById('indice-view').addEventListener('change', (e) => {
-                if(e.target.id === 'indice-group-filter') {
-                    indiceSelectedGroup = e.target.value;
-                    renderIndiceView();
-                }
-            });
-            document.getElementById('indice-view').addEventListener('click', (e) => {
-                const sortBtn = e.target.closest('.table-sort-button');
-                if (sortBtn) {
-                    const key = sortBtn.dataset.sort;
-                    if (indiceSortConfig.key === key) {
-                        indiceSortConfig.direction = indiceSortConfig.direction === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        indiceSortConfig.key = key;
-                        indiceSortConfig.direction = 'asc';
-                    }
-                    renderIndiceView();
-                }
-                const coverageBtn = e.target.closest('#indice-coverage-filter-buttons button');
-                if (coverageBtn) {
-                    indiceCoverageFilter = coverageBtn.dataset.filter;
-                    renderIndiceView();
-                }
-                if (e.target.closest('#export-indice-btn')) {
-                    handleExportIndice();
-                }
-                const favoritesHeaderBtn = e.target.closest('#indice-favorites-header-filter-btn');
-                if (favoritesHeaderBtn) {
-                    if (indiceFavoriteFilter === 'all') {
-                        indiceFavoriteFilter = 'favorites';
-                    } else if (indiceFavoriteFilter === 'favorites') {
-                        indiceFavoriteFilter = 'non-favorites';
-                    } else { // 'non-favorites'
-                        indiceFavoriteFilter = 'all';
-                    }
-                    renderIndiceView();
-                }
-                if (e.target.closest('#indice-clear-filters-btn')) {
-                    handleClearIndiceFilters();
-                }
-                const favBtn = e.target.closest('.favorite-btn[data-btn-type="indice-fav"]');
-                if(favBtn) {
-                    e.stopPropagation();
-                    handleToggleFavorite(favBtn.dataset.itemId);
-                }
-                const row = e.target.closest('.indice-item-details');
-                if(row) {
-                    const itemId = row.dataset.itemId;
-                    selectedConsumptionItemId = itemId;
-                    comparisonItemId = null;
-                    switchMainView('consumos');
-                }
-                const deleteBtn = e.target.closest('.delete-item-btn');
-                if (deleteBtn) {
-                    e.stopPropagation();
-                    const itemId = deleteBtn.dataset.itemId;
-                    const itemName = deleteBtn.dataset.itemName;
-                    handleDeleteItem(itemId, itemName);
-                }
-            });
-
-            document.getElementById('consumos-view').addEventListener('input', (e) => {
-                 if (e.target.matches('#consumo-search-input')) handleConsumosSearch(e, 'primary');
-                 if (e.target.matches('#consumo-comparison-search-input')) handleConsumosSearch(e, 'comparison');
-                 if (e.target.matches('[id^="consumo-description-notes-"]')) handleNotesInput(e);
-            });
-            document.getElementById('consumos-view')?.addEventListener('click', (e) => {
-                if(e.target.closest('#consumo-search-results')) handleSelectConsumosItem(e);
-                if(e.target.closest('#consumo-comparison-search-results')) handleSelectConsumosItem(e);
-                
-                const favFilterBtn = e.target.closest('#consumo-favorites-filter-btn, #consumo-comparison-favorites-filter-btn');
-                if (favFilterBtn) {
-                    handleConsumosFavoritesToggle(favFilterBtn);
-                    return;
-                }
-
-                const clearPrimaryBtn = e.target.closest('#consumo-clear-primary-btn');
-                if (clearPrimaryBtn) {
-                    handleClearConsumoPanel('primary');
-                    return;
-                }
-                const clearComparisonBtn = e.target.closest('#consumo-clear-comparison-btn');
-                if (clearComparisonBtn) {
-                    handleClearConsumoPanel('comparison');
-                    return;
-                }
-
-                const clearTextBtn = e.target.closest('#consumo-clear-text-btn');
-                if(clearTextBtn) {
-                    const searchInput = document.getElementById('consumo-search-input');
-                    searchInput.value = '';
-                    selectedConsumptionItemId = null;
-                    renderSingleConsumoPanel(null, 'primary');
-                    handleConsumosSearch({ target: searchInput }, 'primary');
-                    searchInput.focus();
-                    return;
-                }
-
-                const clearComparisonTextBtn = e.target.closest('#consumo-comparison-clear-text-btn');
-                if(clearComparisonTextBtn) {
-                    const searchInput = document.getElementById('consumo-comparison-search-input');
-                    searchInput.value = '';
-                    comparisonItemId = null;
-                    renderSingleConsumoPanel(null, 'comparison');
-                    handleConsumosSearch({ target: searchInput }, 'comparison');
-                    searchInput.focus();
-                    return;
-                }
-
-                const nameLink = e.target.closest('.consumo-name-link');
-                if (nameLink && nameLink.dataset.itemCode) {
-                    indiceSearchTerm = nameLink.dataset.itemCode;
-                    indiceSelectedGroup = 'all';
-                    indiceShowFavorites = false;
-                    indiceCoverageFilter = 'all';
-                    switchMainView('indice');
-                    return;
-                }
-
-                const groupLink = e.target.closest('.consumo-group-link');
-                if (groupLink && groupLink.dataset.groupName) {
-                    indiceSelectedGroup = groupLink.dataset.groupName;
-                    indiceSearchTerm = '';
-                    indiceShowFavorites = false;
-                    indiceCoverageFilter = 'all';
-                    switchMainView('indice');
-                    return;
-                }
-
-                const favBtn = e.target.closest('.favorite-btn[data-item-id]');
-                if (favBtn) {
-                    handleToggleFavorite(favBtn.dataset.itemId);
-                }
-                const solpedLink = e.target.closest('.consumo-solped-link');
-                if (solpedLink) {
-                    const solpedId = solpedLink.dataset.solpedId;
-                    if (solpedId) {
-                        switchMainView('solpeds');
-                        document.getElementById('solpeds-search-input').value = solpedId;
-                        renderSolpedsView();
-                    }
-                }
-                const ocLink = e.target.closest('.consumo-oc-link');
-                if (ocLink) {
-                    const ocId = ocLink.dataset.ocId;
-                    if (ocId) {
-                        switchMainView('ocs');
-                        document.getElementById('ocs-search-input').value = ocId;
-                        renderOCsView();
-                    }
-                }
-            });
-            document.getElementById('consumos-view').addEventListener('change', (e) => { if (e.target.matches('.consumo-group-filter')) { handleConsumosFilterChange(e); } });
-
-            document.getElementById('ingresos-view')?.addEventListener('change', (e) => {
-                if (e.target.id === 'ingresos-group-filter') {
-                    ingresosSelectedGroup = e.target.value;
-                    if (currentIngresosWeek.start && currentIngresosWeek.end) {
-                        renderIncomingItemsForWeek(currentIngresosWeek.start, currentIngresosWeek.end, true);
-                    }
-                }
-            });
-
-            document.getElementById('ingresos-view')?.addEventListener('input', (e) => {
-                if (e.target.id === 'ingresos-search-input') {
-                    ingresosSearchTerm = e.target.value;
-                    if (currentIngresosWeek.start && currentIngresosWeek.end) {
-                        renderIncomingItemsForWeek(currentIngresosWeek.start, currentIngresosWeek.end, false);
-                    }
-                }
-            });
-
-            document.getElementById('ingresos-view')?.addEventListener('click', (e) => {
-                // Month navigation
-                if (e.target.closest('#calendar-prev-month')) {
-                    calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1);
-                    renderMonthlyCalendar(calendarCurrentDate);
-                    return;
-                }
-                if (e.target.closest('#calendar-next-month')) {
-                    calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
-                    renderMonthlyCalendar(calendarCurrentDate);
-                    return;
-                }
-
-                // KPI Card Click
-                const kpiCard = e.target.closest('.ingresos-kpi-card');
-                if (kpiCard) {
-                    const groupName = kpiCard.dataset.groupName;
-                    if (groupName) {
-                        // Toggle functionality: if clicking the same group, deselect it.
-                        ingresosSelectedGroup = ingresosSelectedGroup === groupName ? 'all' : groupName;
-                        if (currentIngresosWeek.start && currentIngresosWeek.end) {
-                            renderIncomingItemsForWeek(currentIngresosWeek.start, currentIngresosWeek.end, true);
-                        }
-                    }
-                    return;
-                }
-
-                // Week selection
-                const dayCell = e.target.closest('.calendar-day');
-                if (dayCell && dayCell.dataset.weekId) {
-                    const weekId = dayCell.dataset.weekId;
-                    
-                    document.querySelectorAll('.calendar-week-row.selected-week').forEach(row => row.classList.remove('selected-week'));
-                    document.querySelector(`.calendar-week-row[data-week-id="${weekId}"]`)?.classList.add('selected-week');
-                    
-                    const dateParts = dayCell.dataset.date.split('-').map(Number);
-                    const clickedDate = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]));
-                    const dayOfWeek = (clickedDate.getUTCDay() + 6) % 7; // Monday = 0
-                    const startOfWeek = new Date(clickedDate);
-                    startOfWeek.setUTCDate(startOfWeek.getUTCDate() - dayOfWeek);
-                    const endOfWeek = new Date(startOfWeek);
-                    endOfWeek.setUTCDate(endOfWeek.getUTCDate() + 6);
-
-                    renderIncomingItemsForWeek(startOfWeek, endOfWeek);
-                }
-                
-                // Export button
-                const headerContainer = e.target.closest('#ingresos-header-container');
-                if(headerContainer && e.target.closest('#export-incoming-items-btn')) {
-                    if (currentIngresosWeek.start && currentIngresosWeek.end) {
-                        handleExportIncomingItems(currentIngresosWeek.start, currentIngresosWeek.end);
-                    }
-                }
-
-                // Click on item to go to consumos view
-                const incomingItemRow = e.target.closest('.incoming-item-row');
-                if (incomingItemRow && incomingItemRow.dataset.itemId) {
-                    selectedConsumptionItemId = incomingItemRow.dataset.itemId;
-                    comparisonItemId = null;
-                    switchMainView('consumos');
-                    return;
-                }
-            });
-
-            document.getElementById('solpeds-search-input')?.addEventListener('input', renderSolpedsView);
-            document.getElementById('solpeds-view')?.addEventListener('click', (e) => { 
-                const btn = e.target.closest('.table-sort-button'); 
-                const row = e.target.closest('.solped-item-row');
-                const yearBtn = e.target.closest('.solpeds-year-btn');
-                const monthBtn = e.target.closest('#solpeds-month-filter-btn');
-
-                if (btn) { handleSolpedsSort(btn.dataset.sort); }
-                else if (e.target.id === 'solpeds-delayed-filter-btn') { showOnlyDelayedSolpeds = !showOnlyDelayedSolpeds; renderSolpedsView(); }
-                else if (e.target.closest('#export-solpeds-btn')) { handleExportSolpeds(); }
-                else if (e.target.closest('#solpeds-clear-filters-btn')) { handleClearSolpedsFilters(); }
-                else if (row && row.dataset.itemId) {
-                    selectedConsumptionItemId = row.dataset.itemId;
-                    comparisonItemId = null;
-                    switchMainView('consumos');
-                }
-                else if (yearBtn) {
-                    solpedsSelectedYear = yearBtn.dataset.year;
-                    solpedsSelectedMonths = [];
-                    renderSolpedsView();
-                }
-                else if (monthBtn) {
-                    e.stopPropagation();
-                    document.getElementById('solpeds-month-filter-panel').classList.toggle('hidden');
-                }
-            });
-            document.getElementById('solpeds-view')?.addEventListener('change', (e) => {
-                if (e.target.id === 'solpeds-group-filter') {
-                    solpedsSelectedGroup = e.target.value;
-                    renderSolpedsView();
-                }
-                if (e.target.matches('.solpeds-month-checkbox')) {
-                    const checkedMonths = Array.from(document.querySelectorAll('.solpeds-month-checkbox:checked')).map(cb => cb.value);
-                    solpedsSelectedMonths = checkedMonths;
-                    renderSolpedsView();
-                }
-            });
-            
-            document.getElementById('ocs-search-input')?.addEventListener('input', renderOCsView);
-           document.getElementById('ocs-view')?.addEventListener('click', (e) => { 
-                const btn = e.target.closest('.table-sort-button'); 
-                const row = e.target.closest('.oc-item-row');
-                const yearBtn = e.target.closest('.ocs-year-btn');
-                const monthBtn = e.target.closest('#ocs-month-filter-btn');
-
-                if (btn) { handleOCsSort(btn.dataset.sort); }
-                else if (e.target.id === 'ocs-delayed-filter-btn') { showOnlyDelayedOCs = !showOnlyDelayedOCs; renderOCsView(); }
-                else if (e.target.closest('#export-ocs-btn')) { handleExportOCs(); }
-                else if (e.target.closest('#ocs-clear-filters-btn')) { handleClearOCsFilters(); }
-                else if (yearBtn) {
-                    ocsSelectedYear = yearBtn.dataset.year;
-                    ocsSelectedMonths = [];
-                    renderOCsView();
-                }
-                else if (monthBtn) {
-                    e.stopPropagation();
-                    document.getElementById('ocs-month-filter-panel').classList.toggle('hidden');
-                }
-                else if (row && row.dataset.itemId) {
-                    selectedConsumptionItemId = row.dataset.itemId;
-                    comparisonItemId = null;
-                    switchMainView('consumos');
-                }
-            });
-            document.getElementById('ocs-view')?.addEventListener('change', (e) => {
-                if (e.target.id === 'ocs-group-filter') {
-                    ocsSelectedGroup = e.target.value;
-                    renderOCsView();
-                }
-                if (e.target.id === 'ocs-status-filter') {
-                    ocsSelectedStatus = e.target.value;
-                    renderOCsView();
-                }
-                if (e.target.matches('.ocs-month-checkbox')) {
-                    const checkedMonths = Array.from(document.querySelectorAll('.ocs-month-checkbox:checked')).map(cb => cb.value);
-                    ocsSelectedMonths = checkedMonths;
-                    renderOCsView();
-                }
-            });
-
-            document.getElementById('reportes-view')?.addEventListener('input', (e) => { 
-                if (e.target.id === 'immobilized-search-input') renderImmobilizedStockReport();
-            });
-            document.getElementById('reportes-view')?.addEventListener('click', (e) => { 
-                const sortBtn = e.target.closest('.table-sort-button');
-                const row = e.target.closest('.report-item-row');
-                
-                if(e.target.closest('#export-immobilized-btn')) {
-                    handleExportImmobilized();
-                    return;
-                }
-
-                if (sortBtn) {
-                    const key = sortBtn.dataset.sort;
-                    if (immobilizedSortConfig.key === key) {
-                        immobilizedSortConfig.direction = immobilizedSortConfig.direction === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        immobilizedSortConfig.key = key;
-                        immobilizedSortConfig.direction = 'asc';
-                    }
-                    renderImmobilizedStockReport();
-                } else if (row && row.dataset.itemId) {
-                    selectedConsumptionItemId = row.dataset.itemId;
-                    comparisonItemId = null;
-                    switchMainView('consumos');
-                }
-            });
-
-
-            document.getElementById('dashboard-preload-btn-dropdown')?.addEventListener('click', handleOpenPreloadModal);
-            document.getElementById('dashboard-clear-btn-dropdown')?.addEventListener('click', handleClearAll);
-            document.getElementById('close-preload-modal')?.addEventListener('click', handleClosePreloadModal);
-            document.getElementById('process-preload-data')?.addEventListener('click', handleProcessPreloadData);
-            document.getElementById('preload-file-input')?.addEventListener('change', handleFileInputChange);
-            document.getElementById('cancel-clear-button')?.addEventListener('click', () => document.getElementById('confirm-clear-modal').classList.add('hidden'));
-            
-            document.getElementById('admin-tabs')?.addEventListener('click', (e) => {
-                const tab = e.target.dataset.tab;
-                if (!tab) return;
-                document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-                e.target.classList.add('active');
-                document.getElementById('admin-content-permissions').classList.toggle('hidden', tab !== 'permissions');
-                document.getElementById('admin-content-settings').classList.toggle('hidden', tab !== 'settings');
-            });
-            document.getElementById('admin-content-permissions')?.addEventListener('change', (e) => {
-                if (e.target.matches('.role-select, .groups-input, .tag-input')) {
-                    const userId = e.target.dataset.userid;
-                    const row = e.target.closest('tr');
-                    const role = row.querySelector('.role-select').value;
-                    const groups = row.querySelector('.groups-input').value;
-                    const tag = row.querySelector('.tag-input').value;
-                    updateUserPermissions(userId, role, groups, tag);
-                }
-            });
-            document.getElementById('save-settings-btn')?.addEventListener('click', handleSaveSettings);
-            document.getElementById('close-admin-modal-button')?.addEventListener('click', closeAdminModal);
-            
-            document.getElementById('record-consumption-modal')?.addEventListener('click', (e) => {
-                const itemEl = e.target.closest('.record-consumption-item');
-                if (itemEl) {
-                    const itemId = itemEl.dataset.itemId;
-                    switchMainView('consumos');
-                    selectedConsumptionItemId = itemId;
-                    renderConsumosView();
-                    document.getElementById('record-consumption-modal').classList.add('hidden');
-                }
-            });
-            document.getElementById('close-record-consumption-modal-button')?.addEventListener('click', () => document.getElementById('record-consumption-modal').classList.add('hidden'));
-
-            document.getElementById('close-group-stats-modal-button')?.addEventListener('click', () => document.getElementById('group-stats-modal').classList.add('hidden'));
-
-            document.getElementById('group-stats-modal')?.addEventListener('click', (e) => {
-                 const row = e.target.closest('tr[data-group-name]');
-                 if (row) {
-                     const groupName = row.dataset.groupName;
-                     indiceSelectedGroup = groupName;
-                     indiceShowFavorites = false;
-                     indiceCoverageFilter = 'all';
-                     indiceSearchTerm = '';
-                     document.getElementById('group-stats-modal').classList.add('hidden');
-                     switchMainView('indice');
-                 }
-            });
-
-            document.getElementById('save-review-btn')?.addEventListener('click', handleSaveReview);
-            document.getElementById('groups-review-list')?.addEventListener('change', handleReviewCheckboxChange);
-            
-            document.getElementById('revision-view')?.addEventListener('input', (e) => {
-                if(e.target.id === 'history-search-input') { renderHistoryView(); }
-                if(e.target.matches('.review-notes-input')) { handleReviewNotesInput(e); }
-            });
-            
-            document.getElementById('revision-view')?.addEventListener('click', (e) => {
-                if(e.target.closest('#export-history-btn')) { 
-                    handleExportHistory(); 
-                    return;
-                }
-                
-                const groupItemName = e.target.closest('.group-item-name');
-                if (groupItemName) {
-                    const groupName = groupItemName.dataset.groupName;
-                    indiceSelectedGroup = groupName;
-                    indiceShowFavorites = false;
+                    indiceFavoriteFilter = 'all';
                     indiceCoverageFilter = 'all';
                     indiceSearchTerm = '';
                     switchMainView('indice');
@@ -5958,5 +5533,12 @@
     </script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 
