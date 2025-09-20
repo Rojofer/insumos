@@ -261,16 +261,9 @@
 
     <!-- 
     ======================================================================
-    NOTAS DE DESARROLLO Y SIMULACIÓN
+    NOTAS DE PENDIENTES
     ======================================================================
-    Fernando, usemos esta sección para anotar las ideas sobre la 
-    simulación y no perder el progreso.
-
-    IDEAS ACTUALES:
-    1.  Crear una nueva pestaña/vista llamada "Simulación".
-    2.  Permitir al usuario seleccionar un producto.
-    3.  Añadir controles para modificar variables (ej. "aumento de demanda %", "retraso en entrega de O/C en días").
-    4.  Mostrar un gráfico o tabla con el stock proyectado a futuro basado en la simulación.
+   1-CALENDARIO DE TODO LO PENDIENTE
     
     ======================================================================
     -->
@@ -288,7 +281,7 @@
             
             <div id="login-view" class="bg-white p-8 rounded-2xl shadow-lg hidden">
                 <h2 class="text-2xl font-bold text-center text-slate-800">ALMACEN</h2>
-                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v2.60 (17-09-2025)</p>
+                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v2.80 (20-09-2025)</p>
                 <form id="login-form" class="space-y-4">
                     <div>
                         <label for="login-email" class="text-sm font-medium text-slate-700">Email</label>
@@ -348,7 +341,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="flex-1 flex items-center justify-center px-2 md:px-4">
+                    <div class="flex-1 flex items-center justify-center px-2 md:px-4 min-w-0">
                         <button id="open-global-search-btn" class="flex items-center gap-2 p-2 w-full max-w-xl sm:w-96 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 font-medium text-sm transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                             <span class="flex-1 text-left hidden sm:inline">Buscar...</span>
@@ -397,17 +390,11 @@
                                 <div class="dropdown-divider"></div>
                                 
                                 <div class="py-1">
-                                    <button id="manual-button-dropdown"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg><span class="uppercase">Manual de Usuario</span></button>
-                                </div>
-                                
-                                <div class="dropdown-divider"></div>
-
-                                <div class="py-1">
                                     <button id="logout-button-dropdown"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg><span class="uppercase">Cerrar Sesión</span></button>
                                 </div>
                                 <div class="dropdown-divider"></div>
                                 <div class="px-4 py-2 text-center text-xs text-slate-400">
-                                    Versión 2.60 (17-09-2025)
+                                    Versión 2.80 (20-09-2025)
                                 </div>
                             </div>
                         </div>
@@ -478,7 +465,7 @@
                 <div class="flex flex-col h-full">
                     <div class="bg-indigo-500 p-4 z-10">
                         <div class="flex flex-col lg:flex-row items-center gap-4">
-                            <div id="primary-search-wrapper" class="w-full lg:w-[55%]">
+                            <div id="primary-search-wrapper" class="w-full lg:w-1/2">
                                 <div class="flex items-center gap-2 w-full">
                                     <div id="consumo-group-filter-container"></div>
                                     <button id="consumo-favorites-filter-btn" data-type="primary" class="favorite-btn flex-shrink-0">
@@ -498,7 +485,7 @@
                                 </div>
                             </div>
                             <div class="h-px lg:h-6 w-full lg:w-px border-t lg:border-t-0 lg:border-l border-white/40 my-2 lg:my-0 lg:mx-2"></div>
-                            <div id="comparison-search-wrapper" class="w-full lg:w-[45%]">
+                            <div id="comparison-search-wrapper" class="w-full lg:w-1/2">
                                 <div class="flex items-center gap-2 w-full">
                                     <div id="consumo-comparison-group-filter-container"></div>
                                     <button id="consumo-comparison-favorites-filter-btn" data-type="comparison" class="favorite-btn flex-shrink-0">
@@ -652,7 +639,7 @@
 
             <div id="ingresos-view" class="hidden">
                 <div class="flex flex-col lg:flex-row h-[calc(100vh-56px)] bg-white">
-                    <div class="w-full lg:w-1/3 p-4 border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col">
+                    <div class="w-full lg:w-1/3 p-6 border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col">
                         <div id="ingresos-calendar-container">
                             <!-- El calendario mensual se renderizará aquí -->
                         </div>
@@ -1009,6 +996,9 @@
         let isAuthReady = false;
         let selectedConsumptionItemId = null;
         let comparisonItemId = null;
+        let isSimulationModeActive = false;
+        let simulatedIncomes = [];
+        let simulationShowAllWeeks = false;
         let consumoSelectedGroup = 'all';
         let consumoShowOnlyFavorites = false;
         let consumoComparisonSelectedGroup = 'all';
@@ -1314,6 +1304,9 @@
 
         // --- LÓGICA DE NAVEGACIÓN Y VISTAS ---
         function switchMainView(view) {
+            if (currentView === 'consumos' && view !== 'consumos') {
+                isSimulationModeActive = false;
+            }
             currentView = view;
             document.getElementById('dashboard-view').classList.toggle('hidden', view !== 'dashboard');
             document.getElementById('indice-view').classList.toggle('hidden', view !== 'indice');
@@ -1324,6 +1317,10 @@
             document.getElementById('reportes-view').classList.toggle('hidden', view !== 'reportes');
             document.getElementById('revision-view').classList.toggle('hidden', view !== 'revision');
             
+            if (view !== 'dashboard') {
+                closeKpiDetailView();
+            }
+
             document.querySelectorAll('#main-nav-links .nav-link').forEach(link => {
                 link.classList.toggle('active', link.dataset.view === view);
             });
@@ -1354,9 +1351,10 @@
             renderMonthlyCalendar(calendarCurrentDate);
 
             // Automatically select and render details for the current week on first load of this view
-            const today = new Date();
+            const todayRaw = new Date();
+            const today = new Date(Date.UTC(todayRaw.getFullYear(), todayRaw.getMonth(), todayRaw.getDate()));
+
             const startOfWeek = new Date(today);
-            startOfWeek.setHours(0,0,0,0);
             const dayOfWeek = (startOfWeek.getUTCDay() + 6) % 7; // Monday = 0
             startOfWeek.setUTCDate(startOfWeek.getUTCDate() - dayOfWeek);
 
@@ -1392,9 +1390,12 @@
             let html = `
                 <div class="calendar">
                     <div class="calendar-header">
-                        <button id="calendar-prev-month" class="p-2 rounded-full hover:bg-slate-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+                        <div class="flex items-center gap-2">
+                            <button id="calendar-prev-month" class="p-2 rounded-full hover:bg-slate-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+                            <button id="calendar-next-month" class="p-2 rounded-full hover:bg-slate-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+                        </div>
                         <h3 class="text-lg font-bold text-slate-800">${capitalizedMonthName} ${year}</h3>
-                        <button id="calendar-next-month" class="p-2 rounded-full hover:bg-slate-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+                        <button id="calendar-today-btn" class="btn-main-style !text-xs !h-8 !px-3">Semana Actual</button>
                     </div>
                     <div class="calendar-grid">
                         <div class="week-number-cell"></div> <!-- Empty cell for week number header -->
@@ -1593,13 +1594,15 @@
                         const cursorClass = itemId ? 'cursor-pointer' : '';
                         const dataAttr = itemId ? `data-item-id="${itemId}"` : '';
 
-                        listHtml += `<li class="px-3 py-2 hover:bg-slate-50 incoming-item-row ${cursorClass}" ${dataAttr}>
-                            <div>
-                                <p class="text-sm font-semibold text-indigo-600">${itemGroup}</p>
-                                <p class="font-medium text-slate-800 truncate" title="${displayName}">${displayName}</p>
-                                <div class="flex justify-between items-center text-xs text-slate-500 mt-1">
-                                    <span>O/C: ${oc.ordenDeCompra || 'N/A'}</span>
-                                    <span class="font-bold text-slate-800 text-sm">${formatNumber(oc.cantEntregaSiguiente)}</span>
+                        listHtml += `<li class="px-4 py-3 hover:bg-slate-50 incoming-item-row ${cursorClass}" ${dataAttr}>
+                            <div class="flex justify-between items-center">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-semibold text-indigo-600">${itemGroup}</p>
+                                    <p class="font-medium text-slate-800 truncate" title="${displayName}">${displayName}</p>
+                                    <p class="text-xs text-slate-500 mt-1">O/C: ${oc.ordenDeCompra || 'N/A'} - ${oc.posicion || ''}</p>
+                                </div>
+                                <div class="ml-4 flex-shrink-0">
+                                    <span class="text-2xl font-bold text-slate-800">${formatNumber(oc.cantEntregaSiguiente)}</span>
                                 </div>
                             </div>
                         </li>`;
@@ -1611,6 +1614,30 @@
             }
 
             detailsContainer.innerHTML = contentHTML;
+        }
+
+        function goToCurrentWeek() {
+            calendarCurrentDate = new Date();
+            renderMonthlyCalendar(calendarCurrentDate);
+
+            const todayRaw = new Date();
+            const today = new Date(Date.UTC(todayRaw.getFullYear(), todayRaw.getMonth(), todayRaw.getDate()));
+            
+            const startOfWeek = new Date(today);
+            const dayOfWeek = (startOfWeek.getUTCDay() + 6) % 7; // Monday = 0
+            startOfWeek.setUTCDate(startOfWeek.getUTCDate() - dayOfWeek);
+
+            const weekId = getWeekId(startOfWeek);
+            
+            document.querySelectorAll('.calendar-week-row.selected-week').forEach(row => row.classList.remove('selected-week'));
+            const selectedWeekRow = document.querySelector(`.calendar-week-row[data-week-id="${weekId}"]`);
+            if (selectedWeekRow) {
+                selectedWeekRow.classList.add('selected-week');
+            }
+            
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setUTCDate(endOfWeek.getUTCDate() + 6);
+            renderIncomingItemsForWeek(startOfWeek, endOfWeek);
         }
 
         function generateNotifications() {
@@ -2288,9 +2315,9 @@
                     <button id="low-stock-favorites-filter-btn" class="btn-main-style h-8 !text-xs ${showOnlyFavoriteCriticals ? 'bg-yellow-200 !text-yellow-800 !border-yellow-300 hover:!bg-yellow-300' : '!bg-transparent !text-white !border-white/40 hover:!bg-white/10'}">Favoritos</button>
                 </div>
                  <div class="p-4 border-b">
-                     <div class="flex items-center gap-2">
-                        <div class="flex-1">${groupFilterHTML}</div>
-                        <input type="text" id="low-stock-search" value="${searchTerm}" placeholder="Buscar en críticos..." class="w-full flex-1 p-2 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off">
+                     <div class="grid grid-cols-2 gap-2">
+                        <div>${groupFilterHTML}</div>
+                        <input type="text" id="low-stock-search" value="${searchTerm}" placeholder="Buscar en críticos..." class="w-full p-2 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off">
                     </div>
                 </div>
                 <div id="low-stock-list" class="max-h-[580px] overflow-y-auto">
@@ -2306,17 +2333,17 @@
             }
             return itemsToRender.map(item => `
                 <div class="p-3 flex items-center justify-between hover:bg-slate-50 border-b">
-                    <div class="flex items-center gap-4 flex-1 min-w-0">
+                    <div class="flex items-center gap-3 flex-1 min-w-0">
                          <button class="favorite-btn ${item.isFavorite ? 'is-favorite' : ''}" data-item-id="${item.id}" data-btn-type="low-stock-fav" ${currentUserRole === 'viewer' ? 'disabled' : ''}>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
                         </button>
                         <div class="flex-1 cursor-pointer low-stock-item-details" data-item-id="${item.id}">
-                            <p class="font-semibold text-sm text-slate-800 truncate">${item.name.toUpperCase()}</p>
+                            <p class="font-semibold text-xs text-slate-800 truncate">${item.name.toUpperCase()}</p>
                             <p class="text-xs text-slate-500">Grupo: ${item.group}</p>
                         </div>
                     </div>
                     <div class="text-right pl-2 cursor-pointer low-stock-item-details" data-item-id="${item.id}">
-                        <p class="font-bold text-xl ${item.coverageDays < 7 ? 'text-red-600' : 'text-yellow-600'}">${Math.round(item.coverageDays)}</p>
+                        <p class="font-bold text-lg ${item.coverageDays < 7 ? 'text-red-600' : 'text-yellow-600'}">${Math.round(item.coverageDays)}</p>
                         <p class="text-xs text-slate-500 -mt-1">días</p>
                     </div>
                 </div>
@@ -3255,9 +3282,9 @@
         function renderConsumosContent() {
             const contentArea = document.getElementById('consumo-content-area');
             contentArea.innerHTML = `
-                <div id="consumo-panel-primary" class="w-full lg:w-[55%] bg-white overflow-y-auto"></div>
+                <div id="consumo-panel-primary" class="w-full lg:w-1/2 bg-white overflow-y-auto"></div>
                 <div class="w-full lg:w-px h-px lg:h-full bg-slate-300"></div>
-                <div id="consumo-panel-comparison" class="w-full lg:w-[45%] bg-white overflow-y-auto"></div>
+                <div id="consumo-panel-comparison" class="w-full lg:w-1/2 bg-white overflow-y-auto"></div>
             `;
             renderSingleConsumoPanel(selectedConsumptionItemId, 'primary');
             renderSingleConsumoPanel(comparisonItemId, 'comparison');
@@ -3267,6 +3294,25 @@
             const panel = document.getElementById(`consumo-panel-${type}`);
             if (!panel) return;
 
+            if (type === 'comparison') {
+                if (isSimulationModeActive && selectedConsumptionItemId) {
+                    renderSimulationPanel();
+                    return;
+                }
+                if (!itemId && selectedConsumptionItemId) {
+                    panel.innerHTML = `
+                        <div class="p-6 h-full flex flex-col items-center justify-center text-center bg-slate-50">
+                            <svg class="w-16 h-16 text-slate-300 mb-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                            <h3 class="text-lg font-semibold text-slate-700">Simulación y Comparación</h3>
+                            <p class="text-slate-500 mt-1 max-w-sm">
+                                Usa la barra de búsqueda superior para seleccionar un segundo insumo y compararlo, o haz clic en el botón <strong>"Simular"</strong> en el panel izquierdo para proyectar el stock futuro del insumo principal.
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
+            }
+
             const consumoIcons = {
                 stock: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>',
                 avg: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>',
@@ -3274,6 +3320,34 @@
                 monthly: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>',
                 coverage: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>'
             };
+
+            let notesAndSimulateSection;
+            if (type === 'primary' && itemId) {
+                const canSimulate = currentUserRole === 'owner' || currentUserRole === 'editor';
+                const simulateButtonHTML = canSimulate ? `
+                    <button id="show-simulation-btn" class="btn-main-style !h-8 !text-xs !bg-indigo-500 !text-white hover:!bg-indigo-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                        <span class="ml-2">Simular</span>
+                    </button>
+                ` : '';
+
+                notesAndSimulateSection = `
+                <div class="mt-4 pt-4 border-t">
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="consumo-description-notes-${type}" class="font-medium text-sm text-slate-700 whitespace-nowrap">Notas:</label>
+                        ${simulateButtonHTML}
+                    </div>
+                    <textarea id="consumo-description-notes-${type}" rows="1" class="py-1 px-2 bg-white border border-slate-300 rounded-md w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition text-sm resize-none" placeholder="Añadir una descripción..." disabled></textarea>
+                </div>
+                `;
+            } else {
+                notesAndSimulateSection = `
+                 <div class="mt-4 pt-4 border-t flex items-center gap-4">
+                    <label for="consumo-description-notes-${type}" class="font-medium text-sm text-slate-700 whitespace-nowrap">Notas:</label>
+                    <textarea id="consumo-description-notes-${type}" rows="1" class="py-1 px-2 bg-white border border-slate-300 rounded-md w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition text-sm resize-none" placeholder="Añadir una descripción..." disabled></textarea>
+                </div>
+                `;
+            }
 
             panel.innerHTML = `
             <div class="p-4">
@@ -3309,10 +3383,7 @@
                     <div id="consumo-solpeds-container-${type}" class="md:col-span-2"></div>
                     <div id="consumo-ocs-container-${type}" class="md:col-span-3"></div>
                 </div>
-                 <div class="mt-4 pt-4 border-t flex items-center gap-4">
-                    <label for="consumo-description-notes-${type}" class="font-medium text-sm text-slate-700 whitespace-nowrap">Notas:</label>
-                    <textarea id="consumo-description-notes-${type}" rows="1" class="py-1 px-2 bg-white border border-slate-300 rounded-md w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition text-sm resize-none" placeholder="Añadir una descripción..." disabled></textarea>
-                </div>
+                ${notesAndSimulateSection}
             </div>
             `;
             
@@ -3486,6 +3557,7 @@
                     }
                     const isDelayed = deliveryDate && deliveryDate < today;
                     const dateClass = isDelayed ? 'text-red-600 font-bold' : '';
+                    const weekClass = isDelayed ? 'text-red-600 font-bold' : '';
                     const transformedStatus = transformOCStatus(oc.status);
                     
                     let rowClass = 'consumo-oc-link cursor-pointer hover:bg-slate-50';
@@ -3496,7 +3568,7 @@
                         rowClass += ' bg-red-50 hover:bg-red-100';
                     }
 
-                    ocsTableHTML += `<tr class="${rowClass}" data-oc-id="${oc.ordenDeCompra}"><td class="px-3 py-2 truncate font-medium text-slate-800">${oc.ordenDeCompra}</td><td class="px-3 py-2 text-xs truncate">${transformedStatus}</td><td class="px-3 py-2 text-right">${formatNumber(oc.cantEntregaSiguiente)}</td><td class="px-3 py-2 whitespace-nowrap ${dateClass}">${formatDate(oc.proxFechaEntrega)}</td><td class="px-3 py-2 text-center">${weekNumber}</td></tr>`;
+                    ocsTableHTML += `<tr class="${rowClass}" data-oc-id="${oc.ordenDeCompra}"><td class="px-3 py-2 truncate font-medium text-slate-800">${oc.ordenDeCompra}</td><td class="px-3 py-2 text-xs truncate">${transformedStatus}</td><td class="px-3 py-2 text-right">${formatNumber(oc.cantEntregaSiguiente)}</td><td class="px-3 py-2 whitespace-nowrap ${dateClass}">${formatDate(oc.proxFechaEntrega)}</td><td class="px-3 py-2 text-center ${weekClass}">${weekNumber}</td></tr>`;
                 });
                 ocsTableHTML += `</tbody></table></div>`;
             } else {
@@ -3531,29 +3603,35 @@
             
             if (type === 'primary') {
                 selectedConsumptionItemId = null;
+                comparisonItemId = null; // Also clear comparison if primary is cleared
+                isSimulationModeActive = false;
                 consumoSelectedGroup = 'all';
                 consumoShowOnlyFavorites = false;
-            } else { // comparison
-                comparisonItemId = null;
                 consumoComparisonSelectedGroup = 'all';
                 consumoComparisonShowOnlyFavorites = false;
+                
+                // Clear both search inputs and their clear buttons
+                const primarySearch = document.getElementById('consumo-search-input');
+                const comparisonSearch = document.getElementById('consumo-comparison-search-input');
+                if(primarySearch) primarySearch.value = '';
+                if(comparisonSearch) comparisonSearch.value = '';
+                const primaryClear = document.getElementById('consumo-clear-text-btn');
+                const comparisonClear = document.getElementById('consumo-comparison-clear-text-btn');
+                if(primaryClear) primaryClear.classList.add('hidden');
+                if(comparisonClear) comparisonClear.classList.add('hidden');
+            } else { // comparison
+                comparisonItemId = null;
+                isSimulationModeActive = false;
+                consumoComparisonSelectedGroup = 'all';
+                consumoComparisonShowOnlyFavorites = false;
+                const searchInput = document.getElementById('consumo-comparison-search-input');
+                if(searchInput) searchInput.value = '';
+                const clearBtn = document.getElementById('consumo-comparison-clear-text-btn');
+                if(clearBtn) clearBtn.classList.add('hidden');
             }
             
-            const searchInput = document.getElementById(`consumo${prefix}-search-input`);
-            const searchResults = document.getElementById(`consumo${prefix}-search-results`);
-            const clearTextBtn = document.getElementById(`consumo${prefix}-clear-text-btn`);
-            
-            if(searchInput) searchInput.value = '';
-            if(searchResults) {
-                searchResults.innerHTML = '';
-                searchResults.classList.add('hidden');
-            }
-            if(clearTextBtn) {
-                clearTextBtn.classList.add('hidden');
-            }
-            
-            renderConsumoFilters(type);
-            renderSingleConsumoPanel(null, type);
+            // Re-render everything
+            renderConsumosView();
         }
 
         function handleConsumosSearch(event, type) {
@@ -3608,8 +3686,10 @@
                 const prefix = type === 'primary' ? '' : '-comparison';
                 if (type === 'primary') {
                     selectedConsumptionItemId = itemId;
+                    isSimulationModeActive = false; // Reset simulation
                 } else {
                     comparisonItemId = itemId;
+                    isSimulationModeActive = false; // Turn off simulation
                 }
                 document.getElementById(`consumo${prefix}-search-input`).value = target.textContent;
                 const resultsContainer = document.getElementById(`consumo${prefix}-search-results`);
@@ -3623,6 +3703,347 @@
 
                 renderSingleConsumoPanel(itemId, type);
             }
+        }
+
+        function handleNumericInputFormatting(e) {
+            const input = e.target;
+            const cursorPosition = input.selectionStart;
+            const originalLength = input.value.length;
+
+            let value = input.value.replace(/\D/g, ''); // Eliminar no dígitos
+            
+            if (value === '') {
+                input.value = '';
+                return;
+            }
+
+            const formattedValue = new Intl.NumberFormat('es-AR').format(parseInt(value, 10));
+            
+            input.value = formattedValue;
+
+            const newLength = input.value.length;
+            const newCursorPosition = cursorPosition + (newLength - originalLength);
+            input.setSelectionRange(newCursorPosition, newCursorPosition);
+        }
+
+        function renderSimulationPanel() {
+            simulatedIncomes = []; // Resetear ingresos simulados al cambiar de producto
+            simulationShowAllWeeks = false; // Resetear vista de semanas
+            const panel = document.getElementById('consumo-panel-comparison');
+            if (!panel) return;
+            const primaryItem = items.find(i => i.id === selectedConsumptionItemId);
+            if (!primaryItem) {
+                panel.innerHTML = '<p class="p-6 text-center text-slate-500">Seleccione un producto principal para iniciar la simulación.</p>';
+                return;
+            }
+
+            panel.innerHTML = `
+            <div class="p-4 h-full flex flex-col">
+                <div class="flex-shrink-0">
+                    <div class="flex items-center gap-2 pb-2 border-b">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                        <h3 class="text-lg font-bold text-slate-800 truncate">Panel de Simulación: <span class="text-[#6366f1]">${primaryItem.name.toUpperCase()}</span></h3>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-6 mt-4 flex-shrink-0">
+                    <!-- Controles de Stock y Consumo -->
+                    <div class="flex-1">
+                         <div class="grid grid-cols-2 gap-2">
+                             <div>
+                                <label for="sim-stock" class="text-xs font-medium text-slate-700 block mb-1 text-center">Stock Actual</label>
+                                <div class="relative flex items-center">
+                                    <button data-target="sim-stock" data-step="-100" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold text-lg">-</button>
+                                    <input id="sim-stock" type="text" inputmode="numeric" value="${formatNumber(Math.round(primaryItem.stock))}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold text-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                    <button data-target="sim-stock" data-step="100" class="sim-adjust-btn absolute right-2 p-1 text-slate-500 hover:text-indigo-600 font-bold text-lg">+</button>
+                                </div>
+                            </div>
+                            <div>
+                                 <label for="sim-consumption" class="text-xs font-medium text-slate-700 block mb-1 text-center">Consumo Mensual</label>
+                                <div class="relative flex items-center">
+                                    <button data-target="sim-consumption" data-step="-50" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold text-lg">-</button>
+                                    <input id="sim-consumption" type="text" inputmode="numeric" value="${formatNumber(Math.round(primaryItem.monthlyConsumption))}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold text-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                    <button data-target="sim-consumption" data-step="50" class="sim-adjust-btn absolute right-2 p-1 text-slate-500 hover:text-indigo-600 font-bold text-lg">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Simular Ingreso -->
+                    <div class="flex-1">
+                        <p class="text-xs font-medium text-slate-700 block mb-1 text-center">Simular Ingreso Manual</p>
+                        <div class="flex gap-2 items-center">
+                            <input id="sim-income-qty" type="text" inputmode="numeric" placeholder="Ej: 500" class="flex-1 w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            <select id="sim-income-week" class="flex-1 w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold">
+                                <!-- Options will be populated dynamically -->
+                            </select>
+                            <button id="add-sim-income-btn" class="btn-main-style !h-10 !w-10 !p-0 !bg-indigo-600 !text-white hover:!bg-indigo-700 flex-shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="simulated-incomes-list" class="mt-2 text-sm flex-shrink-0"></div>
+
+                <div id="simulation-results-container" class="mt-4 flex-grow overflow-y-auto">
+                    <!-- Results will be injected here by runAndRenderSimulation() -->
+                </div>
+            </div>
+            `;
+
+            const weekSelect = panel.querySelector('#sim-income-week');
+            if (weekSelect) {
+                const todayRaw = new Date();
+                const today = new Date(Date.UTC(todayRaw.getFullYear(), todayRaw.getMonth(), todayRaw.getDate()));
+
+                const startOfCurrentWeek = new Date(today);
+                const dayOfWeek = (startOfCurrentWeek.getUTCDay() + 6) % 7; // Monday = 0
+                startOfCurrentWeek.setUTCDate(startOfCurrentWeek.getUTCDate() - dayOfWeek);
+
+                let optionsHTML = '';
+                for (let i = 0; i < 24; i++) {
+                    const weekStartDate = new Date(startOfCurrentWeek);
+                    weekStartDate.setUTCDate(startOfCurrentWeek.getUTCDate() + i * 7);
+                    const weekId = getWeekId(weekStartDate);
+                    const weekNumber = parseInt(weekId.split('-')[1], 10);
+                    const day = String(weekStartDate.getUTCDate()).padStart(2, '0');
+                    const month = String(weekStartDate.getUTCMonth() + 1).padStart(2, '0');
+                    optionsHTML += `<option value="${weekId}">S-${weekNumber} (${day}/${month})</option>`;
+                }
+                weekSelect.innerHTML = optionsHTML;
+            }
+            
+            const simulationInputHandler = (e) => {
+                handleNumericInputFormatting(e);
+                runAndRenderSimulation();
+            };
+
+            document.getElementById('sim-stock').addEventListener('input', simulationInputHandler);
+            document.getElementById('sim-consumption').addEventListener('input', simulationInputHandler);
+            document.getElementById('sim-income-qty').addEventListener('input', handleNumericInputFormatting);
+            panel.querySelectorAll('.sim-adjust-btn').forEach(btn => btn.addEventListener('click', handleSimAdjust));
+            document.getElementById('add-sim-income-btn').addEventListener('click', handleAddSimulatedIncome);
+
+            runAndRenderSimulation(); // Run initial simulation
+        }
+
+        function handleSimAdjust(e) {
+            const btn = e.currentTarget;
+            const targetInput = document.getElementById(btn.dataset.target);
+            const step = parseInt(btn.dataset.step, 10);
+            if (targetInput) {
+                const currentValue = parseInt(targetInput.value.replace(/\./g, ''), 10) || 0;
+                targetInput.value = formatNumber(Math.max(0, currentValue + step));
+                runAndRenderSimulation();
+            }
+        }
+        
+        function runAndRenderSimulation() {
+            const resultsContainer = document.getElementById('simulation-results-container');
+            if (!selectedConsumptionItemId || !resultsContainer) return;
+
+            const primaryItem = getProcessedItems().find(i => i.id === selectedConsumptionItemId);
+            if (!primaryItem) {
+                resultsContainer.innerHTML = '<p class="text-center text-slate-500">Error: No se encontró el insumo principal.</p>';
+                return;
+            }
+            
+            const stockInput = document.getElementById('sim-stock');
+            const consumptionInput = document.getElementById('sim-consumption');
+            if (!stockInput || !consumptionInput) return;
+
+            let currentStock = parseInt(String(stockInput.value).replace(/\./g, ''), 10) || 0;
+            const simulatedMonthlyConsumption = parseInt(String(consumptionInput.value).replace(/\./g, ''), 10) || 0;
+
+            const simulatedDailyConsumption = simulatedMonthlyConsumption > 0 ? simulatedMonthlyConsumption / 30 : 0;
+            const simulatedWeeklyConsumption = simulatedDailyConsumption * 7;
+            
+            const simulationWeeks = 24;
+            const todayRaw = new Date();
+            const today = new Date(Date.UTC(todayRaw.getFullYear(), todayRaw.getMonth(), todayRaw.getDate()));
+
+            const startOfSimulationWeek = new Date(today);
+            const dayOfWeek = (startOfSimulationWeek.getUTCDay() + 6) % 7; // Monday = 0
+            startOfSimulationWeek.setUTCDate(startOfSimulationWeek.getUTCDate() - dayOfWeek);
+
+            const itemOcs = ocs.filter(oc => oc.codigo === primaryItem.code);
+            const results = [];
+
+            for (let i = 0; i < simulationWeeks; i++) {
+                const weekStartDate = new Date(startOfSimulationWeek);
+                weekStartDate.setUTCDate(startOfSimulationWeek.getUTCDate() + i * 7);
+                const weekEndDate = new Date(weekStartDate);
+                weekEndDate.setUTCDate(weekStartDate.getUTCDate() + 6);
+                
+                let incomingThisWeek = 0;
+                itemOcs.forEach(oc => {
+                    const deliveryDate = parseDateString(oc.proxFechaEntrega);
+                    if (deliveryDate) {
+                        if (deliveryDate >= weekStartDate && deliveryDate <= weekEndDate) {
+                            incomingThisWeek += oc.cantEntregaSiguiente;
+                        }
+                    }
+                });
+
+                const weekId = getWeekId(weekStartDate);
+                
+                const simulatedIncomeForWeek = simulatedIncomes.find(inc => inc.weekId === weekId);
+                if (simulatedIncomeForWeek) {
+                    incomingThisWeek += simulatedIncomeForWeek.quantity;
+                }
+
+                let weeklyConsumptionToApply = simulatedWeeklyConsumption;
+                if (i === 0) { // Cálculo especial para la semana actual
+                    const endOfCurrentWeek = new Date(weekStartDate);
+                    endOfCurrentWeek.setUTCDate(endOfCurrentWeek.getUTCDate() + 6);
+
+                    let remainingDays = 0;
+                    if (today <= endOfCurrentWeek) {
+                         // +1 para incluir el día de hoy en la cuenta
+                        remainingDays = daysBetween(today, endOfCurrentWeek) + 1;
+                    }
+                    
+                    weeklyConsumptionToApply = simulatedDailyConsumption * remainingDays;
+                }
+
+                const stockAfterArrivals = currentStock + incomingThisWeek;
+                const endOfWeekStock = Math.max(0, stockAfterArrivals - weeklyConsumptionToApply);
+                const coverageAtEnd = simulatedDailyConsumption > 0 ? Math.floor(endOfWeekStock / simulatedDailyConsumption) : Infinity;
+
+                const weekNumber = parseInt(weekId.split('-')[1], 10);
+                const day = String(weekStartDate.getUTCDate()).padStart(2, '0');
+                const month = String(weekStartDate.getUTCMonth() + 1).padStart(2, '0');
+
+                results.push({
+                    week: `S-${weekNumber} (${day}/${month})`,
+                    startStock: currentStock,
+                    incoming: incomingThisWeek,
+                    consumption: weeklyConsumptionToApply,
+                    endStock: endOfWeekStock,
+                    coverage: coverageAtEnd
+                });
+
+                currentStock = endOfWeekStock;
+            }
+
+            // Render results
+            const weeksToRender = simulationShowAllWeeks ? results : results.slice(0, 12);
+
+            let tableHTML = `
+            <div class="border rounded-lg overflow-hidden">
+                <table class="w-full text-sm text-left text-slate-500">
+                    <thead class="text-xs text-slate-700 uppercase bg-slate-100 sticky top-0">
+                        <tr>
+                            <th scope="col" class="px-3 py-2">Semana</th>
+                            <th scope="col" class="px-3 py-2 text-right">Stock Inicial</th>
+                            <th scope="col" class="px-3 py-2 text-right">Ingresos</th>
+                            <th scope="col" class="px-3 py-2 text-right">Consumo</th>
+                            <th scope="col" class="px-3 py-2 text-right">Stock Final</th>
+                            <th scope="col" class="px-3 py-2 text-right">Cobertura (días)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">`;
+
+            weeksToRender.forEach(res => {
+                const { red, yellow } = appSettings.coverageThresholds;
+                let coverageClass = '';
+                 if (res.coverage !== Infinity) {
+                    if (res.coverage < red) coverageClass = 'text-red-600 font-bold';
+                    else if (res.coverage <= yellow) coverageClass = 'text-yellow-600 font-bold';
+                }
+                
+                tableHTML += `
+                    <tr class="bg-white">
+                        <td class="px-3 py-2 font-medium text-slate-900 whitespace-nowrap">${res.week}</td>
+                        <td class="px-3 py-2 text-right">${formatNumber(Math.round(res.startStock))}</td>
+                        <td class="px-3 py-2 text-right text-green-600 font-medium">+${formatNumber(Math.round(res.incoming))}</td>
+                        <td class="px-3 py-2 text-right text-red-600 font-medium">-${formatNumber(Math.round(res.consumption))}</td>
+                        <td class="px-3 py-2 text-right font-bold">${formatNumber(Math.round(res.endStock))}</td>
+                        <td class="px-3 py-2 text-right ${coverageClass}">${res.coverage === Infinity ? '∞' : Math.round(res.coverage)}</td>
+                    </tr>`;
+            });
+
+            tableHTML += '</tbody></table></div>';
+            
+            if (!simulationShowAllWeeks && results.length > 12) {
+                tableHTML += `
+                <div class="text-center mt-4">
+                    <button id="show-all-sim-weeks-btn" class="btn-main-style !text-indigo-600 hover:!bg-indigo-50 !border-indigo-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="m6 9 6 6 6-6"/></svg>
+                        Ver más semanas
+                    </button>
+                </div>`;
+            }
+
+            resultsContainer.innerHTML = tableHTML;
+            renderSimulatedIncomesList();
+
+            const showMoreBtn = document.getElementById('show-all-sim-weeks-btn');
+            if (showMoreBtn) {
+                showMoreBtn.addEventListener('click', () => {
+                    simulationShowAllWeeks = true;
+                    runAndRenderSimulation();
+                });
+            }
+        }
+
+        function renderSimulatedIncomesList() {
+            const listContainer = document.getElementById('simulated-incomes-list');
+            if (!listContainer) return;
+
+            if (simulatedIncomes.length === 0) {
+                listContainer.innerHTML = '';
+                return;
+            }
+
+            listContainer.innerHTML = `
+                <ul class="space-y-1 mt-2">
+                    ${simulatedIncomes.map(income => {
+                        const weekNumber = parseInt(income.weekId.split('-')[1], 10);
+                        return `
+                        <li class="flex justify-between items-center p-1 bg-indigo-50 rounded-md">
+                            <span>Ingreso de <strong>${formatNumber(income.quantity)}</strong> en Semana <strong>${weekNumber}</strong></span>
+                            <button class="remove-sim-income-btn p-1 text-red-400 hover:text-red-600" data-week-id="${income.weekId}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </li>
+                        `
+                    }).join('')}
+                </ul>
+            `;
+            
+            document.querySelectorAll('.remove-sim-income-btn').forEach(btn => {
+                btn.addEventListener('click', handleRemoveSimulatedIncome);
+            });
+        }
+
+        function handleAddSimulatedIncome() {
+            const qtyInput = document.getElementById('sim-income-qty');
+            const weekSelect = document.getElementById('sim-income-week');
+            
+            const quantity = parseInt(String(qtyInput.value).replace(/\./g, ''), 10);
+            const weekId = weekSelect.value;
+
+            if (!quantity || quantity <= 0 || !weekId) {
+                showToast('Por favor, ingrese una cantidad válida y seleccione una semana.', 'error');
+                return;
+            }
+
+            // Remove if exists to replace it, allowing update
+            simulatedIncomes = simulatedIncomes.filter(inc => inc.weekId !== weekId);
+            
+            simulatedIncomes.push({ weekId, quantity });
+
+            qtyInput.value = '';
+            
+            runAndRenderSimulation();
+        }
+
+        function handleRemoveSimulatedIncome(e) {
+            const weekIdToRemove = e.currentTarget.dataset.weekId;
+            simulatedIncomes = simulatedIncomes.filter(inc => inc.weekId !== weekIdToRemove);
+            runAndRenderSimulation();
         }
 
         // --- LÓGICA DE LA PESTAÑA SOLPEDS Y OCs ---
@@ -4572,8 +4993,10 @@
             if (indiceSelectedGroup !== 'all') {
                 filteredItems = filteredItems.filter(item => item.group === indiceSelectedGroup);
             }
-            if (indiceShowFavorites) {
+            if (indiceFavoriteFilter === 'favorites') {
                 filteredItems = filteredItems.filter(item => item.isFavorite);
+            } else if (indiceFavoriteFilter === 'non-favorites') {
+                filteredItems = filteredItems.filter(item => !item.isFavorite);
             }
             if (indiceSearchTerm) {
                 const searchWords = indiceSearchTerm.toLowerCase().split(' ').filter(Boolean);
@@ -4934,7 +5357,7 @@
                 if (groupRow) {
                     const groupName = groupRow.dataset.groupName;
                     indiceSelectedGroup = groupName;
-                    indiceShowFavorites = false;
+                    indiceFavoriteFilter = 'all';
                     indiceCoverageFilter = 'all';
                     indiceSearchTerm = '';
                     switchMainView('indice');
@@ -4998,7 +5421,7 @@
                 if (groupItemName) {
                     const groupName = groupItemName.dataset.groupName;
                     indiceSelectedGroup = groupName;
-                    indiceShowFavorites = false;
+                    indiceFavoriteFilter = 'all';
                     indiceCoverageFilter = 'all';
                     indiceSearchTerm = '';
                     switchMainView('indice');
@@ -5081,6 +5504,23 @@
                  if (e.target.matches('[id^="consumo-description-notes-"]')) handleNotesInput(e);
             });
             document.getElementById('consumos-view')?.addEventListener('click', (e) => {
+                if(e.target.closest('#show-simulation-btn')) {
+                    if (currentUserRole !== 'owner' && currentUserRole !== 'editor') {
+                        showToast('No tienes permiso para simular.', 'error');
+                        return;
+                    }
+                    isSimulationModeActive = true;
+                    // Ensure comparison item is cleared to show simulation
+                    comparisonItemId = null;
+                    const comparisonSearchInput = document.getElementById('consumo-comparison-search-input');
+                    const comparisonClearTextBtn = document.getElementById('consumo-comparison-clear-text-btn');
+                    if(comparisonSearchInput) comparisonSearchInput.value = '';
+                    if(comparisonClearTextBtn) comparisonClearTextBtn.classList.add('hidden');
+                    
+                    renderSingleConsumoPanel(null, 'comparison');
+                    return;
+                }
+
                 if(e.target.closest('#consumo-search-results')) handleSelectConsumosItem(e);
                 if(e.target.closest('#consumo-comparison-search-results')) handleSelectConsumosItem(e);
                 
@@ -5127,7 +5567,7 @@
                 if (nameLink && nameLink.dataset.itemCode) {
                     indiceSearchTerm = nameLink.dataset.itemCode;
                     indiceSelectedGroup = 'all';
-                    indiceShowFavorites = false;
+                    indiceFavoriteFilter = 'all';
                     indiceCoverageFilter = 'all';
                     switchMainView('indice');
                     return;
@@ -5137,7 +5577,7 @@
                 if (groupLink && groupLink.dataset.groupName) {
                     indiceSelectedGroup = groupLink.dataset.groupName;
                     indiceSearchTerm = '';
-                    indiceShowFavorites = false;
+                    indiceFavoriteFilter = 'all';
                     indiceCoverageFilter = 'all';
                     switchMainView('indice');
                     return;
@@ -5196,6 +5636,11 @@
                 if (e.target.closest('#calendar-next-month')) {
                     calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
                     renderMonthlyCalendar(calendarCurrentDate);
+                    return;
+                }
+
+                if (e.target.closest('#calendar-today-btn')) {
+                    goToCurrentWeek();
                     return;
                 }
 
@@ -5974,11 +6419,5 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
 
 
