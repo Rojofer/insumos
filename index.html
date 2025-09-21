@@ -255,17 +255,55 @@
             font-size: 0.75rem; color: #94a3b8; font-weight: 500;
             vertical-align: middle; text-align: center; padding-right: 0.5rem;
         }
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+        .tooltip-text {
+            visibility: hidden;
+            width: max-content;
+            max-width: 300px;
+            background-color: #1e293b; /* slate-800 */
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 10;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            font-size: 12px;
+            line-height: 1.5;
+            pointer-events: none;
+        }
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #1e293b transparent transparent transparent;
+        }
+        .tooltip-container:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800">
 
     <!-- 
     ======================================================================
-    NOTAS DE DESARROLLO
+    NOTAS DE DESARROLLO 
     ======================================================================
-    sección para anotar las ideas :    
-    - Reportes de mas de un insumo  
-    
+    Fernando, usemos esta sección para anotar las ideas     
     ======================================================================
     -->
 
@@ -282,7 +320,7 @@
             
             <div id="login-view" class="bg-white p-8 rounded-2xl shadow-lg hidden">
                 <h2 class="text-2xl font-bold text-center text-slate-800">ALMACEN</h2>
-                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v2.80 (20-09-2025)</p>
+                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v2.90 (21-09-2025)</p>
                 <form id="login-form" class="space-y-4">
                     <div>
                         <label for="login-email" class="text-sm font-medium text-slate-700">Email</label>
@@ -395,7 +433,7 @@
                                 </div>
                                 <div class="dropdown-divider"></div>
                                 <div class="px-4 py-2 text-center text-xs text-slate-400">
-                                    Versión 2.80 (20-09-2025)
+                                    Versión 2.90 (21-09-2025)
                                 </div>
                             </div>
                         </div>
@@ -999,6 +1037,7 @@
         let comparisonItemId = null;
         let isSimulationModeActive = false;
         let simulatedIncomes = [];
+        let simulatedIncomeCounter = 1;
         let editingSimulatedIncomeWeekId = null;
         let simulationShowAllWeeks = false;
         let consumoSelectedGroup = 'all';
@@ -3779,6 +3818,7 @@
 
         function renderSimulationPanel() {
             simulatedIncomes = []; // Resetear ingresos simulados al cambiar de producto
+            simulatedIncomeCounter = 1;
             simulationShowAllWeeks = false; // Resetear vista de semanas
             const panel = document.getElementById('consumo-panel-comparison');
             if (!panel) return;
@@ -3791,9 +3831,14 @@
             panel.innerHTML = `
             <div class="p-4 h-full flex flex-col">
                 <div class="flex-shrink-0">
-                    <div class="flex items-center gap-2 pb-2 border-b">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
-                        <h3 class="text-lg font-bold text-slate-800 truncate">Simulación: <span class="text-[#6366f1]">${primaryItem.name.toUpperCase()}</span></h3>
+                    <div class="flex justify-between items-center gap-2 pb-2 border-b">
+                        <div class="flex items-center gap-2 min-w-0">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500 flex-shrink-0"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                            <h3 class="text-lg font-bold text-slate-800 truncate">Simulación: <span class="text-[#6366f1]">${primaryItem.name.toUpperCase()}</span></h3>
+                        </div>
+                        <button id="export-simulation-btn" title="Exportar Simulación" class="btn-main-style !w-9 !h-9 !p-0 flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        </button>
                     </div>
                 </div>
 
@@ -3802,7 +3847,7 @@
                     <div class="flex-1">
                          <div class="grid grid-cols-2 gap-2">
                              <div>
-                                <label for="sim-stock" class="text-xs font-medium text-slate-700 block mb-1 text-center">Stock Actual</label>
+                                <label for="sim-stock" class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">Stock Actual</label>
                                 <div class="relative flex items-center">
                                     <button data-target="sim-stock" data-step="-100" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold text-lg">-</button>
                                     <input id="sim-stock" type="text" inputmode="numeric" value="${formatNumber(Math.round(primaryItem.stock))}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold text-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
@@ -3810,7 +3855,7 @@
                                 </div>
                             </div>
                             <div>
-                                 <label for="sim-consumption" class="text-xs font-medium text-slate-700 block mb-1 text-center">Consumo Mensual</label>
+                                 <label for="sim-consumption" class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">Consumo Mensual</label>
                                 <div class="relative flex items-center">
                                     <button data-target="sim-consumption" data-step="-50" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold text-lg">-</button>
                                     <input id="sim-consumption" type="text" inputmode="numeric" value="${formatNumber(Math.round(primaryItem.monthlyConsumption))}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold text-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
@@ -3824,7 +3869,7 @@
 
                     <!-- Simular Ingreso -->
                     <div class="flex-1">
-                        <p class="text-xs font-medium text-slate-700 block mb-1 text-center">Simular Ingreso Manual</p>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">Simular Ingreso Manual</p>
                         <div class="flex gap-2 items-center">
                             <input id="sim-income-qty" type="text" inputmode="numeric" placeholder="Ej: 500" class="flex-1 w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                             <select id="sim-income-week" class="flex-1 w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold">
@@ -3877,6 +3922,7 @@
             document.getElementById('sim-income-qty').addEventListener('input', handleNumericInputFormatting);
             panel.querySelectorAll('.sim-adjust-btn').forEach(btn => btn.addEventListener('click', handleSimAdjust));
             document.getElementById('add-sim-income-btn').addEventListener('click', handleAddSimulatedIncome);
+            document.getElementById('export-simulation-btn')?.addEventListener('click', handleExportSimulation);
 
             runAndRenderSimulation(); // Run initial simulation
         }
@@ -3892,19 +3938,15 @@
             }
         }
         
-        function runAndRenderSimulation() {
-            const resultsContainer = document.getElementById('simulation-results-container');
-            if (!selectedConsumptionItemId || !resultsContainer) return;
+        function runSimulation() {
+            if (!selectedConsumptionItemId) return [];
 
             const primaryItem = getProcessedItems().find(i => i.id === selectedConsumptionItemId);
-            if (!primaryItem) {
-                resultsContainer.innerHTML = '<p class="text-center text-slate-500">Error: No se encontró el insumo principal.</p>';
-                return;
-            }
+            if (!primaryItem) return [];
             
             const stockInput = document.getElementById('sim-stock');
             const consumptionInput = document.getElementById('sim-consumption');
-            if (!stockInput || !consumptionInput) return;
+            if (!stockInput || !consumptionInput) return [];
 
             let currentStock = parseInt(String(stockInput.value).replace(/\./g, ''), 10) || 0;
             const simulatedMonthlyConsumption = parseInt(String(consumptionInput.value).replace(/\./g, ''), 10) || 0;
@@ -3929,12 +3971,23 @@
                 const weekEndDate = new Date(weekStartDate);
                 weekEndDate.setUTCDate(weekStartDate.getUTCDate() + 6);
                 
+                const incomingSources = [];
                 let incomingThisWeek = 0;
+
                 itemOcs.forEach(oc => {
                     const deliveryDate = parseDateString(oc.proxFechaEntrega);
                     if (deliveryDate) {
                         if (deliveryDate >= weekStartDate && deliveryDate <= weekEndDate) {
-                            incomingThisWeek += oc.cantEntregaSiguiente;
+                            const status = transformOCStatus(oc.status);
+                            if (status !== 'Rechazada') {
+                                incomingSources.push({
+                                    type: 'oc',
+                                    number: oc.ordenDeCompra,
+                                    quantity: oc.cantEntregaSiguiente,
+                                    status: status
+                                });
+                                incomingThisWeek += oc.cantEntregaSiguiente;
+                            }
                         }
                     }
                 });
@@ -3943,6 +3996,12 @@
                 
                 const simulatedIncomeForWeek = simulatedIncomes.find(inc => inc.weekId === weekId);
                 if (simulatedIncomeForWeek) {
+                    incomingSources.push({
+                        type: 'manual',
+                        number: `SIM-${simulatedIncomeForWeek.seqNumber}`,
+                        quantity: simulatedIncomeForWeek.quantity,
+                        status: 'Simulacion'
+                    });
                     incomingThisWeek += simulatedIncomeForWeek.quantity;
                 }
 
@@ -3972,6 +4031,7 @@
                     week: `S-${weekNumber} (${day}/${month})`,
                     startStock: currentStock,
                     incoming: incomingThisWeek,
+                    incomingSources: incomingSources,
                     consumption: weeklyConsumptionToApply,
                     endStock: endOfWeekStock,
                     coverage: coverageAtEnd
@@ -3979,7 +4039,19 @@
 
                 currentStock = endOfWeekStock;
             }
+            return results;
+        }
 
+        function runAndRenderSimulation() {
+            const resultsContainer = document.getElementById('simulation-results-container');
+            if (!resultsContainer) return;
+            
+            const results = runSimulation();
+            if (results.length === 0) {
+                 resultsContainer.innerHTML = '<p class="text-center text-slate-500 p-4">No hay datos para simular.</p>';
+                 return;
+            }
+           
             // Render results
             const weeksToRender = simulationShowAllWeeks ? results : results.slice(0, 12);
 
@@ -4006,11 +4078,47 @@
                     else if (res.coverage <= yellow) coverageClass = 'text-yellow-600 font-bold';
                 }
                 
+                let tooltipContent = '';
+                let incomeCellClass = 'text-slate-500'; // Gris por defecto si no hay ingresos
+
+                if (res.incomingSources.length > 0) {
+                    // Determinar el color principal de la celda
+                    if (res.incomingSources.some(s => s.status === 'Simulacion')) {
+                        incomeCellClass = 'text-indigo-600 font-bold';
+                    } else if (res.incomingSources.some(s => s.status === 'Pendiente')) {
+                        incomeCellClass = 'text-yellow-600 font-bold';
+                    } else if (res.incomingSources.some(s => s.status === 'Aprobada')) {
+                        incomeCellClass = 'text-green-600 font-bold';
+                    }
+
+                    // Construir el contenido del tooltip con colores individuales
+                    tooltipContent = res.incomingSources.map(source => {
+                        let statusClass = '';
+                        switch(source.status) {
+                            case 'Aprobada': statusClass = 'text-green-600'; break;
+                            case 'Pendiente': statusClass = 'text-yellow-600'; break;
+                            case 'Simulacion': statusClass = 'text-indigo-600'; break;
+                            default: statusClass = 'text-slate-700';
+                        }
+                        return `<div class="${statusClass}"><strong>${source.number}:</strong> ${formatNumber(source.quantity)}</div>`;
+                    }).join('');
+                } else {
+                    tooltipContent = 'Sin ingresos esta semana';
+                }
+
+
+                const incomeCellContent = res.incoming > 0 ? `+${formatNumber(Math.round(res.incoming))}` : '0';
+
                 tableHTML += `
                     <tr class="bg-white">
                         <td class="px-3 py-2 font-medium text-slate-900 whitespace-nowrap">${res.week}</td>
                         <td class="px-3 py-2 text-right">${formatNumber(Math.round(res.startStock))}</td>
-                        <td class="px-3 py-2 text-right text-green-600 font-medium">+${formatNumber(Math.round(res.incoming))}</td>
+                        <td class="px-3 py-2 text-right ${incomeCellClass}">
+                            <div class="tooltip-container">
+                                ${incomeCellContent}
+                                <span class="tooltip-text">${tooltipContent}</span>
+                            </div>
+                        </td>
                         <td class="px-3 py-2 text-right text-red-600 font-medium">-${formatNumber(Math.round(res.consumption))}</td>
                         <td class="px-3 py-2 text-right font-bold">${formatNumber(Math.round(res.endStock))}</td>
                         <td class="px-3 py-2 text-right ${coverageClass}">${res.coverage === Infinity ? '∞' : Math.round(res.coverage)}</td>
@@ -4041,6 +4149,88 @@
             }
         }
 
+        function handleExportSimulation() {
+            const results = runSimulation();
+            if (results.length === 0) {
+                showToast('No hay datos de simulación para exportar.', 'error');
+                return;
+            }
+
+            const primaryItem = getProcessedItems().find(i => i.id === selectedConsumptionItemId);
+            if (!primaryItem) return;
+
+            const cleanItemName = primaryItem.name.replace(new RegExp(`^${primaryItem.code}\\s*`), '');
+
+            // --- Datos para la tabla principal (lado izquierdo) ---
+            const mainTable = [];
+            mainTable.push([
+                'Semana',
+                'Stock Inicial',
+                'Ingresos Detallados',
+                'Consumo Proyectado',
+                'Stock Final',
+                'Cobertura Final (días)'
+            ]);
+
+            results.forEach(res => {
+                const incomeDetails = res.incomingSources.length > 0
+                    ? res.incomingSources.map(s => `${s.number}: ${formatNumber(s.quantity)}`).join('; ')
+                    : '0';
+                mainTable.push([
+                    res.week,
+                    Math.round(res.startStock),
+                    incomeDetails,
+                    Math.round(res.consumption),
+                    Math.round(res.endStock),
+                    res.coverage === Infinity ? '∞' : Math.round(res.coverage)
+                ]);
+            });
+
+            // --- Datos para el panel de detalles (lado derecho) ---
+            const sidePanel = [];
+            sidePanel.push(['Fecha de Generación:', getCurrentDateString()]);
+            sidePanel.push([]); // Fila vacía
+            sidePanel.push(['Detalles del Insumo']);
+            sidePanel.push(['Código:', primaryItem.code]);
+            sidePanel.push(['Nombre:', cleanItemName]);
+            sidePanel.push(['Stock Actual (Simulado):', document.getElementById('sim-stock').value]);
+            sidePanel.push(['Consumo Mensual (Simulado):', document.getElementById('sim-consumption').value]);
+
+            // --- Combinar tabla principal y panel lateral en una sola hoja ---
+            const combinedData = [];
+            const maxRows = Math.max(mainTable.length, sidePanel.length);
+
+            for (let i = 0; i < maxRows; i++) {
+                const mainRow = mainTable[i] || Array(6).fill(''); // 6 columnas para la tabla principal
+                const sideRow = sidePanel[i] || [];
+                // Añadir una columna vacía como separador
+                combinedData.push([...mainRow, '', ...sideRow]);
+            }
+
+            const worksheet = XLSX.utils.aoa_to_sheet(combinedData);
+
+            // Anchos de columna
+            worksheet['!cols'] = [
+                { wch: 15 }, // A: Semana
+                { wch: 15 }, // B: Stock Inicial
+                { wch: 45 }, // C: Ingresos Detallados
+                { wch: 20 }, // D: Consumo
+                { wch: 15 }, // E: Stock Final
+                { wch: 25 }, // F: Cobertura
+                { wch: 5 },  // G: Separador
+                { wch: 30 }, // H: Etiquetas del panel lateral
+                { wch: 30 }  // I: Valores del panel lateral
+            ];
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Simulacion');
+            
+            const materialName = cleanItemName.replace(/[\s/]+/g, '_').toLowerCase();
+            const filename = `Simulacion_${primaryItem.code}_${materialName}_${getCurrentDateString()}.xlsx`;
+            XLSX.writeFile(workbook, filename);
+            showToast(`Simulación exportada como ${filename}`, 'success');
+        }
+
         function renderSimulatedIncomesList() {
             const listContainer = document.getElementById('simulated-incomes-list');
             if (!listContainer) return;
@@ -4058,7 +4248,7 @@
                         const weekNumber = parseInt(income.weekId.split('-')[1], 10);
                         return `
                         <li class="flex justify-between items-center p-2 bg-indigo-50 rounded-md cursor-pointer hover:bg-indigo-100 sim-income-item transition-colors" data-week-id="${income.weekId}">
-                            <span>Ingreso de <strong>${formatNumber(income.quantity)}</strong> en Semana <strong>S-${weekNumber}</strong></span>
+                            <span>Ingreso <strong>SIM-${income.seqNumber}</strong> de <strong>${formatNumber(income.quantity)}</strong> en Semana <strong>S-${weekNumber}</strong></span>
                             <button class="remove-sim-income-btn p-1 text-red-400 hover:text-red-600 rounded-full hover:bg-red-100" data-week-id="${income.weekId}">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                             </button>
@@ -4121,16 +4311,30 @@
                 return;
             }
             
-            // Si estamos en modo edición, siempre eliminamos el registro original
+            let seqNumberToUse;
+
+            // Si estamos en modo edición, buscamos el número de secuencia original
             if (editingSimulatedIncomeWeekId) {
+                const originalIncome = simulatedIncomes.find(inc => inc.weekId === editingSimulatedIncomeWeekId);
+                if (originalIncome) {
+                    seqNumberToUse = originalIncome.seqNumber;
+                } else {
+                    // Como fallback, si no lo encuentra, usa el contador
+                    seqNumberToUse = simulatedIncomeCounter++;
+                }
+                // Eliminamos el registro original
                 simulatedIncomes = simulatedIncomes.filter(inc => inc.weekId !== editingSimulatedIncomeWeekId);
+            } else {
+                // Si no es edición, usamos el contador y lo incrementamos
+                seqNumberToUse = simulatedIncomeCounter++;
             }
             
             // También eliminamos cualquier registro existente para la *nueva* semana, para evitar duplicados.
+            // Esto es importante si el usuario cambia la semana de un ingreso existente.
             simulatedIncomes = simulatedIncomes.filter(inc => inc.weekId !== newWeekId);
             
-            // Añadimos el registro nuevo/actualizado
-            simulatedIncomes.push({ weekId: newWeekId, quantity });
+            // Añadimos el registro nuevo/actualizado con el número de secuencia correcto
+            simulatedIncomes.push({ weekId: newWeekId, quantity, seqNumber: seqNumberToUse });
 
             resetSimulatedIncomeForm();
             runAndRenderSimulation();
@@ -6533,5 +6737,4 @@
     </script>
 </body>
 </html>
-
 
