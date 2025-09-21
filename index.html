@@ -261,10 +261,11 @@
 
     <!-- 
     ======================================================================
-    NOTAS DE DESARROLLO 
+    NOTAS DE DESARROLLO
     ======================================================================
-    Fernando, usemos esta sección para anotar las ideas 
-
+    sección para anotar las ideas :    
+    - Reportes de mas de un insumo  
+    
     ======================================================================
     -->
 
@@ -462,8 +463,8 @@
             </div>
 
             <div id="consumos-view" class="hidden">
-                <div class="flex flex-col h-full">
-                    <div class="bg-indigo-500 p-4 z-10">
+                <div class="flex flex-col">
+                    <div class="bg-indigo-500 p-4 z-10 sticky top-14 shadow-md">
                         <div class="flex flex-col lg:flex-row items-center gap-4">
                             <div id="primary-search-wrapper" class="w-full lg:w-1/2">
                                 <div class="flex items-center gap-2 w-full">
@@ -2561,20 +2562,55 @@
                 return '<p class="text-center text-slate-500 py-4">No hay insumos con consumo récord este mes.</p>';
             }
 
-            return recordConsumptionItems.map(item => {
-                const currentConsumption = item.consumos[item.consumos.length - 1];
-                return `
-                <div class="p-3 flex items-center justify-between hover:bg-slate-50 border-b cursor-pointer kpi-detail-item-row" data-item-id="${item.id}">
-                    <div>
-                        <p class="font-semibold text-slate-800">${item.name.toUpperCase()}</p>
-                        <p class="text-sm text-slate-500">Grupo: ${item.group}</p>
+            const groupedItems = recordConsumptionItems.reduce((acc, item) => {
+                const group = item.group || 'Sin Grupo';
+                if (!acc[group]) {
+                    acc[group] = { items: [], favoriteCount: 0 };
+                }
+                acc[group].items.push(item);
+                if (item.isFavorite) {
+                    acc[group].favoriteCount++;
+                }
+                return acc;
+            }, {});
+
+            const sortedGroups = Object.entries(groupedItems)
+                .map(([groupName, data]) => ({ groupName, ...data }))
+                .sort((a, b) => a.groupName.localeCompare(b.groupName));
+
+            let html = '<div class="space-y-2">';
+            sortedGroups.forEach(group => {
+                html += `
+                <div class="border rounded-lg overflow-hidden bg-white shadow-sm">
+                    <div class="p-3 flex items-center justify-between hover:bg-slate-50 cursor-pointer record-consumption-group-header" data-group-name="${group.groupName}">
+                        <div>
+                            <p class="font-semibold text-indigo-700">${group.groupName}</p>
+                            <p class="text-sm text-slate-500">${group.items.length} insumos (${group.favoriteCount} favoritos)</p>
+                        </div>
+                        <svg class="w-5 h-5 text-slate-400 transition-transform duration-200 record-consumption-chevron" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                     </div>
-                    <div class="text-right">
-                        <p class="font-bold text-green-600">${formatNumber(currentConsumption)}</p>
-                        <p class="text-xs text-slate-500">Cons. Actual</p>
+                    <div class="hidden record-consumption-item-list" data-group-list="${group.groupName}">
+                        <ul class="divide-y divide-slate-200 border-t">
+                        ${group.items.sort((a, b) => a.name.localeCompare(b.name)).map(item => {
+                            const currentConsumption = item.consumos[item.consumos.length - 1];
+                            return `
+                            <li class="p-3 pl-6 flex items-center justify-between hover:bg-slate-50 cursor-pointer kpi-detail-item-row" data-item-id="${item.id}">
+                                <div>
+                                    <p class="font-medium text-slate-800">${item.name.toUpperCase()}</p>
+                                    <p class="text-xs text-slate-500">${item.isFavorite ? '★ Favorito' : ''}</p>
+                                </div>
+                                <div class="text-right ml-4">
+                                    <p class="font-bold text-green-600">${formatNumber(currentConsumption)}</p>
+                                    <p class="text-xs text-slate-500">Cons. Actual</p>
+                                </div>
+                            </li>`;
+                        }).join('')}
+                        </ul>
                     </div>
                 </div>`;
-            }).join('');
+            });
+            html += '</div>';
+            return html;
         }
         
         function generateGroupStatsHTML() {
@@ -3283,9 +3319,9 @@
         function renderConsumosContent() {
             const contentArea = document.getElementById('consumo-content-area');
             contentArea.innerHTML = `
-                <div id="consumo-panel-primary" class="w-full lg:w-1/2 bg-white overflow-y-auto"></div>
+                <div id="consumo-panel-primary" class="w-full lg:w-1/2 bg-white"></div>
                 <div class="w-full lg:w-px h-px lg:h-full bg-slate-300"></div>
-                <div id="consumo-panel-comparison" class="w-full lg:w-1/2 bg-white overflow-y-auto"></div>
+                <div id="consumo-panel-comparison" class="w-full lg:w-1/2 bg-white"></div>
             `;
             renderSingleConsumoPanel(selectedConsumptionItemId, 'primary');
             renderSingleConsumoPanel(comparisonItemId, 'comparison');
@@ -3520,12 +3556,16 @@
                 const today = new Date();
                 today.setHours(0,0,0,0);
                 solpedsTableHTML += `<div class="max-h-60 overflow-y-auto rounded-lg border border-slate-200"><table class="w-full text-sm table-fixed">
-                    <thead class="bg-slate-50 sticky top-0"><tr class="border-b border-slate-200"><th class="px-3 py-2 text-left w-[30%] font-semibold text-slate-600">N° Solped</th><th class="px-3 py-2 text-right w-[30%] font-semibold text-slate-600">Cantidad</th><th class="px-3 py-2 text-left w-[40%] font-semibold text-slate-600">F. Lib.</th></tr></thead><tbody class="divide-y divide-slate-100">`;
+                    <thead class="bg-slate-50 sticky top-0"><tr class="border-b border-slate-200"><th class="px-3 py-2 text-left w-[30%] font-semibold text-slate-600">N° Solped</th><th class="px-3 py-2 text-right w-[25%] font-semibold text-slate-600">Cantidad</th><th class="px-3 py-2 text-left w-[30%] font-semibold text-slate-600">F. Lib.</th><th class="px-3 py-2 text-center w-[15%] font-semibold text-slate-600">Sem</th></tr></thead><tbody class="divide-y divide-slate-100">`;
                 itemSolpeds.forEach(s => {
                     const releaseDate = parseDateString(s.fechaLiberacion);
+                    let weekNumber = '';
+                    if (releaseDate) {
+                        weekNumber = getWeekId(releaseDate).split('-')[1].replace(/^0+/, '');
+                    }
                     const isDelayed = releaseDate && releaseDate < today;
                     const dateClass = isDelayed ? 'text-red-600 font-bold' : '';
-                    solpedsTableHTML += `<tr class="consumo-solped-link cursor-pointer hover:bg-slate-50" data-solped-id="${s.solicitud}"><td class="px-3 py-2 truncate font-medium text-slate-800">${s.solicitud}</td><td class="px-3 py-2 text-right">${formatNumber(s.cantidad)}</td><td class="px-3 py-2 whitespace-nowrap ${dateClass}">${formatDate(s.fechaLiberacion)}</td></tr>`;
+                    solpedsTableHTML += `<tr class="consumo-solped-link cursor-pointer hover:bg-slate-50" data-solped-id="${s.solicitud}"><td class="px-3 py-2 truncate font-medium text-slate-800">${s.solicitud}</td><td class="px-3 py-2 text-right">${formatNumber(s.cantidad)}</td><td class="px-3 py-2 whitespace-nowrap ${dateClass}">${formatDate(s.fechaLiberacion)}</td><td class="px-3 py-2 text-center ${dateClass}">${weekNumber}</td></tr>`;
                 });
                 solpedsTableHTML += `</tbody></table></div>`;
             } else {
@@ -3548,7 +3588,7 @@
                 const today = new Date();
                 today.setHours(0,0,0,0);
                 ocsTableHTML += `<div class="max-h-60 overflow-y-auto rounded-lg border border-slate-200"><table class="w-full text-sm table-fixed">
-                    <thead class="bg-slate-50 sticky top-0"><tr class="border-b border-slate-200"><th class="px-3 py-2 text-left w-[25%] font-semibold text-slate-600">N° O/C</th><th class="px-3 py-2 text-left w-[20%] font-semibold text-slate-600">Status</th><th class="px-3 py-2 text-right w-[15%] font-semibold text-slate-600">Cant.</th><th class="px-3 py-2 text-left w-[25%] font-semibold text-slate-600">Entrega</th><th class="px-3 py-2 text-center w-[15%] font-semibold text-slate-600">Semana</th></tr></thead><tbody class="divide-y divide-slate-100">`;
+                    <thead class="bg-slate-50 sticky top-0"><tr class="border-b border-slate-200"><th class="px-3 py-2 text-left w-[25%] font-semibold text-slate-600">N° O/C</th><th class="px-3 py-2 text-left w-[20%] font-semibold text-slate-600">Status</th><th class="px-3 py-2 text-right w-[15%] font-semibold text-slate-600">Cant.</th><th class="px-3 py-2 text-left w-[25%] font-semibold text-slate-600">Entrega</th><th class="px-3 py-2 text-center w-[15%] font-semibold text-slate-600">Sem</th></tr></thead><tbody class="divide-y divide-slate-100">`;
                 itemOCs.forEach(oc => {
                     const deliveryDate = parseDateString(oc.proxFechaEntrega);
                     let weekNumber = '';
@@ -3685,13 +3725,25 @@
             if (target) {
                 const { itemId, type } = target.dataset;
                 const prefix = type === 'primary' ? '' : '-comparison';
+
                 if (type === 'primary') {
                     selectedConsumptionItemId = itemId;
-                    isSimulationModeActive = false; // Reset simulation
-                } else {
+                    renderSingleConsumoPanel(itemId, 'primary'); // Always update the left panel
+
+                    if (isSimulationModeActive) {
+                        isSimulationModeActive = false; // Turn off simulation
+                        comparisonItemId = null; // Clear the item for the right panel
+                        renderSingleConsumoPanel(null, 'comparison'); // Re-render right panel as empty welcome screen
+                    }
+                    // If not in simulation mode, the right panel (comparison) is left untouched.
+
+                } else { // type === 'comparison'
                     comparisonItemId = itemId;
-                    isSimulationModeActive = false; // Turn off simulation
+                    isSimulationModeActive = false; // Selecting a comparison item always turns off simulation mode
+                    renderSingleConsumoPanel(itemId, 'comparison');
                 }
+
+                // Common logic to update search input and hide results
                 document.getElementById(`consumo${prefix}-search-input`).value = target.textContent;
                 const resultsContainer = document.getElementById(`consumo${prefix}-search-results`);
                 resultsContainer.innerHTML = '';
@@ -3701,8 +3753,6 @@
                 if(clearTextBtn) {
                     clearTextBtn.classList.remove('hidden');
                 }
-
-                renderSingleConsumoPanel(itemId, type);
             }
         }
 
@@ -3743,11 +3793,11 @@
                 <div class="flex-shrink-0">
                     <div class="flex items-center gap-2 pb-2 border-b">
                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
-                        <h3 class="text-lg font-bold text-slate-800 truncate">Panel de Simulación: <span class="text-[#6366f1]">${primaryItem.name.toUpperCase()}</span></h3>
+                        <h3 class="text-lg font-bold text-slate-800 truncate">Simulación: <span class="text-[#6366f1]">${primaryItem.name.toUpperCase()}</span></h3>
                     </div>
                 </div>
 
-                <div class="flex items-start gap-6 mt-4 flex-shrink-0">
+                <div class="flex items-start gap-4 mt-4 flex-shrink-0">
                     <!-- Controles de Stock y Consumo -->
                     <div class="flex-1">
                          <div class="grid grid-cols-2 gap-2">
@@ -3770,6 +3820,8 @@
                         </div>
                     </div>
                     
+                    <div class="w-px bg-slate-200 self-stretch mx-2"></div>
+
                     <!-- Simular Ingreso -->
                     <div class="flex-1">
                         <p class="text-xs font-medium text-slate-700 block mb-1 text-center">Simular Ingreso Manual</p>
@@ -5365,6 +5417,18 @@
                     return;
                 }
 
+                const recordGroupHeader = e.target.closest('.record-consumption-group-header');
+                if (recordGroupHeader) {
+                    const groupName = recordGroupHeader.dataset.groupName;
+                    const listContainer = document.querySelector(`.record-consumption-item-list[data-group-list="${groupName}"]`);
+                    const chevron = recordGroupHeader.querySelector('.record-consumption-chevron');
+                    if (listContainer && chevron) {
+                        listContainer.classList.toggle('hidden');
+                        chevron.classList.toggle('rotate-180');
+                    }
+                    return;
+                }
+
                 const groupItem = e.target.closest('.group-item-name');
                 if (groupItem) {
                     const groupName = groupItem.dataset.groupName;
@@ -6469,3 +6533,5 @@
     </script>
 </body>
 </html>
+
+
