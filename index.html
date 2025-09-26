@@ -4,11 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Consultas de Inventario</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         body { font-family: 'Aptos', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif; }
+        .font-quicksand * {
+            font-family: 'Quicksand', sans-serif !important;
+        }
         #auth-container, #app-container { transition: opacity 0.5s ease-in-out; }
         .table-sort-button { background: none; border: none; cursor: pointer; font-weight: 700; width: 100%; text-align: inherit; display: flex; align-items: center; justify-content: inherit; gap: 4px; color: inherit; }
         .table-sort-button:hover { color: #4f46e5; }
@@ -142,10 +148,17 @@
             height: 100%; /* Clave para que la altura % de la barra funcione */
             justify-content: flex-end; /* Pone la barra en la parte inferior */
         }
-        .consumo-chart-bar { width: 60%; border-radius: 4px 4px 0 0; position: relative; display: flex; justify-content: center; align-items: flex-start; transition: height 0.3s ease-out, background-color 0.3s ease-out; }
-        .consumo-chart-projected-line { position: absolute; width: 100%; border-top: 2px dashed #ef4444; left: 0; z-index: 5; }
-        .consumo-chart-projected-label { position: absolute; right: -4px; top: 0; transform: translateY(-50%); background-color: #ef4444; color: white; padding: 1px 4px; font-size: 10px; font-weight: bold; border-radius: 4px; }
-        .consumo-chart-value { padding-top: 8px; color: white; font-weight: 600; font-size: 12px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
+        .consumo-chart-bar { width: 60%; border-radius: 4px 4px 0 0; position: relative; display: flex; justify-content: center; transition: height 0.3s ease-out, background-color 0.3s ease-out; }
+        .consumo-chart-projected-line { position: absolute; width: 100%; border-top: 2px dashed #93c5fd; left: 0; z-index: 5; } /* Color de línea celeste tenue */
+        .consumo-chart-projected-label { position: absolute; right: -4px; bottom: 5px; /* Posiciona la etiqueta por encima de la línea */ transform: none; background-color: #93c5fd; color: #1e40af; padding: 1px 4px; font-size: 10px; font-weight: bold; border-radius: 4px; } /* Etiqueta a juego */
+        .consumo-chart-value {
+            position: absolute;
+            top: 6px; /* Vuelve a posicionar el número dentro de la barra */
+            color: white; /* Texto blanco para contraste */
+            font-weight: 600;
+            font-size: 12px;
+            z-index: 10;
+        }
         .consumo-chart-label {
             position: absolute;
             bottom: -22px; /* La mueve debajo del eje 0 */
@@ -264,20 +277,22 @@
             visibility: hidden;
             width: max-content;
             max-width: 300px;
-            background-color: #1e293b; /* slate-800 */
-            color: #fff;
+            background-color: white;
+            color: #1e293b; /* slate-800 */
             text-align: left;
             border-radius: 6px;
             padding: 8px;
             position: absolute;
-            z-index: 10;
+            z-index: 25;
             bottom: 125%;
             left: 50%;
             transform: translateX(-50%);
             opacity: 0;
             transition: opacity 0.3s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* A slightly softer shadow */
+            border: 1px solid #e2e8f0; /* slate-200 border */
             font-size: 12px;
+            font-weight: 500; /* medium font weight */
             line-height: 1.5;
             pointer-events: none;
         }
@@ -289,23 +304,47 @@
             margin-left: -5px;
             border-width: 5px;
             border-style: solid;
-            border-color: #1e293b transparent transparent transparent;
+            border-color: white transparent transparent transparent;
         }
         .tooltip-container:hover .tooltip-text {
             visibility: visible;
             opacity: 1;
         }
+        .direct-edit-input {
+            border: 1px solid transparent;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+        }
+        .direct-edit-input:not(:disabled):focus {
+            outline: none;
+            border-color: #818cf8; /* indigo-400 */
+            background-color: white;
+            box-shadow: 0 0 0 2px #c7d2fe; /* indigo-200 */
+        }
+        .direct-edit-input:disabled {
+            background-color: transparent;
+            cursor: not-allowed;
+            color: inherit;
+        }
+        .input-status-indicator.saved .saved-icon { color: #16a34a; display: none; }
+        .modified-indicator {
+            color: #f59e0b; /* amber-500 */
+            display: inline-block;
+            margin-left: 6px;
+        }
+        .modified-input {
+            background-color: #fef3c7 !important; /* amber-100 */
+            border-color: #fcd34d !important; /* amber-300 */
+        }
+        .accordion-chevron.rotate-180, .record-consumption-chevron.rotate-180 {
+            transform: rotate(180deg);
+        }
+
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800">
-
-    <!-- 
-    ======================================================================
-    NOTAS DE DESARROLLO 
-    ======================================================================
-    Fernando, usemos esta sección para anotar las ideas     
-    ======================================================================
-    -->
 
     <div id="auth-container" class="hidden min-h-screen bg-slate-100 flex flex-col justify-center items-center p-4">
         <div class="w-full max-w-sm">
@@ -410,6 +449,7 @@
 
                                 <div class="py-1">
                                     <button id="admin-button-dropdown" class="hidden"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg><span class="uppercase">Configuración</span></button>
+                                    <button id="manual-button-dropdown"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg><span class="uppercase">Guía Rápida</span></button>
                                 </div>
                                 
                                 <div id="admin-actions-divider" class="dropdown-divider hidden"></div>
@@ -487,10 +527,6 @@
                             <div class="h-6 border-l border-slate-200 mx-2"></div>
                             <button id="export-indice-btn" class="btn-main-style hover:bg-indigo-50 hover:text-indigo-700 flex-shrink-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            </button>
-                            <div class="h-6 border-l border-slate-200 mx-2"></div>
-                            <button id="add-new-item-btn" class="btn-main-style bg-blue-600 text-white hover:bg-blue-700 border-blue-600 hidden flex-shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                             </button>
                         </div>
                     </div>
@@ -699,36 +735,6 @@
     </main>
     
         <!-- Modales -->
-        <div id="item-modal" class="fixed inset-0 bg-slate-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
-            <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white">
-                <form id="item-form">
-                    <h3 id="item-modal-title" class="text-lg leading-6 font-medium text-slate-900">Agregar Nuevo Insumo</h3>
-                    <div class="mt-4 space-y-4">
-                        <div>
-                            <label for="item-group" class="block text-sm font-medium text-slate-700">Grupo</label>
-                            <input type="text" id="item-group" list="group-datalist" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            <datalist id="group-datalist"></datalist>
-                        </div>
-                        <div>
-                            <label for="item-code" class="block text-sm font-medium text-slate-700">Código</label>
-                            <input type="text" id="item-code" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                        </div>
-                        <div>
-                            <label for="item-name" class="block text-sm font-medium text-slate-700">Nombre</label>
-                            <input type="text" id="item-name" required class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                        </div>
-                         <div>
-                            <label for="item-stock" class="block text-sm font-medium text-slate-700">Stock Inicial</label>
-                            <input type="number" id="item-stock" required value="0" class="mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                        </div>
-                    </div>
-                    <div class="items-center px-4 py-3 mt-4 text-right">
-                        <button id="close-item-modal" type="button" class="px-4 py-2 bg-slate-200 text-slate-800 text-base font-medium rounded-md shadow-sm hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 mr-2">Cancelar</button>
-                        <button id="save-item-button" type="submit" class="px-4 py-2 bg-indigo-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">Guardar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
         <div id="preload-modal" class="fixed inset-0 bg-slate-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
             <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
                 <div class="mt-3 text-center">
@@ -894,7 +900,7 @@
                 </div>
             </div>
         </div>
-        <div id="manual-modal" class="fixed inset-0 bg-slate-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div id="manual-modal" class="fixed inset-0 bg-slate-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 font-quicksand">
             <div class="relative top-10 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
                  <div class="flex justify-between items-center mb-4 pb-4 border-b">
                     <h2 class="text-2xl font-semibold text-slate-800">Guía Rápida - Insumos Almacén</h2>
@@ -946,36 +952,132 @@
                         </div>
                     </div>
 
-                    <h3 class="font-semibold text-slate-900 mt-8 pt-4 border-t flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>Dashboard</h3>
-                    <ul class="list-none pl-0 space-y-3">
-                        <li class="flex items-start gap-3"><div class="pt-1"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"/></svg></div><div><strong>Indicadores (KPIs):</strong> Resumen del estado del inventario. Haz clic en ellos para ver detalles, como filtrar por favoritos o ver reportes de O/C vencidas.</div></li>
-                        <li class="flex items-start gap-3"><div class="pt-1"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></div><div><strong>Revisión Semanal:</strong> Controla el progreso de revisión de los grupos de insumos. Función para Propietarios.</div></li>
-                        <li class="flex items-start gap-3"><div class="pt-1"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div><div><strong>Insumos Críticos:</strong> Tabla de acceso rápido a productos con baja cobertura de stock.</div></li>
-                    </ul>
+                    <div id="quick-guide-accordion" class="mt-8 pt-6 border-t space-y-2">
+                        <!-- Consumo Récord -->
+                        <div class="accordion-item border rounded-lg overflow-hidden">
+                            <button class="accordion-header flex justify-between items-center w-full p-4 text-left font-semibold text-slate-900 text-lg hover:bg-slate-50 transition-colors">
+                                <span class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                                    Consumo Récord
+                                </span>
+                                <svg class="accordion-chevron w-6 h-6 transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                            </button>
+                            <div class="accordion-content hidden">
+                                <div class="not-prose p-4 border-t bg-slate-50/50">
+                                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                                        <div class="flex-shrink-0 text-center">
+                                            <p class="text-sm font-semibold text-slate-500 mb-2">KPI en el Dashboard:</p>
+                                            <div class="kpi-card relative pt-6 text-center border-2 border-red-400 w-48 mx-auto">
+                                                <div class="absolute -top-2 -left-2 p-2 rounded-lg shadow-md bg-red-100 text-red-600"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></div>
+                                                <p class="text-3xl font-bold text-slate-900">12</p>
+                                                <p class="text-xs font-medium text-slate-500 mt-1 uppercase truncate">Consumo Récord</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p>Este indicador resalta los insumos cuyo consumo en el <strong>último mes</strong> ha sido el <strong>más alto de su historia</strong> registrada en la base de datos.</p>
+                                            <p class="mt-2 text-sm">Al hacer clic en este KPI, se despliega un reporte detallado que te permite analizar estos casos de alta demanda.</p>
+                                            <div class="mt-4 p-3 bg-red-50 text-red-800 border-l-4 border-red-400 text-sm rounded">
+                                                <strong>Alerta de Favoritos:</strong> Si un insumo marcado como favorito tiene un consumo récord, la caja del reporte se resaltará en rojo para una rápida identificación.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                    <h3 class="font-semibold text-slate-900 mt-8 pt-4 border-t flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>Insumos</h3>
-                     <ul class="list-none pl-0 space-y-3">
-                        <li class="flex items-start gap-3"><div class="pt-1"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg></div><div><strong>Búsqueda y Filtros:</strong> Usa la barra para buscar por nombre/código. Filtra por <strong>Cobertura</strong> (rojo, amarillo, verde), <strong>Grupos</strong> o <strong>Favoritos</strong>.</div></li>
-                        <li class="flex items-start gap-3"><div class="pt-1"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg></div><div><strong>Favoritos:</strong> Haz clic en la <strong>estrella (★)</strong> para marcar/desmarcar un insumo. Es la forma más rápida de acceder a tus productos clave.</div></li>
-                        <li class="flex items-start gap-3"><div class="pt-1"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 17.58A5 5 0 0 0 18 8h-1.26A8 8 0 1 0 4 16.25"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="8" y1="20" x2="8" y2="20"></line><line x1="12" y1="18" x2="12" y2="18"></line><line x1="12" y1="22" x2="12" y2="22"></line><line x1="16" y1="16" x2="16" y2="16"></line><line x1="16" y1="20" x2="16" y2="20"></line></svg></div><div><strong>Navegación:</strong> Haz clic en cualquier fila de la tabla para ir a la vista de <strong>Análisis de Consumos</strong> de ese producto.</div></li>
-                    </ul>
+                        <!-- Análisis -->
+                        <div class="accordion-item border rounded-lg overflow-hidden">
+                             <button class="accordion-header flex justify-between items-center w-full p-4 text-left font-semibold text-slate-900 text-lg hover:bg-slate-50 transition-colors">
+                                <span class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                                    Análisis (Edición Manual)
+                                </span>
+                                <svg class="accordion-chevron w-6 h-6 transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                            </button>
+                            <div class="accordion-content hidden">
+                                <div class="not-prose p-4 border-t bg-slate-50/50">
+                                    <p class="mb-4">En la vista de <strong>Análisis</strong>, los roles con permisos pueden modificar directamente el <strong>Stock</strong> y el <strong>Consumo Mensual</strong>. El sistema te avisará visualmente de estos cambios:</p>
+                                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                                         <div class="flex-1">
+                                            <ol class="list-decimal pl-5 space-y-4 text-sm">
+                                                <li>
+                                                    <strong>Campos Resaltados:</strong><br>
+                                                    Los valores de Stock y Consumo Mensual modificados se mostrarán con un fondo <span class="bg-amber-100 px-1 rounded">ámbar</span>.
+                                                </li>
+                                                <li>
+                                                    <strong>Ícono de Edición:</strong><br>
+                                                    Aparecerá un lápiz <span class="text-amber-500 font-bold">✏️</span> junto al nombre del insumo.
+                                                </li>
+                                                <li>
+                                                    <strong>Registro de Cambios:</strong><br>
+                                                    Al pasar el mouse sobre el lápiz, un tooltip te informará <strong>quién</strong> realizó el último cambio y <strong>cuándo</strong>.
+                                                </li>
+                                            </ol>
+                                            <p class="mt-4 text-xs font-semibold bg-indigo-100 text-indigo-800 p-2 rounded-md"><strong>Importante:</strong> Todas las modificaciones manuales se resetearán en la próxima precarga masiva de datos desde un archivo Excel.</p>
+                                         </div>
+                                         <div class="flex-shrink-0 w-full md:w-auto">
+                                            <p class="text-sm font-semibold text-slate-500 mb-2 text-center mt-4">Ejemplo Visual:</p>
+                                            <div class="bg-white p-4 rounded-lg shadow-lg border">
+                                                <div class="flex justify-between items-center">
+                                                    <h3 class="text-lg font-bold text-[#6366f1]">BOLSAS PRO CRISTAL <span class="tooltip-container modified-indicator inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg><span class="tooltip-text !opacity-100 !visible">Modificado por FERNANDO el 25/09/2025 - 17:49</span></div></h3>
+                                                </div>
+                                                 <div class="grid grid-cols-2 gap-3 mt-4">
+                                                    <div class="text-center"><input type="text" value="45.000" class="direct-edit-input text-center w-full bg-transparent text-2xl font-bold text-slate-900 h-9 modified-input" disabled><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Stock</p></div>
+                                                    <div class="text-center"><input type="text" value="6.530" class="direct-edit-input text-center w-full bg-transparent text-2xl font-bold text-slate-900 h-9 modified-input" disabled><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Cons. Mensual</p></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                    <h3 class="font-semibold text-slate-900 mt-8 pt-4 border-t flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>Análisis de Consumos</h3>
-                    <ul class="list-none pl-0 space-y-3">
-                        <li class="flex items-start gap-3"><div class="pt-1"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"/></svg></div><div><strong>Gráfico de Consumo:</strong> Visualiza el historial mensual. Una línea punteada roja marca el consumo proyectado para una referencia rápida.</div></li>
-                         <li class="flex items-start gap-3"><div class="pt-1"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg></div><div><strong>Notas y Pedidos:</strong> Revisa las Solpeds/O.C. asociadas y añade notas importantes sobre el insumo.</div></li>
-                    </ul>
-                    
-                    <h3 class="font-semibold text-slate-900 mt-8 pt-4 border-t flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>SOLPEDS y O/C</h3>
-                    <p>Tablas detalladas con todas las Solicitudes de Pedido y Órdenes de Compra. Permiten buscar, filtrar por pedidos demorados y ordenar la información.</p>
+                        <!-- Simulación -->
+                        <div class="accordion-item border rounded-lg overflow-hidden">
+                            <button class="accordion-header flex justify-between items-center w-full p-4 text-left font-semibold text-slate-900 text-lg hover:bg-slate-50 transition-colors">
+                                <span class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                                    Simulación de Stock
+                                </span>
+                                <svg class="accordion-chevron w-6 h-6 transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                            </button>
+                            <div class="accordion-content hidden">
+                                <div class="not-prose p-4 border-t bg-slate-50/50">
+                                    <div>
+                                        <p class="mb-4 text-base">Esta herramienta te permite proyectar el stock futuro de un insumo. Se activa desde la vista de <strong>Análisis</strong> con el botón <strong>"Simular"</strong>.</p>
+                                        <ol class="list-decimal pl-5 space-y-4 text-base">
+                                            <li>
+                                                <strong>Ajusta las variables:</strong> Modifica el <strong>Stock Actual</strong> y el <strong>Consumo Mensual</strong> para ver diferentes escenarios.
+                                                <div class="mt-2 p-3 bg-white rounded border border-slate-200 text-sm">Puedes usar los botones `+` y `-` o escribir directamente en los campos.</div>
+                                            </li>
+                                            <li>
+                                                <strong>Simula Ingresos/Egresos:</strong>
+                                                <ul class="list-disc pl-5 mt-2 space-y-2 text-sm">
+                                                    <li><strong>Ingreso Manual:</strong> Añade una cantidad y selecciona la semana de entrega para simular una O/C nueva o un ingreso no registrado.</li>
+                                                    <li><strong>Cancelar O/C existente:</strong> Para anular un ingreso futuro de una O/C, introduce su cantidad en <strong>negativo</strong> en la misma semana. Esto la restará de la proyección.</li>
+                                                </ul>
+                                            </li>
+                                            <li>
+                                                <strong>Analiza los resultados:</strong> La tabla de proyección muestra el stock semana a semana. La columna <strong>"Cobertura"</strong> se coloreará de <span class="text-red-600 font-semibold">rojo</span> o <span class="text-yellow-600 font-semibold">amarillo</span> para alertarte sobre posibles quiebres de stock.
+                                            </li>
+                                            <li>
+                                                <strong>Interpreta los Ingresos:</strong> La columna "Ingresos" se colorea para identificar el origen de las entradas. Al pasar el mouse sobre la cantidad, verás el detalle:
+                                                <ul class="list-none pl-2 mt-2 space-y-1 text-sm">
+                                                    <li class="flex items-center gap-2"><span class="h-3 w-3 rounded-full bg-green-500"></span><strong class="text-green-700">Verde:</strong> O/C Aprobadas.</li>
+                                                    <li class="flex items-center gap-2"><span class="h-3 w-3 rounded-full bg-yellow-400"></span><strong class="text-yellow-700">Amarillo:</strong> O/C Pendientes de aprobación.</li>
+                                                    <li class="flex items-center gap-2"><span class="h-3 w-3 rounded-full bg-indigo-500"></span><strong class="text-indigo-700">Azul:</strong> Ingresos manuales simulados por ti.</li>
+                                                </ul>
+                                                <div class="mt-2 p-2 bg-white rounded border border-slate-200 text-sm">
+                                                    <strong>Nota:</strong> Las O/C con estado "Rechazada" no se incluyen en la proyección.
+                                                </div>
+                                            </li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-                    <h3 class="font-semibold text-slate-900 mt-8 pt-4 border-t flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>Administración (Solo Propietarios)</h3>
-                    <p>Panel accesible desde el <strong>menú de usuario</strong> para configurar la aplicación.</p>
-                     <ul class="list-none pl-0 space-y-3">
-                        <li class="flex items-start gap-3"><div class="pt-1"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></div><div><strong>Gestión de Datos:</strong> Carga masiva desde Excel o limpia la base de datos (conservando favoritos y notas).</div></li>
-                         <li class="flex items-start gap-3"><div class="pt-1"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div><strong>Permisos:</strong> Asigna roles de Editor o Visor a otros usuarios.</div></li>
-                         <li class="flex items-start gap-3"><div class="pt-1"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div><div><strong>Configuración:</strong> Define los umbrales de cobertura (días), el umbral para notificaciones y los meses a mostrar en el gráfico de consumo.</div></li>
-                    </ul>
                 </div>
             </div>
         </div>
@@ -1061,12 +1163,14 @@
         let indiceCoverageFilter = 'all';
         let notesSaveTimeout;
         let notesSaveTimeoutReview;
-        let groupNotes = new Map();
-        let activeKpi = null;
-        let isInitialLoad = true;
-        let calendarCurrentDate = new Date();
-        let ingresosSelectedGroup = 'all';
-        let ingresosSearchTerm = '';
+        let updateDebounceTimers = new Map();
+let groupNotes = new Map();
+let activeKpi = null;
+let isInitialLoad = true;
+let currentUserTag = '';
+let calendarCurrentDate = new Date();
+let ingresosSelectedGroup = 'all';
+let ingresosSearchTerm = '';
         let currentIngresosWeek = { start: null, end: null };
         
         // --- VARIABLES DE FIREBASE Y USUARIO ---
@@ -1115,7 +1219,7 @@
             document.body.removeChild(tempTextArea);
         }
 
-        function formatDate(isoDateString) {
+        function formatDate(isoDateString, separator = '-') {
             if (!isoDateString) return '';
             const date = parseDateString(isoDateString);
             if (!date) return isoDateString;
@@ -1124,7 +1228,22 @@
             const month = String(date.getUTCMonth() + 1).padStart(2, '0');
             const year = date.getUTCFullYear();
             
-            return `${day}-${month}-${year}`;
+            return [day, month, year].join(separator);
+        }
+
+        function formatDateTime(isoDateString) {
+            if (!isoDateString) return '';
+            const date = new Date(isoDateString);
+            if (isNaN(date.getTime())) return isoDateString;
+
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+
+            return `${day}/${month}/${year} - ${hours}:${minutes}`;
         }
 
         function parseDateString(dateStr) {
@@ -1179,6 +1298,23 @@
         }
         function daysBetween(date1, date2) { return Math.round((new Date(date2) - new Date(date1)) / (1000 * 60 * 60 * 24)); }
         function formatNumber(num) { return new Intl.NumberFormat('es-AR').format(num); }
+
+        function exportToExcel(data, filename) {
+            if (!data || data.length === 0) {
+                showToast('No hay datos para exportar.', 'info');
+                return;
+            }
+            try {
+                const worksheet = XLSX.utils.json_to_sheet(data);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Datos');
+                XLSX.writeFile(workbook, filename);
+                showToast(`Exportado como ${filename}`, 'success');
+            } catch (error) {
+                console.error("Error al exportar a Excel:", error);
+                showToast('Hubo un error al exportar el archivo.', 'error');
+            }
+        }
 
         function syncReviewRowHeights() {
             requestAnimationFrame(() => {
@@ -1287,9 +1423,10 @@
         function switchAuthView(view) { document.getElementById('login-view').classList.add('hidden'); document.getElementById('register-view').classList.add('hidden'); if (document.getElementById(view)) { document.getElementById(view).classList.remove('hidden'); } }
 
         function adaptUiToRole(role, user, tag) {
-            const userAvatar = document.getElementById('user-avatar');
-            const userNameEl = document.getElementById('user-name');
-            const userEmailEl = document.getElementById('user-dropdown-email');
+    currentUserTag = tag || user.email.split('@')[0];
+    const userAvatar = document.getElementById('user-avatar');
+    const userNameEl = document.getElementById('user-name');
+    const userEmailEl = document.getElementById('user-dropdown-email');
             const userRoleEl = document.getElementById('user-dropdown-role');
             const adminButton = document.getElementById('admin-button-dropdown');
             const preloadButton = document.getElementById('dashboard-preload-btn-dropdown');
@@ -1804,7 +1941,9 @@
                             delayedQuantity: 0, 
                             orderQuantities: [], 
                             isModified: false, 
-                            consumos: []
+                            consumos: [],
+                            lastModifiedBy: null,
+                            lastModifiedAt: null
                         }); 
                         itemsKept++; 
                     } else { 
@@ -2111,7 +2250,7 @@
                                     <input type="text" data-userid="${p.id}" class="tag-input w-full text-sm p-2 border border-slate-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" value="${p.tag || ''}" ${currentUserRole !== 'owner' ? 'disabled' : ''} placeholder="Nombre a mostrar">
                                 </td>
                                 <td class="px-6 py-4">
-                                    <select data-userid="${p.id}" class="role-select border text-sm border-slate-300 rounded-md p-2 w-full focus:ring-indigo-500 focus:border-indigo-500" ${p.role === 'owner' || currentUserRole !== 'owner' ? 'disabled' : ''}>
+                                    <select data-userid="${p.id}" class="role-select w-full p-2 border border-slate-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" ${p.role === 'owner' ? 'disabled' : ''}>
                                         <option value="owner" ${p.role === 'owner' ? 'selected' : ''} disabled>Propietario</option>
                                         <option value="editor" ${p.role === 'editor' ? 'selected' : ''}>Editor</option>
                                         <option value="viewer" ${p.role === 'viewer' ? 'selected' : ''}>Visor</option>
@@ -2233,7 +2372,7 @@
                 }
             }
         }
-        async function renderDashboard() {
+        function renderDashboard() {
             const kpiContainer = document.getElementById('kpi-container');
             if (!kpiContainer) return;
 
@@ -2302,7 +2441,7 @@
             renderCriticalItemsTable();
 
             if (isInitialLoad && items.length > 0) {
-                handleKpiClick('groups');
+                handleKpiClick('consumption-peak');
                 isInitialLoad = false;
             }
         }
@@ -2525,9 +2664,16 @@
                                 <span class="text-3xl font-bold text-white">${kpiValue}</span>
                                 <h3 class="text-lg font-semibold text-white uppercase tracking-wider">${title}</h3>
                             </div>
-                            <button id="close-kpi-detail-btn" class="text-white/70 hover:text-white">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                            </button>
+                            <div class="flex items-center gap-2">
+                                ${kpiType === 'consumption-peak' && kpiValue > 0 ? `
+                                <button id="export-record-consumption-btn" title="Exportar a Excel" class="btn-main-style !h-8 !w-8 !p-0 !bg-white/90 !text-indigo-700 hover:!bg-white flex-shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                </button>
+                                ` : ''}
+                                <button id="close-kpi-detail-btn" class="text-white/70 hover:text-white">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </div>
                         </div>
                         <div class="p-4 overflow-y-auto" style="max-height: 580px;">
                             ${contentHTML}
@@ -2619,8 +2765,9 @@
 
             let html = '<div class="space-y-2">';
             sortedGroups.forEach(group => {
+                const highlightClass = group.favoriteCount > 0 ? 'border-2 border-red-400 ring-1 ring-red-200' : 'border';
                 html += `
-                <div class="border rounded-lg overflow-hidden bg-white shadow-sm">
+                <div class="${highlightClass} rounded-lg overflow-hidden bg-white shadow-sm">
                     <div class="p-3 flex items-center justify-between hover:bg-slate-50 cursor-pointer record-consumption-group-header" data-group-name="${group.groupName}">
                         <div>
                             <p class="font-semibold text-indigo-700">${group.groupName}</p>
@@ -3009,9 +3156,14 @@
             }
         }
 
+        let isExportingHistory = false;
         async function handleExportHistory() {
+            if (isExportingHistory) return; // Prevent re-entrant calls
+            isExportingHistory = true;
+
             if (!reviewHistoryCollectionRef) {
                 showToast('No se pudo acceder al historial de revisiones.', 'error');
+                isExportingHistory = false;
                 return;
             }
 
@@ -3021,7 +3173,7 @@
                 
                 if (history.length === 0) {
                     showToast('No hay historial de revisiones para exportar.', 'info');
-                    return;
+                    return; // Return directly if no history
                 }
 
                 const allGroups = [...new Set(items.map(item => item.group || 'General'))].sort();
@@ -3034,19 +3186,18 @@
                 const allWeeks = [...historyMap.keys()].sort().reverse();
                 const dataToExport = [];
                 
-                const header = ['Grupo', ...allWeeks, 'Notas'];
-                dataToExport.push(header);
-
                 allGroups.forEach(groupName => {
-                    const row = { 'Grupo': groupName };
+                    const row = {
+                        'Notas': groupNotes.get(groupName) || '',
+                        'Grupo': groupName
+                    };
                     allWeeks.forEach(weekId => {
                          row[weekId] = historyMap.get(weekId)?.has(groupName) ? 'Sí' : 'No';
                     });
-                    row['Notas'] = groupNotes.get(groupName) || '';
                     dataToExport.push(row);
                 });
                 
-                if (dataToExport.length > 1) { // Header + at least one row
+                if (dataToExport.length > 0) {
                     const filename = `${getCurrentDateString()}_Historial_Revision.xlsx`;
                     exportToExcel(dataToExport, filename);
                 } else {
@@ -3056,6 +3207,8 @@
             } catch (error) {
                 console.error("Error al exportar historial de revisiones:", error);
                 showToast('Error al exportar el historial.', 'error');
+            } finally {
+                setTimeout(() => { isExportingHistory = false; }, 1000); // Reset flag after 1 sec
             }
         }
 
@@ -3205,13 +3358,9 @@
                 { key: 'stock', label: 'STOCK ACTUAL', class: 'justify-end border-l border-r border-slate-300', width: 'w-[10%]' },
                 { key: 'monthlyConsumption', label: 'CONS. MENSUAL', class: 'justify-end', width: 'w-[10%]' },
                 { key: 'coverageDays', label: 'COBERTURA (DÍAS)', class: 'justify-end', width: 'w-[10%]' },
-                { key: 'description_notes', label: 'NOTAS', noSort: true, width: 'w-[15%]' }
+                { key: 'description_notes', label: 'NOTAS', noSort: true, width: 'w-[20%]' }
             ];
 
-            if (currentUserRole === 'owner' || currentUserRole === 'editor') {
-                headers.push({ key: 'actions', label: 'ACCIONES', noSort: true, width: 'w-[5%]', class: 'text-center' });
-            }
-            
             let tableHTML = `<table class="w-full text-sm text-left text-slate-500 table-fixed"><thead class="text-sm text-slate-700 uppercase bg-slate-50 sticky top-0 z-10" style="box-shadow: 0 2px 0 #a5b4fc;"><tr>`;
             headers.forEach(h => {
                 const isSortingKey = !h.noSort && indiceSortConfig.key === h.key;
@@ -3269,6 +3418,15 @@
                      coverageClass = 'text-green-600 font-bold';
                 }
 
+                const modifiedBy = item.lastModifiedBy || '';
+                const modifiedAt = item.lastModifiedAt ? `el ${formatDateTime(item.lastModifiedAt)}` : '';
+
+                const modifiedIndicatorHTML = item.isModified ? `
+                    <div class="tooltip-container modified-indicator">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                        <span class="tooltip-text">Modificado por ${modifiedBy} ${modifiedAt}</span>
+                    </div>` : '';
+
                 tableHTML += `<tr class="border-b hover:bg-slate-100 even:bg-slate-50">
                     <td class="px-4 py-2 text-center">
                         <button class="favorite-btn ${item.isFavorite ? 'is-favorite' : ''}" data-item-id="${item.id}" data-btn-type="indice-fav" ${currentUserRole === 'viewer' ? 'disabled' : ''}>
@@ -3277,22 +3435,23 @@
                     </td>
                     <td class="px-4 py-1 truncate indice-item-details cursor-pointer" data-item-id="${item.id}">${item.group}</td>
                     <td class="px-4 py-1 truncate indice-item-details cursor-pointer" data-item-id="${item.id}">${item.code}</td>
-                    <td class="px-4 py-2 font-medium text-slate-900 truncate indice-item-details cursor-pointer" data-item-id="${item.id}">${item.name.replace(new RegExp(`^${item.code}\\s*`), '').toUpperCase()}</td>
-                    <td class="px-4 py-2 text-right truncate indice-item-details cursor-pointer text-xl font-bold border-l border-r border-slate-300" data-item-id="${item.id}">${formatNumber(item.stock)}</td>
-                    <td class="px-4 py-2 text-right truncate indice-item-details cursor-pointer text-base" data-item-id="${item.id}">${formatNumber(item.monthlyConsumption)}</td>
+                    <td class="px-4 py-2 font-medium text-slate-900 indice-item-details cursor-pointer relative" data-item-id="${item.id}">
+                        <div class="flex items-center justify-between">
+                            <span class="truncate pr-2">${item.name.replace(new RegExp(`^${item.code}\\s*`), '').toUpperCase()}</span>
+                            ${modifiedIndicatorHTML}
+                        </div>
+                    </td>
+                    <td class="px-2 py-1 text-right relative border-l border-r border-slate-300">
+                        <input type="text" value="${formatNumber(item.stock)}" data-item-id="${item.id}" data-field="stock" class="direct-edit-input text-right w-full bg-transparent text-xl font-bold" ${currentUserRole === 'viewer' ? 'disabled' : ''}>
+                    </td>
+                    <td class="px-2 py-1 text-right relative">
+                        <input type="text" value="${formatNumber(item.monthlyConsumption)}" data-item-id="${item.id}" data-field="monthlyConsumption" class="direct-edit-input text-right w-full bg-transparent text-base" ${currentUserRole === 'viewer' ? 'disabled' : ''}>
+                    </td>
                     <td class="px-4 py-2 text-right ${coverageClass} text-base">${coverageText}</td>
                     <td class="px-4 py-2">
                         <input type="text" value="${item.description_notes || ''}" data-item-id="${item.id}" class="w-full bg-transparent text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white rounded p-1 notes-input-indice placeholder:text-center placeholder:text-slate-400 placeholder:text-lg" placeholder="+" ${currentUserRole === 'viewer' ? 'disabled' : ''}>
                     </td>
                 `;
-
-                if (currentUserRole === 'owner' || currentUserRole === 'editor') {
-                    tableHTML += `<td class="px-4 py-2 text-center">
-                        <button class="p-1 text-slate-400 hover:text-red-600 delete-item-btn" data-item-id="${item.id}" data-item-name="${item.name.toUpperCase()}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                        </button>
-                    </td>`;
-                }
 
                 tableHTML += `</tr>`;
             });
@@ -3397,6 +3556,7 @@
                 coverage: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>'
             };
 
+            const notesDisabledAttr = currentUserRole === 'viewer' ? 'disabled' : '';
             let notesAndSimulateSection;
             if (type === 'primary' && itemId) {
                 const canSimulate = currentUserRole === 'owner' || currentUserRole === 'editor';
@@ -3413,14 +3573,14 @@
                         <label for="consumo-description-notes-${type}" class="font-medium text-sm text-slate-700 whitespace-nowrap">Notas:</label>
                         ${simulateButtonHTML}
                     </div>
-                    <textarea id="consumo-description-notes-${type}" rows="1" class="py-1 px-2 bg-white border border-slate-300 rounded-md w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition text-sm resize-none" placeholder="Añadir una descripción..." disabled></textarea>
+                    <textarea id="consumo-description-notes-${type}" rows="1" class="py-1 px-2 bg-white border border-slate-300 rounded-md w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition text-sm resize-none" placeholder="Añadir una descripción..." ${notesDisabledAttr}></textarea>
                 </div>
                 `;
             } else {
                 notesAndSimulateSection = `
                  <div class="mt-4 pt-4 border-t flex items-center gap-4">
                     <label for="consumo-description-notes-${type}" class="font-medium text-sm text-slate-700 whitespace-nowrap">Notas:</label>
-                    <textarea id="consumo-description-notes-${type}" rows="1" class="py-1 px-2 bg-white border border-slate-300 rounded-md w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition text-sm resize-none" placeholder="Añadir una descripción..." disabled></textarea>
+                    <textarea id="consumo-description-notes-${type}" rows="1" class="py-1 px-2 bg-white border border-slate-300 rounded-md w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition text-sm resize-none" placeholder="Añadir una descripción..." ${notesDisabledAttr}></textarea>
                 </div>
                 `;
             }
@@ -3446,10 +3606,10 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mt-4">
-                    <div class="relative bg-white p-3 pt-6 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.stock}</div> <p id="consumo-kpi-stock-${type}" class="text-2xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Stock</p></div>
+                    <div class="relative bg-white p-2 rounded-lg shadow text-center flex flex-col justify-center"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.stock}</div> <input type="text" id="consumo-kpi-stock-${type}" class="direct-edit-input text-center w-full bg-transparent text-2xl font-bold text-slate-900 h-9" ${notesDisabledAttr}><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Stock</p></div>
                     <div class="relative bg-white p-3 pt-6 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.avg}</div> <p id="consumo-kpi-avg-${type}" class="text-2xl font-bold text-indigo-600">-</p><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Promedio</p></div>
                     <div class="relative bg-white p-3 pt-6 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.peak}</div> <p id="consumo-kpi-peak-${type}" class="text-2xl font-bold text-green-600">-</p><div class="flex justify-center items-baseline gap-1"><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Pico</p><p id="consumo-kpi-peak-month-${type}" class="text-xs text-slate-500 truncate"></p></div></div>
-                    <div class="relative bg-white p-3 pt-6 rounded-lg shadow text-center border-2 border-indigo-500"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.monthly}</div> <p id="consumo-kpi-monthly-consumption-${type}" class="text-2xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Cons. Mensual</p></div>
+                    <div class="relative bg-white p-2 rounded-lg shadow text-center border-2 border-indigo-500 flex flex-col justify-center"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.monthly}</div> <input type="text" id="consumo-kpi-monthly-consumption-${type}" class="direct-edit-input text-center w-full bg-transparent text-2xl font-bold text-slate-900 h-9" ${notesDisabledAttr}><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Cons. Mensual</p></div>
                     <div class="relative bg-white p-3 pt-6 rounded-lg shadow text-center border-2 border-indigo-500"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.coverage}</div> <p id="consumo-kpi-coverage-today-${type}" class="text-2xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Cobertura</p></div>
                 </div>
                 <div id="consumo-chart-wrapper-${type}" class="consumo-chart-wrapper">
@@ -3468,6 +3628,15 @@
 
             const processedItem = getProcessedItems().find(i => i.id === itemId);
 
+            const modifiedBy = item.lastModifiedBy || '';
+            const modifiedAt = item.lastModifiedAt ? `el ${formatDateTime(item.lastModifiedAt)}` : '';
+
+            const modifiedIndicatorHTML = item.isModified ? `
+                <div class="tooltip-container modified-indicator">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    <span class="tooltip-text">Modificado por ${modifiedBy} ${modifiedAt}</span>
+                </div>` : '';
+
             const favoriteBtnContainer = document.getElementById(`consumo-favorite-btn-container-${type}`);
             const favoriteBtn = document.createElement('button');
             favoriteBtn.className = `favorite-btn ${item.isFavorite ? 'is-favorite' : ''}`;
@@ -3480,7 +3649,7 @@
             favoriteBtnContainer.appendChild(favoriteBtn);
 
             const nameEl = document.getElementById(`consumo-kpi-name-${type}`);
-            nameEl.textContent = item.name.replace(new RegExp(`^${item.code}\\s*`), '').toUpperCase();
+            nameEl.innerHTML = item.name.replace(new RegExp(`^${item.code}\\s*`), '').toUpperCase() + modifiedIndicatorHTML;
             nameEl.dataset.itemCode = item.code;
 
             const groupEl = document.getElementById(`consumo-kpi-group-${type}`);
@@ -3497,7 +3666,17 @@
                 copyBtn.onclick = () => handleCopyText(textToCopy, copyBtn);
             }
 
-            document.getElementById(`consumo-kpi-stock-${type}`).textContent = formatNumber(item.stock);
+            const stockInputEl = document.getElementById(`consumo-kpi-stock-${type}`);
+            stockInputEl.value = formatNumber(item.stock);
+            stockInputEl.dataset.itemId = itemId;
+            stockInputEl.dataset.field = 'stock';
+            stockInputEl.classList.toggle('modified-input', !!item.isModified);
+            
+            const consumptionInputEl = document.getElementById(`consumo-kpi-monthly-consumption-${type}`);
+            consumptionInputEl.value = formatNumber(Math.round(item.monthlyConsumption));
+            consumptionInputEl.dataset.itemId = itemId;
+            consumptionInputEl.dataset.field = 'monthlyConsumption';
+            consumptionInputEl.classList.toggle('modified-input', !!item.isModified);
             
             const allConsumos = item.consumos || [];
             const selectedMonths = appSettings.consumptionMonths || Array(12).fill(true);
@@ -3530,26 +3709,24 @@
             if(peakMonthEl) {
                peakMonthEl.textContent = peakMonths.join(', ');
             }
-            document.getElementById(`consumo-kpi-monthly-consumption-${type}`).textContent = formatNumber(Math.round(item.monthlyConsumption));
+            
             document.getElementById(`consumo-kpi-coverage-today-${type}`).textContent = (processedItem.coverageDays === Infinity) ? '∞' : Math.round(processedItem.coverageDays);
             
             const notesTextarea = document.getElementById(`consumo-description-notes-${type}`);
             notesTextarea.value = item.description_notes || '';
-            notesTextarea.disabled = currentUserRole === 'viewer';
             notesTextarea.dataset.itemId = itemId;
             
             const chartWrapper = document.getElementById(`consumo-chart-wrapper-${type}`);
             if (!consumos || consumos.length === 0) {
                 chartWrapper.innerHTML = '<p class="text-slate-500 m-auto">Este producto no tiene historial de consumo.</p>';
             } else {
-                const getNiceMaxValue = (max) => { if (max <= 0) return 10; const power = Math.floor(Math.log10(max)); const magnitude = Math.pow(10, power); return Math.ceil(max / magnitude) * magnitude; };
                 
                 const nonZeroConsumos = consumos.filter(c => c > 0);
                 const minValue = nonZeroConsumos.length > 0 ? Math.min(...nonZeroConsumos) : 0;
                 const peakConsumption = Math.max(...consumos, item.monthlyConsumption);
                 const uniqueValues = [...new Set(nonZeroConsumos)];
                 
-                const maxValue = getNiceMaxValue(peakConsumption);
+                const maxValue = peakConsumption > 0 ? peakConsumption : 10;
                 const yAxisLabels = [0, maxValue * 0.25, maxValue * 0.5, maxValue * 0.75, maxValue];
                 let yAxisHtml = '<div class="consumo-y-axis">';
                 yAxisLabels.reverse().forEach(label => { yAxisHtml += `<span>${formatNumber(Math.round(label))}</span>`; });
@@ -3560,12 +3737,13 @@
 
                 if (item.monthlyConsumption > 0 && maxValue > 0) {
                     const projectedLinePosition = Math.min((item.monthlyConsumption / maxValue) * 100, 100);
-                    barsHtml += `<div class="consumo-chart-projected-line" style="bottom: ${projectedLinePosition}%;"><span class="consumo-chart-projected-label">${formatNumber(Math.round(item.monthlyConsumption))}</span></div>`;
+                    // Usamos calc() para un ajuste preciso de 1px (la mitad del grosor del borde) y eliminamos el transform que causaba problemas.
+                    barsHtml += `<div class="consumo-chart-projected-line" style="bottom: calc(${projectedLinePosition}% - 1px);"><span class="consumo-chart-projected-label">${formatNumber(Math.round(item.monthlyConsumption))}</span></div>`;
                 }
 
                 barsHtml += consumos.map((value, index) => {
                     const barHeight = maxValue > 0 ? (value / maxValue) * 100 : 0;
-                    const displayValue = value > 5000 ? (value/1000).toFixed(0) + 'k' : formatNumber(value);
+                    const displayValue = value > 9999 ? (value/1000).toFixed(0) + 'k' : formatNumber(Math.round(value));
                     
                     let barClass = 'bg-indigo-500'; // Azul por defecto
                     if (value > 0 && uniqueValues.length > 1) {
@@ -3573,7 +3751,9 @@
                         else if (value === minValue) barClass = 'bg-red-600'; // Rojo más intenso pero apagado
                     }
 
-                    return `<div class="consumo-chart-bar-wrapper"><div class="consumo-chart-bar ${barClass}" style="height: ${barHeight}%;"><div class="consumo-chart-value">${displayValue}</div></div><div class="consumo-chart-label">${monthLabels[index]}</div></div>`;
+                    const exactValueTitle = `${formatNumber(Math.round(value))}`;
+
+                    return `<div class="consumo-chart-bar-wrapper" title="${exactValueTitle}"><div class="consumo-chart-bar ${barClass}" style="height: ${barHeight}%;"><div class="consumo-chart-value">${displayValue}</div></div><div class="consumo-chart-label">${monthLabels[index]}</div></div>`;
                 }).join('');
                 barsHtml += '</div>';
                 chartWrapper.innerHTML = yAxisHtml + barsHtml;
@@ -3582,7 +3762,7 @@
             const solpedsContainer = document.getElementById(`consumo-solpeds-container-${type}`);
             const ocsContainer = document.getElementById(`consumo-ocs-container-${type}`);
 
-            let itemSolpeds = solpeds.filter(s => s.cod == item.code);
+            let itemSolpeds = solpeds.filter(s => String(s.cod).trim() == String(item.code).trim());
             itemSolpeds.sort((a,b) => {
                 const dateA = parseDateString(a.fechaLiberacion);
                 const dateB = parseDateString(b.fechaLiberacion);
@@ -3612,7 +3792,7 @@
             }
             solpedsContainer.innerHTML = solpedsTableHTML;
 
-            let itemOCs = ocs.filter(oc => oc.codigo == item.code);
+            let itemOCs = ocs.filter(oc => String(oc.codigo).trim() == String(item.code).trim());
 
             itemOCs.sort((a,b) => {
                 const dateA = parseDateString(a.proxFechaEntrega);
@@ -3797,22 +3977,39 @@
 
         function handleNumericInputFormatting(e) {
             const input = e.target;
+            const allowNegative = input.id === 'sim-income-qty'; // Habilitar negativos solo para este input
+
             const cursorPosition = input.selectionStart;
             const originalLength = input.value.length;
+            const originalValue = input.value;
 
-            let value = input.value.replace(/\D/g, ''); // Eliminar no dígitos
-            
-            if (value === '') {
-                input.value = '';
+            // 1. Extraer el signo y los dígitos
+            let sign = '';
+            if (allowNegative && originalValue.trim().startsWith('-')) {
+                sign = '-';
+            }
+            const digits = originalValue.replace(/[^\d]/g, '');
+
+            // 2. Si no hay dígitos, limpiar o mostrar solo el signo
+            if (digits === '') {
+                input.value = sign;
+                // Colocar cursor al final
+                if(sign) input.setSelectionRange(1, 1);
                 return;
             }
-
-            const formattedValue = new Intl.NumberFormat('es-AR').format(parseInt(value, 10));
             
-            input.value = formattedValue;
+            // 3. Formatear el número
+            const numericValue = parseInt(digits, 10);
+            const formattedNumber = new Intl.NumberFormat('es-AR').format(numericValue);
+            
+            const finalValue = sign + formattedNumber;
 
+            // 4. Actualizar el input y la posición del cursor
+            input.value = finalValue;
             const newLength = input.value.length;
-            const newCursorPosition = cursorPosition + (newLength - originalLength);
+            // Ajustar el cursor de manera más predecible
+            const diff = newLength - originalLength;
+            const newCursorPosition = Math.max(0, cursorPosition + diff);
             input.setSelectionRange(newCursorPosition, newCursorPosition);
         }
 
@@ -4306,8 +4503,8 @@
             const quantity = parseInt(String(qtyInput.value).replace(/\./g, ''), 10);
             const newWeekId = weekSelect.value;
 
-            if (!quantity || quantity <= 0 || !newWeekId) {
-                showToast('Por favor, ingrese una cantidad válida y seleccione una semana.', 'error');
+            if (isNaN(quantity) || quantity === 0 || !newWeekId) {
+                showToast('Por favor, ingrese una cantidad válida (distinta de cero) y seleccione una semana.', 'error');
                 return;
             }
             
@@ -5096,199 +5293,13 @@
             exportToExcel(formattedData, filename);
         }
 
-        function handleExportPeakConsumptionReport() {
-             const searchInput = document.getElementById('peak-consumption-search-input');
-            const searchTerm = searchInput.value.toLowerCase();
-
-            let peakItems = getProcessedItems().filter(item => {
-                if (!item.consumos || item.consumos.length < 12) return false;
-                const previousMonthConsumption = item.consumos[10];
-                if (previousMonthConsumption <= 0) return false;
-                const peakInHistory = Math.max(...item.consumos);
-                return previousMonthConsumption === peakInHistory;
-            }).map(item => ({
-                ...item,
-                peakConsumption: item.consumos[10],
-                currentConsumption: item.consumos[11]
-            }));
-
-            if(searchTerm) {
-                 peakItems = peakItems.filter(item => 
-                    item.name.toLowerCase().includes(searchTerm) ||
-                    item.group.toLowerCase().includes(searchTerm)
-                );
-            }
-            if (peakItems.length === 0) { showToast('No hay datos para exportar.', 'info'); return; }
-
-            const formattedData = peakItems.map(item => ({
-                'Grupo': item.group,
-                'Código': item.code,
-                'Material': item.name.replace(new RegExp(`^${item.code}\\s*`), ''),
-                'Consumo Pico (Mes Anterior)': item.peakConsumption,
-                'Consumo Mes Actual': item.currentConsumption
-            }));
-            exportToExcel(formattedData, 'picos_de_consumo.xlsx');
-        }
-
-        // --- LÓGICA DE EXPORTACIÓN ---
-        function handleExportIncomingItems(startOfWeek, endOfWeek) {
-            const incomingOCs = ocs.filter(oc => {
-                const deliveryDate = parseDateString(oc.proxFechaEntrega);
-                return deliveryDate && deliveryDate >= startOfWeek && deliveryDate <= endOfWeek;
-            });
-
-            if (incomingOCs.length === 0) {
-                showToast('No hay ingresos programados para exportar.', 'info');
-                return;
-            }
-
-            const dataToExport = incomingOCs.map(oc => {
-                const item = items.find(i => i.code === oc.codigo);
-                const itemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
-                const itemGroup = extractGroupCode(oc.grupoDeArticulos || 'Sin Grupo');
-
-                return {
-                    'Fecha Entrega': formatDate(oc.proxFechaEntrega),
-                    'Grupo': itemGroup,
-                    'Material': itemName,
-                    'O/C': oc.ordenDeCompra || 'N/A',
-                    'Cantidad': oc.cantEntregaSiguiente
-                };
-            }).sort((a, b) => {
-                const dateA = a['Fecha Entrega'].split('-').reverse().join('-');
-                const dateB = b['Fecha Entrega'].split('-').reverse().join('-');
-                return new Date(dateA) - new Date(dateB);
-            });
-            
-            const weekId = getWeekId(startOfWeek);
-            const weekNumber = parseInt(weekId.split('-')[1], 10);
-            const filename = `Ingresos_Programados_Semana_${weekNumber}_${startOfWeek.getFullYear()}.xlsx`;
-            exportToExcel(dataToExport, filename);
-        }
-
-        function exportToExcel(data, filename) {
-            const worksheet = XLSX.utils.json_to_sheet(data);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Datos');
-            XLSX.writeFile(workbook, filename);
-            showToast(`Exportado a ${filename}`, 'success');
-        }
-        function handleExportSolpeds() {
-            const searchInput = document.getElementById('solpeds-search-input');
-            const searchTerm = searchInput.value.toLowerCase();
-            let dataToExport = solpeds.filter(s => 
-                (s.solicitud.toString().toLowerCase().includes(searchTerm) || 
-                 s.cod.toString().toLowerCase().includes(searchTerm) || 
-                 s.descripcion.toLowerCase().includes(searchTerm) || 
-                 s.creadoPor.toLowerCase().includes(searchTerm) ||
-                 (s.grupoDeCompras || '').toLowerCase().includes(searchTerm) ||
-                 (s.grupoDeArticulos || '').toLowerCase().includes(searchTerm))
-            );
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            if (showOnlyDelayedSolpeds) {
-                dataToExport = dataToExport.filter(s => {
-                    const releaseDate = parseDateString(s.fechaLiberacion);
-                    return releaseDate && releaseDate <= today;
-                });
-            }
-            if (solpedsSelectedGroup !== 'all') {
-                dataToExport = dataToExport.filter(s => s.grupoDeArticulos === solpedsSelectedGroup);
-            }
-            if (solpedsSelectedYear !== 'all') {
-                dataToExport = dataToExport.filter(s => s.fechaLiberacion && s.fechaLiberacion.startsWith(solpedsSelectedYear));
-                if (solpedsSelectedMonths.length > 0) {
-                    dataToExport = dataToExport.filter(s => {
-                        if (!s.fechaLiberacion) return false;
-                        const month = s.fechaLiberacion.substring(5, 7);
-                        return solpedsSelectedMonths.includes(month);
-                    });
-                }
-            }
-            if(dataToExport.length === 0) {
-                showToast('No hay datos para exportar.', 'info');
-                return;
-            }
-            const formattedData = dataToExport.map(s => ({
-                'Días Activa': s.fechaSolicitud ? daysBetween(parseDateString(s.fechaSolicitud), today) : '',
-                'Creado Por': s.creadoPor,
-                'Solicitud': s.solicitud,
-                'Fecha Solicitud': formatDate(s.fechaSolicitud),
-                'Status': s.status,
-                'Grupo Artículos': s.grupoDeArticulos || '',
-                'Código': s.cod,
-                'Descripción': s.descripcion,
-                'Cantidad': s.cantidad,
-                'Grupo Compras': s.grupoDeCompras,
-                'Fecha Liberación': formatDate(s.fechaLiberacion)
-            }));
-            const filename = `${getCurrentDateString()}_SOLPEDS.xlsx`;
-            exportToExcel(formattedData, filename);
-        }
-
-        function handleExportOCs() {
-            const searchInput = document.getElementById('ocs-search-input');
-            const searchTerm = searchInput.value.toLowerCase();
-            let dataToExport = ocs.filter(oc => 
-                (oc.solped.toString().toLowerCase().includes(searchTerm) || 
-                 oc.ordenDeCompra.toString().toLowerCase().includes(searchTerm) || 
-                 oc.codigo.toString().toLowerCase().includes(searchTerm) || 
-                 oc.denominacion.toLowerCase().includes(searchTerm) ||
-                 (oc.grupoDeArticulos || '').toLowerCase().includes(searchTerm) ||
-                 (oc.grupoDeCompras || '').toLowerCase().includes(searchTerm) ||
-                 (oc.status || '').toLowerCase().includes(searchTerm))
-            );
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            if (showOnlyDelayedOCs) {
-                dataToExport = dataToExport.filter(oc => {
-                    const deliveryDate = parseDateString(oc.proxFechaEntrega);
-                    return deliveryDate && deliveryDate < today;
-                });
-            }
-            if (ocsSelectedGroup !== 'all') {
-                dataToExport = dataToExport.filter(oc => oc.grupoDeArticulos === ocsSelectedGroup);
-            }
-            if (ocsSelectedStatus !== 'all') {
-                dataToExport = dataToExport.filter(oc => oc.status === ocsSelectedStatus);
-            }
-            if (ocsSelectedYear !== 'all') {
-                dataToExport = dataToExport.filter(oc => oc.proxFechaEntrega && oc.proxFechaEntrega.startsWith(ocsSelectedYear));
-                if (ocsSelectedMonths.length > 0) {
-                    dataToExport = dataToExport.filter(oc => {
-                        if (!oc.proxFechaEntrega) return false;
-                        const month = oc.proxFechaEntrega.substring(5, 7);
-                        return ocsSelectedMonths.includes(month);
-                    });
-                }
-            }
-            if(dataToExport.length === 0) {
-                showToast('No hay datos para exportar.', 'info');
-                return;
-            }
-            const formattedData = dataToExport.map(oc => ({
-                'Días Para Entrega': oc.proxFechaEntrega ? daysBetween(today, parseDateString(oc.proxFechaEntrega)) : '',
-                'Solped': oc.solped,
-                'O/C': oc.ordenDeCompra,
-                'Posición': oc.posicion,
-                'Próxima Entrega': formatDate(oc.proxFechaEntrega),
-                'Grupo Artículos': oc.grupoDeArticulos,
-                'Código': oc.codigo,
-                'Denominación': oc.denominacion,
-                'Cant. Entrega': oc.cantEntregaSiguiente,
-                'Grupo Compras': extractGroupCode(oc.grupoDeCompras),
-                'Status': oc.status
-            }));
-            const filename = `${getCurrentDateString()}_OC.xlsx`;
-            exportToExcel(formattedData, filename);
-        }
-        
         function handleExportIndice() {
-            let filteredItems = getProcessedItems();
             const { red, yellow } = appSettings.coverageThresholds;
+            let filteredItems = getProcessedItems();
 
+            // Re-apply filters
             if (indiceCoverageFilter !== 'all') {
-                 filteredItems = filteredItems.filter(item => {
+                filteredItems = filteredItems.filter(item => {
                     const days = item.coverageDays;
                     if (indiceCoverageFilter === 'red') return days < red;
                     if (indiceCoverageFilter === 'yellow') return days >= red && days <= yellow;
@@ -5316,18 +5327,173 @@
                 showToast('No hay datos para exportar.', 'info');
                 return;
             }
-
+            
             const formattedData = filteredItems.map(item => ({
-                'Favorito': item.isFavorite ? 'X' : '',
                 'Grupo': item.group,
                 'Código': item.code,
                 'Material': item.name.replace(new RegExp(`^${item.code}\\s*`), ''),
                 'Stock Actual': item.stock,
                 'Consumo Mensual': item.monthlyConsumption,
-                'Cobertura (Días)': item.coverageDays === Infinity ? 'N/A' : Math.round(item.coverageDays),
+                'Cobertura (Días)': item.coverageDays === Infinity ? '∞' : Math.round(item.coverageDays),
+                'Favorito': item.isFavorite ? 'Sí' : 'No',
                 'Notas': item.description_notes || ''
             }));
-            const filename = `${getCurrentDateString()}_Insumos.xlsx`;
+            
+            const filename = `${getCurrentDateString()}_Reporte_Insumos.xlsx`;
+            exportToExcel(formattedData, filename);
+        }
+
+        function handleExportSolpeds() {
+            let filteredSolpeds = solpeds;
+            const searchTerm = document.getElementById('solpeds-search-input').value.toLowerCase();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Re-apply filters
+            if (searchTerm) {
+                const searchWords = searchTerm.toLowerCase().split(' ').filter(Boolean);
+                filteredSolpeds = filteredSolpeds.filter(s => {
+                    const searchableText = [
+                        s.solicitud, s.cod, s.descripcion, s.creadoPor, s.grupoDeCompras, s.grupoDeArticulos
+                    ].join(' ').toLowerCase();
+                    return searchWords.every(word => searchableText.includes(word));
+                });
+            }
+            if (showOnlyDelayedSolpeds) {
+                filteredSolpeds = filteredSolpeds.filter(s => {
+                    const releaseDate = parseDateString(s.fechaLiberacion);
+                    return releaseDate && releaseDate <= today;
+                });
+            }
+            if (solpedsSelectedGroup !== 'all') {
+                filteredSolpeds = filteredSolpeds.filter(s => s.grupoDeArticulos === solpedsSelectedGroup);
+            }
+            if (solpedsSelectedYear !== 'all') {
+                filteredSolpeds = filteredSolpeds.filter(s => s.fechaLiberacion && s.fechaLiberacion.startsWith(solpedsSelectedYear));
+                if (solpedsSelectedMonths.length > 0) {
+                    filteredSolpeds = filteredSolpeds.filter(s => {
+                        if (!s.fechaLiberacion) return false;
+                        const month = s.fechaLiberacion.substring(5, 7);
+                        return solpedsSelectedMonths.includes(month);
+                    });
+                }
+            }
+
+            if (filteredSolpeds.length === 0) {
+                showToast('No hay datos para exportar.', 'info');
+                return;
+            }
+
+            const formattedData = filteredSolpeds.map(s => ({
+                'Solicitud': s.solicitud,
+                'Código': s.cod,
+                'Descripción': s.descripcion,
+                'Cantidad': s.cantidad,
+                'Fecha Solicitud': formatDate(s.fechaSolicitud),
+                'Creado Por': s.creadoPor,
+                'Status': s.status,
+                'Fecha Liberación': formatDate(s.fechaLiberacion),
+                'Grupo Compras': s.grupoDeCompras,
+                'Grupo Artículos': s.grupoDeArticulos
+            }));
+            
+            const filename = `${getCurrentDateString()}_Reporte_Solpeds.xlsx`;
+            exportToExcel(formattedData, filename);
+        }
+        
+        function handleExportOCs() {
+            let filteredOCs = ocs;
+            const searchTerm = document.getElementById('ocs-search-input').value.toLowerCase();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Re-apply filters
+             if (searchTerm) {
+                const searchWords = searchTerm.toLowerCase().split(' ').filter(Boolean);
+                filteredOCs = filteredOCs.filter(oc => {
+                    const searchableText = [
+                        oc.solped, oc.ordenDeCompra, oc.codigo, oc.denominacion, oc.grupoDeArticulos, oc.grupoDeCompras, oc.status
+                    ].join(' ').toLowerCase();
+                    return searchWords.every(word => searchableText.includes(word));
+                });
+            }
+            if (showOnlyDelayedOCs) {
+                filteredOCs = filteredOCs.filter(oc => {
+                    const deliveryDate = parseDateString(oc.proxFechaEntrega);
+                    return deliveryDate && deliveryDate < today;
+                });
+            }
+            if (ocsSelectedGroup !== 'all') {
+                filteredOCs = filteredOCs.filter(oc => extractGroupCodeAbbr(oc.grupoDeArticulos) === ocsSelectedGroup);
+            }
+            if (ocsSelectedStatus !== 'all') {
+                filteredOCs = filteredOCs.filter(oc => transformOCStatus(oc.status) === ocsSelectedStatus);
+            }
+            if (ocsSelectedYear !== 'all') {
+                filteredOCs = filteredOCs.filter(oc => oc.proxFechaEntrega && oc.proxFechaEntrega.startsWith(ocsSelectedYear));
+                if (ocsSelectedMonths.length > 0) {
+                    filteredOCs = filteredOCs.filter(oc => {
+                        if (!oc.proxFechaEntrega) return false;
+                        const month = oc.proxFechaEntrega.substring(5, 7);
+                        return ocsSelectedMonths.includes(month);
+                    });
+                }
+            }
+
+            if (filteredOCs.length === 0) {
+                showToast('No hay datos para exportar.', 'info');
+                return;
+            }
+            
+            const formattedData = filteredOCs.map(oc => ({
+                'Solped': oc.solped,
+                'Orden de Compra': oc.ordenDeCompra,
+                'Posición': oc.posicion,
+                'Próxima Entrega': formatDate(oc.proxFechaEntrega),
+                'Cantidad Entrega': oc.cantEntregaSiguiente,
+                'Código': oc.codigo,
+                'Denominación': oc.denominacion,
+                'Grupo Artículos': oc.grupoDeArticulos,
+                'Grupo Compras': oc.grupoDeCompras,
+                'Status': transformOCStatus(oc.status)
+            }));
+            
+            const filename = `${getCurrentDateString()}_Reporte_OCs.xlsx`;
+            exportToExcel(formattedData, filename);
+        }
+
+        function handleExportRecordConsumption() {
+            const recordConsumptionItems = getProcessedItems(true).filter(item => {
+                if (item.consumos && item.consumos.length > 1) {
+                    const currentMonthConsumption = item.consumos[item.consumos.length - 1];
+                    const historicalConsumptions = item.consumos.slice(0, -1);
+                    if (historicalConsumptions.length > 0) {
+                        const peakHistoricalConsumption = Math.max(...historicalConsumptions);
+                        return currentMonthConsumption > peakHistoricalConsumption;
+                    }
+                }
+                return false;
+            });
+
+            if (recordConsumptionItems.length === 0) {
+                showToast('No hay datos para exportar.', 'info');
+                return;
+            }
+
+            const formattedData = recordConsumptionItems.map(item => {
+                const historicalConsumptions = item.consumos.slice(0, -1);
+                const peakHistoricalConsumption = historicalConsumptions.length > 0 ? Math.max(...historicalConsumptions) : 0;
+                return {
+                    'Grupo': item.group,
+                    'Código': item.code,
+                    'Material': item.name.replace(new RegExp(`^${item.code}\\s*`), ''),
+                    'Consumo Mes Actual': item.consumos[item.consumos.length - 1],
+                    'Pico Histórico': peakHistoricalConsumption,
+                    'Favorito': item.isFavorite ? 'Sí' : 'No'
+                };
+            });
+            
+            const filename = `${getCurrentDateString()}_Reporte_Consumo_Record.xlsx`;
             exportToExcel(formattedData, filename);
         }
 
@@ -5593,6 +5759,18 @@
             document.getElementById('manual-button-dropdown')?.addEventListener('click', () => document.getElementById('manual-modal').classList.remove('hidden'));
             document.getElementById('close-manual-modal-button')?.addEventListener('click', () => document.getElementById('manual-modal').classList.add('hidden'));
 
+            document.getElementById('manual-modal')?.addEventListener('click', (e) => {
+                const header = e.target.closest('.accordion-header');
+                if (header) {
+                    const content = header.nextElementSibling;
+                    const chevron = header.querySelector('.accordion-chevron');
+                    if (content && chevron) {
+                        content.classList.toggle('hidden');
+                        chevron.classList.toggle('rotate-180');
+                    }
+                }
+            });
+
             document.getElementById('notification-bell-btn')?.addEventListener('click', (e) => {
                 e.stopPropagation();
                 document.getElementById('notification-dropdown').classList.toggle('show');
@@ -5612,7 +5790,28 @@
                     handleKpiClick(kpiCard.dataset.kpi);
                     return;
                 }
+
+                // Handler for clicking on items within KPI detail views (Favorites, Record Consumption) or Critical Items list
+                const detailItem = e.target.closest('.kpi-detail-item-row, .low-stock-item-details');
+                if (detailItem && detailItem.dataset.itemId) {
+                    selectedConsumptionItemId = detailItem.dataset.itemId;
+                    comparisonItemId = null;
+                    switchMainView('consumos');
+                    return;
+                }
                 
+                // Handler for favorite button in critical items list
+                const favBtn = e.target.closest('.favorite-btn[data-btn-type="low-stock-fav"]');
+                if (favBtn) {
+                    handleToggleFavorite(favBtn.dataset.itemId);
+                    return;
+                }
+                
+                if (e.target.closest('#export-record-consumption-btn')) {
+                    handleExportRecordConsumption();
+                    return;
+                }
+
                 const incomingItemRow = e.target.closest('.incoming-item-row');
                 if (incomingItemRow && incomingItemRow.dataset.itemId) {
                     selectedConsumptionItemId = incomingItemRow.dataset.itemId;
@@ -5621,395 +5820,87 @@
                     return;
                 }
 
-                const recordGroupHeader = e.target.closest('.record-consumption-group-header');
-                if (recordGroupHeader) {
-                    const groupName = recordGroupHeader.dataset.groupName;
-                    const listContainer = document.querySelector(`.record-consumption-item-list[data-group-list="${groupName}"]`);
-                    const chevron = recordGroupHeader.querySelector('.record-consumption-chevron');
-                    if (listContainer && chevron) {
-                        listContainer.classList.toggle('hidden');
+                const recordConsumptionHeader = e.target.closest('.record-consumption-group-header');
+                if (recordConsumptionHeader) {
+                    const groupName = recordConsumptionHeader.dataset.groupName;
+                    const content = document.querySelector(`.record-consumption-item-list[data-group-list="${groupName}"]`);
+                    const chevron = recordConsumptionHeader.querySelector('.record-consumption-chevron');
+                    if (content && chevron) {
+                        content.classList.toggle('hidden');
                         chevron.classList.toggle('rotate-180');
                     }
                     return;
                 }
-
-                const groupItem = e.target.closest('.group-item-name');
-                if (groupItem) {
-                    const groupName = groupItem.dataset.groupName;
-                    indiceSelectedGroup = groupName;
-                    switchMainView('indice');
-                }
-
-                const criticalItemDetails = e.target.closest('.low-stock-item-details');
-                if (criticalItemDetails) {
-                    const itemId = criticalItemDetails.dataset.itemId;
-                    selectedConsumptionItemId = itemId;
-                    comparisonItemId = null;
-                    switchMainView('consumos');
-                }
-
-                if (e.target.id === 'low-stock-favorites-filter-btn') {
-                    showOnlyFavoriteCriticals = !showOnlyFavoriteCriticals;
-                    renderCriticalItemsTable();
-                }
-
-                const favBtn = e.target.closest('.favorite-btn[data-btn-type="low-stock-fav"]');
-                if(favBtn) {
-                    e.stopPropagation();
-                    handleToggleFavorite(favBtn.dataset.itemId);
-                }
-                
-                if (e.target.closest('#close-kpi-detail-btn')) {
-                    closeKpiDetailView();
-                }
-
-                const itemRow = e.target.closest('.kpi-detail-item-row');
-                if (itemRow) {
-                    const itemId = itemRow.dataset.itemId;
-                    selectedConsumptionItemId = itemId;
-                    comparisonItemId = null;
-                    switchMainView('consumos');
-                }
-
-                const groupRow = e.target.closest('.kpi-detail-group-row');
-                if (groupRow) {
-                    const groupName = groupRow.dataset.groupName;
-                    indiceSelectedGroup = groupName;
-                    indiceFavoriteFilter = 'all';
-                    indiceCoverageFilter = 'all';
-                    indiceSearchTerm = '';
-                    switchMainView('indice');
-                }
-
-                const solpedRow = e.target.closest('.kpi-detail-solped-row');
-                if(solpedRow) {
-                    const groupName = solpedRow.dataset.groupCompras;
-                    document.getElementById('solpeds-search-input').value = groupName === 'Sin Grupo' ? '' : groupName;
-                    showOnlyDelayedSolpeds = true;
-                    solpedsSelectedGroup = 'all';
-                    solpedsSelectedYear = 'all';
-                    solpedsSelectedMonths = [];
-                    switchMainView('solpeds');
-                }
-
-                const ocRow = e.target.closest('.kpi-detail-oc-row');
-                if(ocRow) {
-                    const groupName = ocRow.dataset.groupCompras;
-                    document.getElementById('ocs-search-input').value = groupName === 'Sin Grupo' ? '' : groupName;
-                    showOnlyDelayedOCs = true;
-                    ocsSelectedGroup = 'all';
-                    ocsSelectedStatus = 'all';
-                    ocsSelectedYear = 'all';
-                    ocsSelectedMonths = [];
-                    switchMainView('ocs');
-                }
             });
 
-             document.getElementById('dashboard-view')?.addEventListener('input', (e) => {
-                if (e.target.id === 'low-stock-search') {
-                    renderCriticalItemsTable();
-                }
-            });
-
-             document.getElementById('dashboard-view')?.addEventListener('change', (e) => {
-                if (e.target.id === 'low-stock-group-filter') {
-                    criticalsSelectedGroup = e.target.value;
-                    renderCriticalItemsTable();
-                }
-            });
-
-            document.getElementById('save-review-btn')?.addEventListener('click', handleSaveReview);
-            document.getElementById('clear-review-btn')?.addEventListener('click', handleClearReview);
-            document.getElementById('groups-review-list')?.addEventListener('change', handleReviewCheckboxChange);
-            
-            document.getElementById('revision-view')?.addEventListener('input', (e) => {
-                if(e.target.id === 'history-search-input') { renderHistoryView(); }
-                if(e.target.matches('.review-notes-input')) { 
-                    handleReviewNotesInput(e); 
-                    syncReviewRowHeights();
-                }
-            });
-            document.getElementById('revision-view')?.addEventListener('click', (e) => {
-                if(e.target.closest('#export-history-btn')) { 
-                    handleExportHistory(); 
-                    return;
-                }
-                
-                const groupItemName = e.target.closest('.group-item-name');
-                if (groupItemName) {
-                    const groupName = groupItemName.dataset.groupName;
-                    indiceSelectedGroup = groupName;
-                    indiceFavoriteFilter = 'all';
-                    indiceCoverageFilter = 'all';
-                    indiceSearchTerm = '';
-                    switchMainView('indice');
-                }
-            });
-
-            document.getElementById('indice-view').addEventListener('input', (e) => {
-                if(e.target.id === 'indice-search-input') {
-                    indiceSearchTerm = e.target.value.toLowerCase();
-                    renderIndiceView();
-                }
-                if(e.target.classList.contains('notes-input-indice')) {
-                    handleNotesInput(e);
-                }
-            });
-             document.getElementById('indice-view').addEventListener('change', (e) => {
-                if(e.target.id === 'indice-group-filter') {
-                    indiceSelectedGroup = e.target.value;
-                    renderIndiceView();
-                }
-            });
-            document.getElementById('indice-view').addEventListener('click', (e) => {
-                const sortBtn = e.target.closest('.table-sort-button');
-                if (sortBtn) {
-                    const key = sortBtn.dataset.sort;
-                    if (indiceSortConfig.key === key) {
-                        indiceSortConfig.direction = indiceSortConfig.direction === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        indiceSortConfig.key = key;
-                        indiceSortConfig.direction = 'asc';
-                    }
-                    renderIndiceView();
-                }
-                const coverageBtn = e.target.closest('#indice-coverage-filter-buttons button');
-                if (coverageBtn) {
-                    indiceCoverageFilter = coverageBtn.dataset.filter;
-                    renderIndiceView();
-                }
-                if (e.target.closest('#export-indice-btn')) {
-                    handleExportIndice();
-                }
-                const favoritesHeaderBtn = e.target.closest('#indice-favorites-header-filter-btn');
-                if (favoritesHeaderBtn) {
-                    if (indiceFavoriteFilter === 'all') {
-                        indiceFavoriteFilter = 'favorites';
-                    } else if (indiceFavoriteFilter === 'favorites') {
-                        indiceFavoriteFilter = 'non-favorites';
-                    } else { // 'non-favorites'
-                        indiceFavoriteFilter = 'all';
-                    }
-                    renderIndiceView();
-                }
-                if (e.target.closest('#indice-clear-filters-btn')) {
-                    handleClearIndiceFilters();
-                }
-                const favBtn = e.target.closest('.favorite-btn[data-btn-type="indice-fav"]');
-                if(favBtn) {
-                    e.stopPropagation();
-                    handleToggleFavorite(favBtn.dataset.itemId);
-                }
-                const row = e.target.closest('.indice-item-details');
-                if(row) {
-                    const itemId = row.dataset.itemId;
-                    selectedConsumptionItemId = itemId;
-                    comparisonItemId = null;
-                    switchMainView('consumos');
-                }
-                const deleteBtn = e.target.closest('.delete-item-btn');
-                if (deleteBtn) {
-                    e.stopPropagation();
-                    const itemId = deleteBtn.dataset.itemId;
-                    const itemName = deleteBtn.dataset.itemName;
-                    handleDeleteItem(itemId, itemName);
-                }
-            });
-
-            document.getElementById('consumos-view').addEventListener('input', (e) => {
-                 if (e.target.matches('#consumo-search-input')) handleConsumosSearch(e, 'primary');
-                 if (e.target.matches('#consumo-comparison-search-input')) handleConsumosSearch(e, 'comparison');
-                 if (e.target.matches('[id^="consumo-description-notes-"]')) handleNotesInput(e);
-            });
+            // --- Consumos View Listeners ---
             document.getElementById('consumos-view')?.addEventListener('click', (e) => {
-                if(e.target.closest('#show-simulation-btn')) {
-                    if (currentUserRole !== 'owner' && currentUserRole !== 'editor') {
-                        showToast('No tienes permiso para simular.', 'error');
-                        return;
-                    }
-                    isSimulationModeActive = true;
-                    // Ensure comparison item is cleared to show simulation
-                    comparisonItemId = null;
-                    const comparisonSearchInput = document.getElementById('consumo-comparison-search-input');
-                    const comparisonClearTextBtn = document.getElementById('consumo-comparison-clear-text-btn');
-                    if(comparisonSearchInput) comparisonSearchInput.value = '';
-                    if(comparisonClearTextBtn) comparisonClearTextBtn.classList.add('hidden');
-                    
-                    renderSingleConsumoPanel(null, 'comparison');
-                    return;
-                }
-
-                if(e.target.closest('#consumo-search-results')) handleSelectConsumosItem(e);
-                if(e.target.closest('#consumo-comparison-search-results')) handleSelectConsumosItem(e);
-                
-                const favFilterBtn = e.target.closest('#consumo-favorites-filter-btn, #consumo-comparison-favorites-filter-btn');
-                if (favFilterBtn) {
-                    handleConsumosFavoritesToggle(favFilterBtn);
-                    return;
-                }
-
+                const searchResult = e.target.closest('#consumo-search-results > div, #consumo-comparison-search-results > div');
+                const favoritesFilterBtn = e.target.closest('#consumo-favorites-filter-btn, #consumo-comparison-favorites-filter-btn');
+                const panelFavoriteBtn = e.target.closest('.favorite-btn[data-item-id]');
                 const clearPrimaryBtn = e.target.closest('#consumo-clear-primary-btn');
-                if (clearPrimaryBtn) {
-                    handleClearConsumoPanel('primary');
-                    return;
-                }
                 const clearComparisonBtn = e.target.closest('#consumo-clear-comparison-btn');
-                if (clearComparisonBtn) {
-                    handleClearConsumoPanel('comparison');
-                    return;
-                }
-
                 const clearTextBtn = e.target.closest('#consumo-clear-text-btn');
-                if(clearTextBtn) {
-                    const searchInput = document.getElementById('consumo-search-input');
-                    searchInput.value = '';
-                    selectedConsumptionItemId = null;
-                    renderSingleConsumoPanel(null, 'primary');
-                    handleConsumosSearch({ target: searchInput }, 'primary');
-                    searchInput.focus();
-                    return;
-                }
-
                 const clearComparisonTextBtn = e.target.closest('#consumo-comparison-clear-text-btn');
-                if(clearComparisonTextBtn) {
-                    const searchInput = document.getElementById('consumo-comparison-search-input');
-                    searchInput.value = '';
-                    comparisonItemId = null;
-                    renderSingleConsumoPanel(null, 'comparison');
-                    handleConsumosSearch({ target: searchInput }, 'comparison');
-                    searchInput.focus();
-                    return;
-                }
-
                 const nameLink = e.target.closest('.consumo-name-link');
-                if (nameLink && nameLink.dataset.itemCode) {
+                const groupLink = e.target.closest('.consumo-group-link');
+                const solpedLink = e.target.closest('.consumo-solped-link');
+                const ocLink = e.target.closest('.consumo-oc-link');
+                const simulationBtn = e.target.closest('#show-simulation-btn');
+
+                if (searchResult) { handleSelectConsumosItem(e); }
+                else if (favoritesFilterBtn) { handleConsumosFavoritesToggle(favoritesFilterBtn); }
+                else if (panelFavoriteBtn) { handleToggleFavorite(panelFavoriteBtn.dataset.itemId); }
+                else if (clearPrimaryBtn) { handleClearConsumoPanel('primary'); }
+                else if (clearComparisonBtn) { handleClearConsumoPanel('comparison'); }
+                else if (clearTextBtn) { handleSelectConsumosItem({ target: { dataset: { itemId: null, type: 'primary' }, textContent: '' } }); }
+                else if (clearComparisonTextBtn) { handleSelectConsumosItem({ target: { dataset: { itemId: null, type: 'comparison' }, textContent: '' } }); }
+                else if (nameLink && nameLink.dataset.itemCode) {
                     indiceSearchTerm = nameLink.dataset.itemCode;
                     indiceSelectedGroup = 'all';
                     indiceFavoriteFilter = 'all';
                     indiceCoverageFilter = 'all';
                     switchMainView('indice');
-                    return;
                 }
-
-                const groupLink = e.target.closest('.consumo-group-link');
-                if (groupLink && groupLink.dataset.groupName) {
+                else if (groupLink && groupLink.dataset.groupName) {
                     indiceSelectedGroup = groupLink.dataset.groupName;
                     indiceSearchTerm = '';
                     indiceFavoriteFilter = 'all';
                     indiceCoverageFilter = 'all';
                     switchMainView('indice');
-                    return;
                 }
-
-                const favBtn = e.target.closest('.favorite-btn[data-item-id]');
-                if (favBtn) {
-                    handleToggleFavorite(favBtn.dataset.itemId);
+                else if (solpedLink && solpedLink.dataset.solpedId) {
+                    handleClearSolpedsFilters();
+                    document.getElementById('solpeds-search-input').value = solpedLink.dataset.solpedId;
+                    switchMainView('solpeds');
                 }
-                const solpedLink = e.target.closest('.consumo-solped-link');
-                if (solpedLink) {
-                    const solpedId = solpedLink.dataset.solpedId;
-                    if (solpedId) {
-                        switchMainView('solpeds');
-                        document.getElementById('solpeds-search-input').value = solpedId;
-                        renderSolpedsView();
-                    }
+                else if (ocLink && ocLink.dataset.ocId) {
+                    handleClearOCsFilters();
+                    document.getElementById('ocs-search-input').value = ocLink.dataset.ocId;
+                    switchMainView('ocs');
                 }
-                const ocLink = e.target.closest('.consumo-oc-link');
-                if (ocLink) {
-                    const ocId = ocLink.dataset.ocId;
-                    if (ocId) {
-                        switchMainView('ocs');
-                        document.getElementById('ocs-search-input').value = ocId;
-                        renderOCsView();
-                    }
-                }
-            });
-            document.getElementById('consumos-view').addEventListener('change', (e) => { if (e.target.matches('.consumo-group-filter')) { handleConsumosFilterChange(e); } });
-
-            document.getElementById('ingresos-view')?.addEventListener('change', (e) => {
-                if (e.target.id === 'ingresos-group-filter') {
-                    ingresosSelectedGroup = e.target.value;
-                    if (currentIngresosWeek.start && currentIngresosWeek.end) {
-                        renderIncomingItemsForWeek(currentIngresosWeek.start, currentIngresosWeek.end, true);
-                    }
-                }
-            });
-
-            document.getElementById('ingresos-view')?.addEventListener('input', (e) => {
-                if (e.target.id === 'ingresos-search-input') {
-                    ingresosSearchTerm = e.target.value;
-                    if (currentIngresosWeek.start && currentIngresosWeek.end) {
-                        renderIncomingItemsForWeek(currentIngresosWeek.start, currentIngresosWeek.end, false);
-                    }
-                }
-            });
-
-            document.getElementById('ingresos-view')?.addEventListener('click', (e) => {
-                // Month navigation
-                if (e.target.closest('#calendar-prev-month')) {
-                    calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() - 1);
-                    renderMonthlyCalendar(calendarCurrentDate);
-                    return;
-                }
-                if (e.target.closest('#calendar-next-month')) {
-                    calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + 1);
-                    renderMonthlyCalendar(calendarCurrentDate);
-                    return;
-                }
-
-                if (e.target.closest('#calendar-today-btn')) {
-                    goToCurrentWeek();
-                    return;
-                }
-
-                // KPI Card Click
-                const kpiCard = e.target.closest('.ingresos-kpi-card');
-                if (kpiCard) {
-                    const groupName = kpiCard.dataset.groupName;
-                    if (groupName) {
-                        // Toggle functionality: if clicking the same group, deselect it.
-                        ingresosSelectedGroup = ingresosSelectedGroup === groupName ? 'all' : groupName;
-                        if (currentIngresosWeek.start && currentIngresosWeek.end) {
-                            renderIncomingItemsForWeek(currentIngresosWeek.start, currentIngresosWeek.end, true);
-                        }
-                    }
-                    return;
-                }
-
-                // Week selection
-                const dayCell = e.target.closest('.calendar-day');
-                if (dayCell && dayCell.dataset.weekId) {
-                    const weekId = dayCell.dataset.weekId;
-                    
-                    document.querySelectorAll('.calendar-week-row.selected-week').forEach(row => row.classList.remove('selected-week'));
-                    document.querySelector(`.calendar-week-row[data-week-id="${weekId}"]`)?.classList.add('selected-week');
-                    
-                    const dateParts = dayCell.dataset.date.split('-').map(Number);
-                    const clickedDate = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]));
-                    const dayOfWeek = (clickedDate.getUTCDay() + 6) % 7; // Monday = 0
-                    const startOfWeek = new Date(clickedDate);
-                    startOfWeek.setUTCDate(startOfWeek.getUTCDate() - dayOfWeek);
-                    const endOfWeek = new Date(startOfWeek);
-                    endOfWeek.setUTCDate(endOfWeek.getUTCDate() + 6);
-
-                    renderIncomingItemsForWeek(startOfWeek, endOfWeek);
-                }
-                
-                // Export button
-                const headerContainer = e.target.closest('#ingresos-header-container');
-                if(headerContainer && e.target.closest('#export-incoming-items-btn')) {
-                    if (currentIngresosWeek.start && currentIngresosWeek.end) {
-                        handleExportIncomingItems(currentIngresosWeek.start, currentIngresosWeek.end);
-                    }
-                }
-
-                // Click on item to go to consumos view
-                const incomingItemRow = e.target.closest('.incoming-item-row');
-                if (incomingItemRow && incomingItemRow.dataset.itemId) {
-                    selectedConsumptionItemId = incomingItemRow.dataset.itemId;
+                else if (simulationBtn) {
+                    isSimulationModeActive = true;
                     comparisonItemId = null;
-                    switchMainView('consumos');
-                    return;
+                    const comparisonSearchInput = document.getElementById('consumo-comparison-search-input');
+                    if(comparisonSearchInput) comparisonSearchInput.value = '';
+                    const comparisonClearBtn = document.getElementById('consumo-comparison-clear-text-btn');
+                    if(comparisonClearBtn) comparisonClearBtn.classList.add('hidden');
+                    renderConsumosView();
+                }
+            });
+            document.getElementById('consumos-view')?.addEventListener('input', (e) => {
+                if (e.target.id === 'consumo-search-input') {
+                    handleConsumosSearch(e, 'primary');
+                } else if (e.target.id === 'consumo-comparison-search-input') {
+                    handleConsumosSearch(e, 'comparison');
+                } else if (e.target.matches('[id^="consumo-description-notes-"]')) {
+                    handleNotesInput(e);
+                }
+            });
+            document.getElementById('consumos-view')?.addEventListener('change', (e) => {
+                if (e.target.matches('.consumo-group-filter')) {
+                    handleConsumosFilterChange(e);
                 }
             });
 
@@ -6121,6 +6012,54 @@
                 }
             });
 
+            document.getElementById('indice-view')?.addEventListener('click', (e) => {
+                const sortBtn = e.target.closest('.table-sort-button');
+                const favBtn = e.target.closest('.favorite-btn');
+                const itemDetails = e.target.closest('.indice-item-details');
+                const exportBtn = e.target.closest('#export-indice-btn');
+                const clearFiltersBtn = e.target.closest('#indice-clear-filters-btn');
+                const favHeaderBtn = e.target.closest('#indice-favorites-header-filter-btn');
+
+                if (sortBtn) {
+                    const key = sortBtn.dataset.sort;
+                    if (indiceSortConfig.key === key) {
+                        indiceSortConfig.direction = indiceSortConfig.direction === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        indiceSortConfig.key = key;
+                        indiceSortConfig.direction = 'asc';
+                    }
+                    renderIndiceView();
+                } else if (favBtn) {
+                    handleToggleFavorite(favBtn.dataset.itemId);
+                } else if (itemDetails) {
+                    selectedConsumptionItemId = itemDetails.dataset.itemId;
+                    comparisonItemId = null;
+                    switchMainView('consumos');
+                } else if (exportBtn) {
+                    handleExportIndice();
+                } else if (clearFiltersBtn) {
+                    handleClearIndiceFilters();
+                } else if (favHeaderBtn) {
+                    if (indiceFavoriteFilter === 'all') indiceFavoriteFilter = 'favorites';
+                    else if (indiceFavoriteFilter === 'favorites') indiceFavoriteFilter = 'non-favorites';
+                    else indiceFavoriteFilter = 'all';
+                    renderIndiceView();
+                }
+            });
+            document.getElementById('indice-view')?.addEventListener('input', (e) => {
+                if (e.target.id === 'indice-search-input') {
+                    indiceSearchTerm = e.target.value;
+                    renderIndiceView();
+                } else if (e.target.matches('.notes-input-indice')) {
+                    handleNotesInput(e);
+                }
+            });
+             document.getElementById('indice-view')?.addEventListener('change', (e) => {
+                if (e.target.id === 'indice-group-filter') {
+                    indiceSelectedGroup = e.target.value;
+                    renderIndiceView();
+                }
+            });
 
             document.getElementById('dashboard-preload-btn-dropdown')?.addEventListener('click', handleOpenPreloadModal);
             document.getElementById('dashboard-clear-btn-dropdown')?.addEventListener('click', handleClearAll);
@@ -6297,6 +6236,13 @@
                 closeGlobalSearch();
             });
 
+            document.body.addEventListener('input', (e) => {
+                if (e.target.matches('.direct-edit-input')) {
+                    handleDirectEditInput(e);
+                }
+            });
+
+
             // --- Easter Egg ---
             const logoContainer = document.getElementById('logo-container');
             if (logoContainer) {
@@ -6438,6 +6384,78 @@
                     }
                 }, 1000); // Debounce for 1 second
             }
+        }
+
+        async function saveDirectItemUpdate(itemId, field, value, inputElement) {
+            if (currentUserRole === 'viewer') {
+                return;
+            }
+
+            const itemRef = doc(inventoryCollectionRef, itemId);
+            const parentCell = inputElement.parentElement;
+            let statusIndicator = parentCell.querySelector('.input-status-indicator');
+            
+            if (!statusIndicator) {
+                statusIndicator = document.createElement('span');
+                statusIndicator.className = 'input-status-indicator';
+                statusIndicator.innerHTML = `<div class="loader"></div><svg class="saved-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+                parentCell.appendChild(statusIndicator);
+            }
+
+            statusIndicator.style.display = 'block';
+            statusIndicator.classList.add('saving');
+            statusIndicator.classList.remove('saved');
+
+            try {
+                await updateDoc(itemRef, { 
+                    [field]: value, 
+                    isModified: true,
+                    lastModifiedBy: currentUserTag,
+                    lastModifiedAt: new Date().toISOString()
+                });
+                
+                statusIndicator.classList.remove('saving');
+                statusIndicator.classList.add('saved');
+
+                setTimeout(() => {
+                    statusIndicator.style.display = 'none';
+                    statusIndicator.classList.remove('saved');
+                }, 2000);
+
+            } catch (error) {
+                console.error(`Error actualizando ${field}:`, error);
+                showToast(`Error al guardar ${field}.`, 'error');
+                statusIndicator.style.display = 'none';
+            }
+        }
+
+        function handleDirectEditInput(e) {
+            const input = e.target;
+            if (input.disabled) return;
+            
+            const { itemId, field } = input.dataset;
+            const key = `${itemId}-${field}`;
+
+            if (updateDebounceTimers.has(key)) {
+                clearTimeout(updateDebounceTimers.get(key));
+            }
+            
+            handleNumericInputFormatting(e);
+
+            const timer = setTimeout(() => {
+                const rawValue = input.value;
+                const numericValue = parseInt(String(rawValue).replace(/\./g, ''), 10);
+                
+                if (!isNaN(numericValue)) {
+                    const itemInState = items.find(i => i.id === itemId);
+                    if (itemInState && itemInState[field] !== numericValue) {
+                        saveDirectItemUpdate(itemId, field, numericValue, input);
+                    }
+                }
+                updateDebounceTimers.delete(key);
+            }, 1200);
+
+            updateDebounceTimers.set(key, timer);
         }
 
         function handleReviewNotesInput(e) {
@@ -6644,97 +6662,6 @@
                 showToast('Error al generar la imagen.', 'error');
             }
         }
-
-
-        let editingItemId = null;
-
-        function handleOpenItemModal() {
-            editingItemId = null;
-            document.getElementById('item-form').reset();
-            document.getElementById('item-modal-title').textContent = 'Agregar Nuevo Insumo';
-            
-            const uniqueGroups = [...new Set(items.map(item => item.group))].sort();
-            const datalist = document.getElementById('group-datalist');
-            datalist.innerHTML = uniqueGroups.map(g => `<option value="${g}">`).join('');
-
-            document.getElementById('item-modal').classList.remove('hidden');
-        }
-
-        function handleCloseItemModal() {
-            document.getElementById('item-modal').classList.add('hidden');
-        }
-
-        async function handleSaveItem(e) {
-            e.preventDefault();
-            if (currentUserRole !== 'owner' && currentUserRole !== 'editor') {
-                showToast('No tienes permiso para realizar esta acción.', 'error');
-                return;
-            }
-
-            const group = document.getElementById('item-group').value.trim();
-            const code = document.getElementById('item-code').value.trim();
-            const name = document.getElementById('item-name').value.trim();
-            const stock = parseInt(document.getElementById('item-stock').value, 10);
-
-            if (!group || !code || !name || isNaN(stock)) {
-                showToast('Todos los campos son obligatorios.', 'error');
-                return;
-            }
-
-            if (items.some(item => item.code === code)) {
-                showToast('El código de insumo ya existe.', 'error');
-                return;
-            }
-
-            const newItem = {
-                group,
-                code,
-                name: `${code} ${name}`.toUpperCase(),
-                stock,
-                monthlyConsumption: 0,
-                delayedQuantity: 0,
-                leadTimeDays: 0,
-                safetyStockDays: 0,
-                orderQuantities: [],
-                isModified: false,
-                createdAt: new Date().toISOString(),
-                isFavorite: false,
-                description_notes: '',
-                consumos: Array(12).fill(0)
-            };
-
-            try {
-                await addDoc(inventoryCollectionRef, newItem);
-                showToast('Insumo agregado correctamente.', 'success');
-                handleCloseItemModal();
-            } catch (error) {
-                console.error("Error al agregar insumo:", error);
-                showToast('Error al agregar el insumo.', 'error');
-            }
-        }
-
-        function handleDeleteItem(itemId, itemName) {
-            if (currentUserRole !== 'owner' && currentUserRole !== 'editor') {
-                showToast('No tienes permiso para realizar esta acción.', 'error');
-                return;
-            }
-
-            document.getElementById('confirm-modal-title').textContent = 'Eliminar Insumo';
-            document.getElementById('confirm-modal-text').textContent = `¿Estás seguro de que quieres eliminar "${itemName}"? Esta acción no se puede deshacer.`;
-            document.getElementById('confirm-clear-modal').classList.remove('hidden');
-            document.getElementById('confirm-clear-button').onclick = async () => {
-                try {
-                    await deleteDoc(doc(inventoryCollectionRef, itemId));
-                    showToast('Insumo eliminado.', 'success');
-                } catch (error) {
-                    console.error("Error al eliminar insumo:", error);
-                    showToast('Error al eliminar el insumo.', 'error');
-                } finally {
-                    document.getElementById('confirm-clear-modal').classList.add('hidden');
-                }
-            };
-        }
     </script>
 </body>
 </html>
-
