@@ -359,7 +359,7 @@
             
             <div id="login-view" class="bg-white p-8 rounded-2xl shadow-lg hidden">
                 <h2 class="text-2xl font-bold text-center text-slate-800">ALMACEN</h2>
-                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v2.90 (21-09-2025)</p>
+                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v3.0 (27-09-2025)</p>
                 <form id="login-form" class="space-y-4">
                     <div>
                         <label for="login-email" class="text-sm font-medium text-slate-700">Email</label>
@@ -473,7 +473,7 @@
                                 </div>
                                 <div class="dropdown-divider"></div>
                                 <div class="px-4 py-2 text-center text-xs text-slate-400">
-                                    Versión 2.90 (21-09-2025)
+                                    Versión 3.0 (27-09-2025)
                                 </div>
                             </div>
                         </div>
@@ -3559,7 +3559,7 @@ let ingresosSearchTerm = '';
             const notesDisabledAttr = currentUserRole === 'viewer' ? 'disabled' : '';
             let notesAndSimulateSection;
             if (type === 'primary' && itemId) {
-                const canSimulate = currentUserRole === 'owner' || currentUserRole === 'editor';
+                const canSimulate = true; // Habilitado para todos los roles
                 const simulateButtonHTML = canSimulate ? `
                     <button id="show-simulation-btn" class="btn-main-style !h-8 !text-xs !bg-indigo-500 !text-white hover:!bg-indigo-600">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
@@ -3975,6 +3975,29 @@ let ingresosSearchTerm = '';
             }
         }
 
+        function handleClearSelectedItem(type) {
+            const prefix = type === 'primary' ? '' : '-comparison';
+            const searchInput = document.getElementById(`consumo${prefix}-search-input`);
+            const clearBtn = document.getElementById(`consumo${prefix}-clear-text-btn`);
+            const resultsContainer = document.getElementById(`consumo${prefix}-search-results`);
+
+            if (searchInput) searchInput.value = '';
+            if (clearBtn) clearBtn.classList.add('hidden');
+            if (resultsContainer) {
+                resultsContainer.innerHTML = '';
+                resultsContainer.classList.add('hidden');
+            }
+            
+            if (type === 'primary') {
+                selectedConsumptionItemId = null;
+            } else {
+                comparisonItemId = null;
+            }
+            
+            // Re-render only the affected panel to its initial state
+            renderSingleConsumoPanel(null, type);
+        }
+
         function handleNumericInputFormatting(e) {
             const input = e.target;
             const allowNegative = input.id === 'sim-income-qty'; // Habilitar negativos solo para este input
@@ -4068,18 +4091,23 @@ let ingresosSearchTerm = '';
                     <div class="flex-1">
                         <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">Simular Ingreso Manual</p>
                         <div class="flex gap-2 items-center">
-                            <input id="sim-income-qty" type="text" inputmode="numeric" placeholder="Ej: 500" class="flex-1 w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            <select id="sim-income-week" class="flex-1 w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold">
-                                <!-- Options will be populated dynamically -->
-                            </select>
-                            <button id="add-sim-income-btn" class="btn-main-style !h-10 !w-10 !p-0 !bg-indigo-600 !text-white hover:!bg-indigo-700 flex-shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                            </button>
+                            <input id="sim-income-name" type="text" placeholder="Nombre (Opcional)" class="w-1/3 h-10 bg-white border border-slate-300 rounded-md shadow-sm px-3 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            <input id="sim-income-qty" type="text" inputmode="numeric" placeholder="Cantidad" class="w-1/3 h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            <div class="w-1/3 flex gap-2">
+                                <select id="sim-income-week" class="flex-grow h-10 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold">
+                                    <!-- Options will be populated dynamically -->
+                                </select>
+                                <button id="add-sim-income-btn" class="btn-main-style !h-10 !w-10 !p-0 !bg-indigo-600 !text-white hover:!bg-indigo-700 flex-shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div id="simulated-incomes-list" class="mt-2 text-sm flex-shrink-0"></div>
+
+                <div id="overdue-ocs-container" class="mt-4 flex-shrink-0"></div>
 
                 <div id="simulation-results-container" class="mt-4 flex-grow overflow-y-auto">
                     <!-- Results will be injected here by runAndRenderSimulation() -->
@@ -4104,7 +4132,7 @@ let ingresosSearchTerm = '';
                     const weekNumber = parseInt(weekId.split('-')[1], 10);
                     const day = String(weekStartDate.getUTCDate()).padStart(2, '0');
                     const month = String(weekStartDate.getUTCMonth() + 1).padStart(2, '0');
-                    optionsHTML += `<option value="${weekId}">S-${weekNumber} (${day}/${month})</option>`;
+                    optionsHTML += `<option value="${weekId}">${weekNumber} (${day}/${month})</option>`;
                 }
                 weekSelect.innerHTML = optionsHTML;
             }
@@ -4193,9 +4221,10 @@ let ingresosSearchTerm = '';
                 
                 const simulatedIncomeForWeek = simulatedIncomes.find(inc => inc.weekId === weekId);
                 if (simulatedIncomeForWeek) {
+                    const displayName = simulatedIncomeForWeek.name || `SIM-${simulatedIncomeForWeek.seqNumber}`;
                     incomingSources.push({
                         type: 'manual',
-                        number: `SIM-${simulatedIncomeForWeek.seqNumber}`,
+                        number: displayName,
                         quantity: simulatedIncomeForWeek.quantity,
                         status: 'Simulacion'
                     });
@@ -4225,7 +4254,7 @@ let ingresosSearchTerm = '';
                 const month = String(weekStartDate.getUTCMonth() + 1).padStart(2, '0');
 
                 results.push({
-                    week: `S-${weekNumber} (${day}/${month})`,
+                    week: `${weekNumber} (${day}/${month})`,
                     startStock: currentStock,
                     incoming: incomingThisWeek,
                     incomingSources: incomingSources,
@@ -4243,13 +4272,63 @@ let ingresosSearchTerm = '';
             const resultsContainer = document.getElementById('simulation-results-container');
             if (!resultsContainer) return;
             
+            const primaryItem = getProcessedItems().find(i => i.id === selectedConsumptionItemId);
+            if (!primaryItem) {
+                 resultsContainer.innerHTML = '<p class="text-center text-slate-500 p-4">No hay datos para simular.</p>';
+                 return;
+            }
+           
+            const todayRaw = new Date();
+            const today = new Date(Date.UTC(todayRaw.getFullYear(), todayRaw.getMonth(), todayRaw.getDate()));
+
+            const startOfSimulationWeek = new Date(today);
+            const dayOfWeek = (startOfSimulationWeek.getUTCDay() + 6) % 7; // Monday = 0
+            startOfSimulationWeek.setUTCDate(startOfSimulationWeek.getUTCDate() - dayOfWeek);
+
+            const allItemOcs = ocs.filter(oc => oc.codigo === primaryItem.code);
+            const overdueOcs = allItemOcs.filter(oc => {
+                const deliveryDate = parseDateString(oc.proxFechaEntrega);
+                const status = transformOCStatus(oc.status);
+                return deliveryDate && deliveryDate < startOfSimulationWeek && status !== 'Rechazada';
+            });
+            overdueOcs.sort((a,b) => (parseDateString(a.proxFechaEntrega) || 0) - (parseDateString(b.proxFechaEntrega) || 0));
+
+            const overdueOcsContainer = document.getElementById('overdue-ocs-container');
+            if (overdueOcsContainer) {
+                if (overdueOcs.length > 0) {
+                    let overdueHtml = `
+                        <div class="mb-4 p-3 bg-red-50 border-l-4 border-red-400 rounded-lg shadow-sm">
+                            <div class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-500 flex-shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                <h4 class="font-bold text-red-800">Órdenes de Compra Vencidas (No simuladas)</h4>
+                            </div>
+                            <ul class="mt-2 pl-7 space-y-1 text-sm text-red-700">`;
+                    
+                    overdueOcs.forEach(oc => {
+                        const deliveryDate = parseDateString(oc.proxFechaEntrega);
+                        let weekNumberText = '';
+                        if (deliveryDate) {
+                            const weekId = getWeekId(deliveryDate);
+                            const weekNumber = parseInt(weekId.split('-')[1], 10);
+                            weekNumberText = ` (Sem. ${weekNumber})`;
+                        }
+                        overdueHtml += `<li><strong>O/C ${oc.ordenDeCompra}:</strong> ${formatNumber(oc.cantEntregaSiguiente)} unidades - Vencida el ${formatDate(oc.proxFechaEntrega)}${weekNumberText}</li>`;
+                    });
+                    
+                    overdueHtml += `</ul></div>`;
+                    overdueOcsContainer.innerHTML = overdueHtml;
+                } else {
+                    overdueOcsContainer.innerHTML = ''; // Clear if no overdue OCs
+                }
+            }
+
+            // Render results
             const results = runSimulation();
             if (results.length === 0) {
                  resultsContainer.innerHTML = '<p class="text-center text-slate-500 p-4">No hay datos para simular.</p>';
                  return;
             }
            
-            // Render results
             const weeksToRender = simulationShowAllWeeks ? results : results.slice(0, 12);
 
             let tableHTML = `
@@ -4393,6 +4472,28 @@ let ingresosSearchTerm = '';
             sidePanel.push(['Stock Actual (Simulado):', document.getElementById('sim-stock').value]);
             sidePanel.push(['Consumo Mensual (Simulado):', document.getElementById('sim-consumption').value]);
 
+            const todayRaw = new Date();
+            const today = new Date(Date.UTC(todayRaw.getFullYear(), todayRaw.getMonth(), todayRaw.getDate()));
+            const allItemOcs = ocs.filter(oc => oc.codigo === primaryItem.code);
+            const overdueOcs = allItemOcs.filter(oc => {
+                const deliveryDate = parseDateString(oc.proxFechaEntrega);
+                const status = transformOCStatus(oc.status);
+                return deliveryDate && deliveryDate < today && status !== 'Rechazada';
+            });
+
+            if (overdueOcs.length > 0) {
+                sidePanel.push([]); // Fila vacía para separar
+                sidePanel.push(['ÓRDENES DE COMPRA VENCIDAS (NO SIMULADAS)']);
+                sidePanel.push(['O/C', 'Cantidad', 'Fecha Vencimiento']);
+                overdueOcs.forEach(oc => {
+                    sidePanel.push([
+                        oc.ordenDeCompra,
+                        oc.cantEntregaSiguiente,
+                        formatDate(oc.proxFechaEntrega)
+                    ]);
+                });
+            }
+
             // --- Combinar tabla principal y panel lateral en una sola hoja ---
             const combinedData = [];
             const maxRows = Math.max(mainTable.length, sidePanel.length);
@@ -4406,6 +4507,17 @@ let ingresosSearchTerm = '';
 
             const worksheet = XLSX.utils.aoa_to_sheet(combinedData);
 
+            // Añadir merge para el título de las O/C vencidas si existe
+            const overdueTitleRowIndex = sidePanel.findIndex(row => row[0] === 'ÓRDENES DE COMPRA VENCIDAS (NO SIMULADAS)');
+            if (overdueTitleRowIndex !== -1) {
+                if (!worksheet['!merges']) worksheet['!merges'] = [];
+                // El merge será desde la columna H (7) hasta la J (9) en la fila correspondiente
+                worksheet['!merges'].push({
+                    s: { r: overdueTitleRowIndex, c: 7 }, // Start cell (col H)
+                    e: { r: overdueTitleRowIndex, c: 9 }  // End cell (col J)
+                });
+            }
+
             // Anchos de columna
             worksheet['!cols'] = [
                 { wch: 15 }, // A: Semana
@@ -4415,8 +4527,9 @@ let ingresosSearchTerm = '';
                 { wch: 15 }, // E: Stock Final
                 { wch: 25 }, // F: Cobertura
                 { wch: 5 },  // G: Separador
-                { wch: 30 }, // H: Etiquetas del panel lateral
-                { wch: 30 }  // I: Valores del panel lateral
+                { wch: 30 }, // H: Etiquetas panel / O/C
+                { wch: 15 }, // I: Valores panel / Cantidad
+                { wch: 20 }  // J: (vacío) / Fecha Vencimiento
             ];
 
             const workbook = XLSX.utils.book_new();
@@ -4443,9 +4556,10 @@ let ingresosSearchTerm = '';
                 <ul class="space-y-1 mt-2">
                     ${simulatedIncomes.map(income => {
                         const weekNumber = parseInt(income.weekId.split('-')[1], 10);
+                        const displayName = income.name ? `<strong>${income.name}</strong>` : `Ingreso <strong>SIM-${income.seqNumber}</strong>`;
                         return `
                         <li class="flex justify-between items-center p-2 bg-indigo-50 rounded-md cursor-pointer hover:bg-indigo-100 sim-income-item transition-colors" data-week-id="${income.weekId}">
-                            <span>Ingreso <strong>SIM-${income.seqNumber}</strong> de <strong>${formatNumber(income.quantity)}</strong> en Semana <strong>S-${weekNumber}</strong></span>
+                            <span>${displayName} de <strong>${formatNumber(income.quantity)}</strong> en Semana <strong>${weekNumber}</strong></span>
                             <button class="remove-sim-income-btn p-1 text-red-400 hover:text-red-600 rounded-full hover:bg-red-100" data-week-id="${income.weekId}">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                             </button>
@@ -4476,6 +4590,7 @@ let ingresosSearchTerm = '';
 
             editingSimulatedIncomeWeekId = weekIdToEdit;
 
+            document.getElementById('sim-income-name').value = incomeToEdit.name || '';
             document.getElementById('sim-income-qty').value = formatNumber(incomeToEdit.quantity);
             document.getElementById('sim-income-week').value = incomeToEdit.weekId;
 
@@ -4489,6 +4604,7 @@ let ingresosSearchTerm = '';
         function resetSimulatedIncomeForm() {
             editingSimulatedIncomeWeekId = null;
             document.getElementById('sim-income-qty').value = '';
+            document.getElementById('sim-income-name').value = '';
             
             const addButton = document.getElementById('add-sim-income-btn');
             addButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`; // Icono de Más
@@ -4499,9 +4615,11 @@ let ingresosSearchTerm = '';
         function handleAddSimulatedIncome() {
             const qtyInput = document.getElementById('sim-income-qty');
             const weekSelect = document.getElementById('sim-income-week');
+            const nameInput = document.getElementById('sim-income-name');
             
             const quantity = parseInt(String(qtyInput.value).replace(/\./g, ''), 10);
             const newWeekId = weekSelect.value;
+            const name = nameInput.value.trim();
 
             if (isNaN(quantity) || quantity === 0 || !newWeekId) {
                 showToast('Por favor, ingrese una cantidad válida (distinta de cero) y seleccione una semana.', 'error');
@@ -4531,7 +4649,7 @@ let ingresosSearchTerm = '';
             simulatedIncomes = simulatedIncomes.filter(inc => inc.weekId !== newWeekId);
             
             // Añadimos el registro nuevo/actualizado con el número de secuencia correcto
-            simulatedIncomes.push({ weekId: newWeekId, quantity, seqNumber: seqNumberToUse });
+            simulatedIncomes.push({ weekId: newWeekId, quantity, name, seqNumber: seqNumberToUse });
 
             resetSimulatedIncomeForm();
             runAndRenderSimulation();
@@ -5800,6 +5918,35 @@ let ingresosSearchTerm = '';
                     return;
                 }
                 
+                const groupStatsRow = e.target.closest('.kpi-detail-group-row');
+                if (groupStatsRow && groupStatsRow.dataset.groupName) {
+                    const groupName = groupStatsRow.dataset.groupName;
+                    handleClearIndiceFilters();
+                    indiceSelectedGroup = groupName;
+                    switchMainView('indice');
+                    return;
+                }
+                
+                const solpedGroupRow = e.target.closest('.kpi-detail-solped-row');
+                if (solpedGroupRow && solpedGroupRow.dataset.groupCompras) {
+                    const groupName = solpedGroupRow.dataset.groupCompras;
+                    handleClearSolpedsFilters();
+                    showOnlyDelayedSolpeds = true;
+                    document.getElementById('solpeds-search-input').value = groupName === 'Sin Grupo' ? '' : groupName;
+                    switchMainView('solpeds');
+                    return;
+                }
+
+                const ocGroupRow = e.target.closest('.kpi-detail-oc-row');
+                if (ocGroupRow && ocGroupRow.dataset.groupCompras) {
+                    const groupName = ocGroupRow.dataset.groupCompras;
+                    handleClearOCsFilters();
+                    showOnlyDelayedOCs = true;
+                    document.getElementById('ocs-search-input').value = groupName === 'Sin Grupo' ? '' : groupName;
+                    switchMainView('ocs');
+                    return;
+                }
+
                 // Handler for favorite button in critical items list
                 const favBtn = e.target.closest('.favorite-btn[data-btn-type="low-stock-fav"]');
                 if (favBtn) {
@@ -5853,8 +6000,8 @@ let ingresosSearchTerm = '';
                 else if (panelFavoriteBtn) { handleToggleFavorite(panelFavoriteBtn.dataset.itemId); }
                 else if (clearPrimaryBtn) { handleClearConsumoPanel('primary'); }
                 else if (clearComparisonBtn) { handleClearConsumoPanel('comparison'); }
-                else if (clearTextBtn) { handleSelectConsumosItem({ target: { dataset: { itemId: null, type: 'primary' }, textContent: '' } }); }
-                else if (clearComparisonTextBtn) { handleSelectConsumosItem({ target: { dataset: { itemId: null, type: 'comparison' }, textContent: '' } }); }
+                else if (clearTextBtn) { handleClearSelectedItem('primary'); }
+                else if (clearComparisonTextBtn) { handleClearSelectedItem('comparison'); }
                 else if (nameLink && nameLink.dataset.itemCode) {
                     indiceSearchTerm = nameLink.dataset.itemCode;
                     indiceSelectedGroup = 'all';
@@ -6197,6 +6344,74 @@ let ingresosSearchTerm = '';
             document.getElementById('add-new-item-btn')?.addEventListener('click', handleOpenItemModal);
             document.getElementById('close-item-modal')?.addEventListener('click', handleCloseItemModal);
             document.getElementById('item-form')?.addEventListener('submit', handleSaveItem);
+
+            // --- Ingresos View Listeners ---
+            document.getElementById('ingresos-view')?.addEventListener('click', (e) => {
+                const prevBtn = e.target.closest('#calendar-prev-month');
+                const nextBtn = e.target.closest('#calendar-next-month');
+                const todayBtn = e.target.closest('#calendar-today-btn');
+                const weekRow = e.target.closest('.calendar-week-row');
+                const kpiCard = e.target.closest('.ingresos-kpi-card');
+                const itemRow = e.target.closest('.incoming-item-row');
+                const exportBtn = e.target.closest('#export-incoming-items-btn');
+
+                if (prevBtn) {
+                    calendarCurrentDate.setUTCMonth(calendarCurrentDate.getUTCMonth() - 1);
+                    renderMonthlyCalendar(calendarCurrentDate);
+                } else if (nextBtn) {
+                    calendarCurrentDate.setUTCMonth(calendarCurrentDate.getUTCMonth() + 1);
+                    renderMonthlyCalendar(calendarCurrentDate);
+                } else if (todayBtn) {
+                    goToCurrentWeek();
+                } else if (weekRow) {
+                    // Recalculate start date from weekId to be safe
+                    const weekId = weekRow.dataset.weekId;
+                    const year = parseInt(weekId.substring(0, 4), 10);
+                    const weekNum = parseInt(weekId.substring(5), 10);
+                    
+                    const firstDayOfYear = new Date(Date.UTC(year, 0, 1));
+                    const daysOffset = (weekNum - 1) * 7;
+                    let weekStartDate = new Date(firstDayOfYear.getTime() + daysOffset * 86400000);
+                    
+                    const dayOfWeek = (weekStartDate.getUTCDay() + 6) % 7; // Monday = 0
+                    weekStartDate.setUTCDate(weekStartDate.getUTCDate() - dayOfWeek);
+
+                    const weekEndDate = new Date(weekStartDate);
+                    weekEndDate.setUTCDate(weekStartDate.getUTCDate() + 6);
+
+                    document.querySelectorAll('.calendar-week-row.selected-week').forEach(row => row.classList.remove('selected-week'));
+                    weekRow.classList.add('selected-week');
+                    
+                    ingresosSelectedGroup = 'all';
+                    ingresosSearchTerm = '';
+                    renderIncomingItemsForWeek(weekStartDate, weekEndDate);
+                } else if (kpiCard) {
+                    const groupName = kpiCard.dataset.groupName;
+                    ingresosSelectedGroup = (ingresosSelectedGroup === groupName) ? 'all' : groupName;
+                    // Re-render details only, not the whole header
+                    renderIncomingItemsForWeek(currentIngresosWeek.start, currentIngresosWeek.end, true);
+                } else if (itemRow && itemRow.dataset.itemId) {
+                    selectedConsumptionItemId = itemRow.dataset.itemId;
+                    comparisonItemId = null;
+                    switchMainView('consumos');
+                } else if (exportBtn) {
+                    handleExportIncomingItems();
+                }
+            });
+
+            document.getElementById('ingresos-view')?.addEventListener('change', (e) => {
+                if(e.target.id === 'ingresos-group-filter') {
+                    ingresosSelectedGroup = e.target.value;
+                    renderIncomingItemsForWeek(currentIngresosWeek.start, currentIngresosWeek.end, true);
+                }
+            });
+             document.getElementById('ingresos-view')?.addEventListener('input', (e) => {
+                if(e.target.id === 'ingresos-search-input') {
+                    ingresosSearchTerm = e.target.value;
+                    renderIncomingItemsForWeek(currentIngresosWeek.start, currentIngresosWeek.end, true);
+                }
+            });
+
 
             // --- Global Search Listeners ---
             document.getElementById('open-global-search-btn')?.addEventListener('click', openGlobalSearch);
@@ -6662,6 +6877,40 @@ let ingresosSearchTerm = '';
                 showToast('Error al generar la imagen.', 'error');
             }
         }
+
+        function handleExportIncomingItems() {
+            const incomingOCs = ocs.filter(oc => {
+                const deliveryDate = parseDateString(oc.proxFechaEntrega);
+                return deliveryDate && deliveryDate >= currentIngresosWeek.start && deliveryDate <= currentIngresosWeek.end;
+            });
+
+            if (incomingOCs.length === 0) {
+                showToast('No hay ingresos para exportar en la semana seleccionada.', 'info');
+                return;
+            }
+            
+            const formattedData = incomingOCs.map(oc => {
+                 const item = items.find(i => i.code === oc.codigo);
+                 const cleanItemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
+                 return {
+                    'Fecha de Entrega': formatDate(oc.proxFechaEntrega),
+                    'Grupo de Artículos': extractGroupCode(oc.grupoDeArticulos),
+                    'Código': oc.codigo,
+                    'Denominación': cleanItemName,
+                    'O/C': oc.ordenDeCompra,
+                    'Posición': oc.posicion,
+                    'Cantidad': oc.cantEntregaSiguiente,
+                    'Status': transformOCStatus(oc.status)
+                 };
+            });
+
+            const weekId = getWeekId(currentIngresosWeek.start);
+            const weekNumber = parseInt(weekId.split('-')[1], 10);
+            const year = weekId.split('-')[0];
+            const filename = `Ingresos_Semana_${weekNumber}_${year}_${getCurrentDateString()}.xlsx`;
+            exportToExcel(formattedData, filename);
+        }
     </script>
 </body>
 </html>
+
