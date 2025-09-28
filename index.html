@@ -310,6 +310,16 @@
             visibility: visible;
             opacity: 1;
         }
+        /* Fix for tooltip on the first row of simulation table */
+        #simulation-results-container tbody tr:first-child .tooltip-text {
+            bottom: auto;
+            top: 115%; /* Place it below the element */
+        }
+        #simulation-results-container tbody tr:first-child .tooltip-text::after {
+            top: auto;
+            bottom: 100%; /* Arrow points up */
+            border-color: transparent transparent white transparent; /* Flip arrow direction */
+        }
         .direct-edit-input {
             border: 1px solid transparent;
             border-radius: 0.375rem;
@@ -359,7 +369,7 @@
             
             <div id="login-view" class="bg-white p-8 rounded-2xl shadow-lg hidden">
                 <h2 class="text-2xl font-bold text-center text-slate-800">ALMACEN</h2>
-                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v3.0 (27-09-2025)</p>
+                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v3.10 (27-09-2025)</p>
                 <form id="login-form" class="space-y-4">
                     <div>
                         <label for="login-email" class="text-sm font-medium text-slate-700">Email</label>
@@ -473,7 +483,7 @@
                                 </div>
                                 <div class="dropdown-divider"></div>
                                 <div class="px-4 py-2 text-center text-xs text-slate-400">
-                                    Versión 3.0 (27-09-2025)
+                                    Versión 3.10 (27-09-2025)
                                 </div>
                             </div>
                         </div>
@@ -537,7 +547,7 @@
             </div>
 
             <div id="consumos-view" class="hidden">
-                <div class="flex flex-col">
+                <div class="flex flex-col h-[calc(100vh-56px)]">
                     <div class="bg-indigo-500 p-4 z-10 sticky top-14 shadow-md">
                         <div class="flex flex-col lg:flex-row items-center gap-4">
                             <div id="primary-search-wrapper" class="w-full lg:w-1/2">
@@ -581,7 +591,7 @@
                             </div>
                         </div>
                     </div>
-                    <div id="consumo-content-area" class="flex-grow flex flex-col lg:flex-row">
+                    <div id="consumo-content-area" class="flex-grow flex flex-col lg:flex-row min-h-0">
                         <!-- Contenido dinámico (2 paneles) -->
                     </div>
                 </div>
@@ -3517,9 +3527,9 @@ let ingresosSearchTerm = '';
         function renderConsumosContent() {
             const contentArea = document.getElementById('consumo-content-area');
             contentArea.innerHTML = `
-                <div id="consumo-panel-primary" class="w-full lg:w-1/2 bg-white"></div>
+                <div id="consumo-panel-primary" class="w-full lg:w-1/2 bg-white lg:overflow-y-auto"></div>
                 <div class="w-full lg:w-px h-px lg:h-full bg-slate-300"></div>
-                <div id="consumo-panel-comparison" class="w-full lg:w-1/2 bg-white"></div>
+                <div id="consumo-panel-comparison" class="w-full lg:w-1/2 bg-white lg:overflow-y-auto"></div>
             `;
             renderSingleConsumoPanel(selectedConsumptionItemId, 'primary');
             renderSingleConsumoPanel(comparisonItemId, 'comparison');
@@ -3536,12 +3546,16 @@ let ingresosSearchTerm = '';
                 }
                 if (!itemId && selectedConsumptionItemId) {
                     panel.innerHTML = `
-                        <div class="p-6 h-full flex flex-col items-center justify-center text-center bg-slate-50">
+                        <div class="p-6 h-full flex flex-col items-center justify-start pt-20 text-center bg-slate-50">
                             <svg class="w-16 h-16 text-slate-300 mb-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
                             <h3 class="text-lg font-semibold text-slate-700">Simulación y Comparación</h3>
                             <p class="text-slate-500 mt-1 max-w-sm">
-                                Usa la barra de búsqueda superior para seleccionar un segundo insumo y compararlo, o haz clic en el botón <strong>"Simular"</strong> en el panel izquierdo para proyectar el stock futuro del insumo principal.
+                                Usa la barra de búsqueda superior para seleccionar un segundo insumo y compararlo, o haz clic en el botón <strong>"Simular"</strong> para proyectar el stock futuro.
                             </p>
+                            <button class="btn-main-style !h-10 mt-6 !text-sm !bg-indigo-500 !text-white hover:!bg-indigo-600 show-simulation-trigger">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                                <span class="ml-2">Simular Insumo Principal</span>
+                            </button>
                         </div>
                     `;
                     return;
@@ -3561,7 +3575,7 @@ let ingresosSearchTerm = '';
             if (type === 'primary' && itemId) {
                 const canSimulate = true; // Habilitado para todos los roles
                 const simulateButtonHTML = canSimulate ? `
-                    <button id="show-simulation-btn" class="btn-main-style !h-8 !text-xs !bg-indigo-500 !text-white hover:!bg-indigo-600">
+                    <button id="show-simulation-btn" class="btn-main-style !h-8 !text-xs !bg-indigo-500 !text-white hover:!bg-indigo-600 show-simulation-trigger">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
                         <span class="ml-2">Simular</span>
                     </button>
@@ -3606,11 +3620,31 @@ let ingresosSearchTerm = '';
                     </div>
                 </div>
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mt-4">
-                    <div class="relative bg-white p-2 rounded-lg shadow text-center flex flex-col justify-center"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.stock}</div> <input type="text" id="consumo-kpi-stock-${type}" class="direct-edit-input text-center w-full bg-transparent text-2xl font-bold text-slate-900 h-9" ${notesDisabledAttr}><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Stock</p></div>
-                    <div class="relative bg-white p-3 pt-6 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.avg}</div> <p id="consumo-kpi-avg-${type}" class="text-2xl font-bold text-indigo-600">-</p><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Promedio</p></div>
-                    <div class="relative bg-white p-3 pt-6 rounded-lg shadow text-center"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.peak}</div> <p id="consumo-kpi-peak-${type}" class="text-2xl font-bold text-green-600">-</p><div class="flex justify-center items-baseline gap-1"><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Pico</p><p id="consumo-kpi-peak-month-${type}" class="text-xs text-slate-500 truncate"></p></div></div>
-                    <div class="relative bg-white p-2 rounded-lg shadow text-center border-2 border-indigo-500 flex flex-col justify-center"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.monthly}</div> <input type="text" id="consumo-kpi-monthly-consumption-${type}" class="direct-edit-input text-center w-full bg-transparent text-2xl font-bold text-slate-900 h-9" ${notesDisabledAttr}><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Cons. Mensual</p></div>
-                    <div class="relative bg-white p-3 pt-6 rounded-lg shadow text-center border-2 border-indigo-500"> <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.coverage}</div> <p id="consumo-kpi-coverage-today-${type}" class="text-2xl font-bold text-slate-900">-</p><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Cobertura</p></div>
+                    <div class="relative bg-white p-2 rounded-lg shadow text-center flex flex-col justify-center min-h-[90px]">
+                        <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.stock}</div>
+                        <input type="text" id="consumo-kpi-stock-${type}" class="direct-edit-input text-center w-full bg-transparent text-2xl font-bold text-slate-900 h-9" ${notesDisabledAttr}>
+                        <p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Stock</p>
+                    </div>
+                    <div class="relative bg-white p-2 rounded-lg shadow text-center flex flex-col justify-center min-h-[90px]">
+                        <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.avg}</div>
+                        <div><p id="consumo-kpi-avg-${type}" class="text-2xl font-bold text-indigo-600">-</p></div>
+                        <p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Promedio</p>
+                    </div>
+                    <div class="relative bg-white p-2 rounded-lg shadow text-center flex flex-col justify-center min-h-[90px]">
+                        <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.peak}</div>
+                        <div><p id="consumo-kpi-peak-${type}" class="text-2xl font-bold text-green-600">-</p></div>
+                        <div class="flex justify-center items-baseline gap-1"><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Pico</p><p id="consumo-kpi-peak-month-${type}" class="text-xs text-slate-500 truncate"></p></div>
+                    </div>
+                    <div class="relative bg-white p-2 rounded-lg shadow text-center border-2 border-indigo-500 flex flex-col justify-center min-h-[90px]">
+                        <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.monthly}</div>
+                        <input type="text" id="consumo-kpi-monthly-consumption-${type}" class="direct-edit-input text-center w-full bg-transparent text-2xl font-bold text-slate-900 h-9" ${notesDisabledAttr}>
+                        <p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Cons. Mensual</p>
+                    </div>
+                    <div class="relative bg-white p-2 rounded-lg shadow text-center border-2 border-indigo-500 flex flex-col justify-center min-h-[90px]">
+                        <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.coverage}</div>
+                        <div><p id="consumo-kpi-coverage-today-${type}" class="text-2xl font-bold text-slate-900">-</p></div>
+                        <p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Cobertura</p>
+                    </div>
                 </div>
                 <div id="consumo-chart-wrapper-${type}" class="consumo-chart-wrapper">
                     <p class="text-slate-500 m-auto">Seleccione un producto para ver su historial.</p>
@@ -4036,6 +4070,30 @@ let ingresosSearchTerm = '';
             input.setSelectionRange(newCursorPosition, newCursorPosition);
         }
 
+        function updateSimulationCoverageIndicator() {
+            const stockInput = document.getElementById('sim-stock');
+            const consumptionInput = document.getElementById('sim-consumption');
+            const coverageContainer = document.getElementById('sim-coverage-indicator');
+            if (!stockInput || !consumptionInput || !coverageContainer) return;
+
+            const stock = parseInt(String(stockInput.value).replace(/\./g, ''), 10) || 0;
+            const monthlyConsumption = parseInt(String(consumptionInput.value).replace(/\./g, ''), 10) || 0;
+            const dailyConsumption = monthlyConsumption > 0 ? monthlyConsumption / 30 : 0;
+            const coverageDays = dailyConsumption > 0 ? Math.floor(stock / dailyConsumption) : Infinity;
+
+            const { red, yellow } = appSettings.coverageThresholds;
+            let coverageClass = 'text-slate-700';
+            if (coverageDays !== Infinity) {
+                if (coverageDays < red) coverageClass = 'text-red-600';
+                else if (coverageDays <= yellow) coverageClass = 'text-yellow-600';
+                else coverageClass = 'text-green-600';
+            } else {
+                coverageClass = 'text-green-600';
+            }
+
+            coverageContainer.innerHTML = `<span class="font-bold text-lg ${coverageClass}">${coverageDays === Infinity ? '∞' : Math.round(coverageDays)}</span>`;
+        }
+
         function renderSimulationPanel() {
             simulatedIncomes = []; // Resetear ingresos simulados al cambiar de producto
             simulatedIncomeCounter = 1;
@@ -4062,24 +4120,30 @@ let ingresosSearchTerm = '';
                     </div>
                 </div>
 
-                <div class="flex items-start gap-4 mt-4 flex-shrink-0">
+                <div class="flex flex-col md:flex-row items-start gap-4 mt-4 flex-shrink-0">
                     <!-- Controles de Stock y Consumo -->
-                    <div class="flex-1">
-                         <div class="grid grid-cols-2 gap-2">
-                             <div>
+                    <div class="w-full md:flex-1">
+                         <div class="flex gap-2">
+                             <div class="flex-1">
                                 <label for="sim-stock" class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">Stock Actual</label>
                                 <div class="relative flex items-center">
-                                    <button data-target="sim-stock" data-step="-100" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold text-lg">-</button>
-                                    <input id="sim-stock" type="text" inputmode="numeric" value="${formatNumber(Math.round(primaryItem.stock))}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold text-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                    <button data-target="sim-stock" data-step="100" class="sim-adjust-btn absolute right-2 p-1 text-slate-500 hover:text-indigo-600 font-bold text-lg">+</button>
+                                    <button data-target="sim-stock" data-step="-100" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">-</button>
+                                    <input id="sim-stock" type="text" inputmode="numeric" value="${formatNumber(Math.round(primaryItem.stock))}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                    <button data-target="sim-stock" data-step="100" class="sim-adjust-btn absolute right-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">+</button>
                                 </div>
                             </div>
-                            <div>
-                                 <label for="sim-consumption" class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">Consumo Mensual</label>
+                            <div class="flex-1">
+                                 <label for="sim-consumption" class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">CONS.MENS</label>
                                 <div class="relative flex items-center">
-                                    <button data-target="sim-consumption" data-step="-50" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold text-lg">-</button>
-                                    <input id="sim-consumption" type="text" inputmode="numeric" value="${formatNumber(Math.round(primaryItem.monthlyConsumption))}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold text-lg focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                    <button data-target="sim-consumption" data-step="50" class="sim-adjust-btn absolute right-2 p-1 text-slate-500 hover:text-indigo-600 font-bold text-lg">+</button>
+                                    <button data-target="sim-consumption" data-step="-50" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">-</button>
+                                    <input id="sim-consumption" type="text" inputmode="numeric" value="${formatNumber(Math.round(primaryItem.monthlyConsumption))}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                    <button data-target="sim-consumption" data-step="50" class="sim-adjust-btn absolute right-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">+</button>
+                                </div>
+                            </div>
+                            <div class="w-24">
+                                <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">COB.DIAS</label>
+                                <div id="sim-coverage-indicator" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-center">
+                                    <span class="font-bold text-lg text-slate-700">-</span>
                                 </div>
                             </div>
                         </div>
@@ -4140,6 +4204,7 @@ let ingresosSearchTerm = '';
             const simulationInputHandler = (e) => {
                 handleNumericInputFormatting(e);
                 runAndRenderSimulation();
+                updateSimulationCoverageIndicator();
             };
 
             document.getElementById('sim-stock').addEventListener('input', simulationInputHandler);
@@ -4150,6 +4215,7 @@ let ingresosSearchTerm = '';
             document.getElementById('export-simulation-btn')?.addEventListener('click', handleExportSimulation);
 
             runAndRenderSimulation(); // Run initial simulation
+            updateSimulationCoverageIndicator();
         }
 
         function handleSimAdjust(e) {
@@ -4160,6 +4226,7 @@ let ingresosSearchTerm = '';
                 const currentValue = parseInt(targetInput.value.replace(/\./g, ''), 10) || 0;
                 targetInput.value = formatNumber(Math.max(0, currentValue + step));
                 runAndRenderSimulation();
+                updateSimulationCoverageIndicator();
             }
         }
         
@@ -4336,12 +4403,12 @@ let ingresosSearchTerm = '';
                 <table class="w-full text-sm text-left text-slate-500">
                     <thead class="text-xs text-slate-700 uppercase bg-slate-100 sticky top-0">
                         <tr>
-                            <th scope="col" class="px-3 py-2">Semana</th>
-                            <th scope="col" class="px-3 py-2 text-right">Stock Inicial</th>
-                            <th scope="col" class="px-3 py-2 text-right">Ingresos</th>
-                            <th scope="col" class="px-3 py-2 text-right">Consumo</th>
-                            <th scope="col" class="px-3 py-2 text-right">Stock Final</th>
-                            <th scope="col" class="px-3 py-2 text-right">Cobertura (días)</th>
+                            <th scope="col" class="px-3 py-2 w-[8%] text-center">Semana</th>
+                            <th scope="col" class="px-3 py-2 text-center">Stock Inicial</th>
+                            <th scope="col" class="px-3 py-2 text-center">Ingresos</th>
+                            <th scope="col" class="px-3 py-2 text-center">Consumo</th>
+                            <th scope="col" class="px-3 py-2 text-center">Stock Final</th>
+                            <th scope="col" class="px-3 py-2 text-center w-[8%]">COB.(dias)</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">`;
@@ -4376,7 +4443,11 @@ let ingresosSearchTerm = '';
                             case 'Simulacion': statusClass = 'text-indigo-600'; break;
                             default: statusClass = 'text-slate-700';
                         }
-                        return `<div class="${statusClass}"><strong>${source.number}:</strong> ${formatNumber(source.quantity)}</div>`;
+                        // Usamos flexbox para alinear el nombre a la izquierda y la cantidad a la derecha.
+                        return `<div class="${statusClass} flex justify-between items-center gap-4">
+                                    <span class="font-semibold truncate">${source.number}:</span>
+                                    <span class="font-bold flex-shrink-0">${formatNumber(source.quantity)}</span>
+                                </div>`;
                     }).join('');
                 } else {
                     tooltipContent = 'Sin ingresos esta semana';
@@ -4386,18 +4457,18 @@ let ingresosSearchTerm = '';
                 const incomeCellContent = res.incoming > 0 ? `+${formatNumber(Math.round(res.incoming))}` : '0';
 
                 tableHTML += `
-                    <tr class="bg-white">
-                        <td class="px-3 py-2 font-medium text-slate-900 whitespace-nowrap">${res.week}</td>
-                        <td class="px-3 py-2 text-right">${formatNumber(Math.round(res.startStock))}</td>
-                        <td class="px-3 py-2 text-right ${incomeCellClass}">
+                    <tr class="bg-white even:bg-slate-50">
+                        <td class="px-3 py-2 font-medium text-slate-900 whitespace-nowrap text-center">${res.week}</td>
+                        <td class="px-3 py-2 text-center">${formatNumber(Math.round(res.startStock))}</td>
+                        <td class="px-3 py-2 text-center ${incomeCellClass}">
                             <div class="tooltip-container">
                                 ${incomeCellContent}
                                 <span class="tooltip-text">${tooltipContent}</span>
                             </div>
                         </td>
-                        <td class="px-3 py-2 text-right text-red-600 font-medium">-${formatNumber(Math.round(res.consumption))}</td>
-                        <td class="px-3 py-2 text-right font-bold">${formatNumber(Math.round(res.endStock))}</td>
-                        <td class="px-3 py-2 text-right ${coverageClass}">${res.coverage === Infinity ? '∞' : Math.round(res.coverage)}</td>
+                        <td class="px-3 py-2 text-center text-red-600 font-medium">-${formatNumber(Math.round(res.consumption))}</td>
+                        <td class="px-3 py-2 text-center font-bold">${formatNumber(Math.round(res.endStock))}</td>
+                        <td class="px-3 py-2 text-center ${coverageClass}">${res.coverage === Infinity ? '∞' : Math.round(res.coverage)}</td>
                     </tr>`;
             });
 
@@ -5993,7 +6064,7 @@ let ingresosSearchTerm = '';
                 const groupLink = e.target.closest('.consumo-group-link');
                 const solpedLink = e.target.closest('.consumo-solped-link');
                 const ocLink = e.target.closest('.consumo-oc-link');
-                const simulationBtn = e.target.closest('#show-simulation-btn');
+                const simulationBtn = e.target.closest('.show-simulation-trigger');
 
                 if (searchResult) { handleSelectConsumosItem(e); }
                 else if (favoritesFilterBtn) { handleConsumosFavoritesToggle(favoritesFilterBtn); }
@@ -6281,14 +6352,17 @@ let ingresosSearchTerm = '';
                 if (groupItemName) {
                     const groupName = groupItemName.dataset.groupName;
                     indiceSelectedGroup = groupName;
-                    indiceShowFavorites = false;
+                    indiceFavoriteFilter = 'all';
                     indiceCoverageFilter = 'all';
                     indiceSearchTerm = '';
                     switchMainView('indice');
                 }
             });
 
-            // Scroll Sync for Revision View
+            document.getElementById('save-review-btn')?.addEventListener('click', handleSaveReview);
+            document.getElementById('groups-review-list')?.addEventListener('change', handleReviewCheckboxChange);
+            
+            // Sincronización de scroll para la vista de CHECK
             const logContainer = document.getElementById('history-table-container');
             const reviewListContainer = document.getElementById('groups-review-list');
             if(logContainer && reviewListContainer) {
@@ -6913,4 +6987,3 @@ let ingresosSearchTerm = '';
     </script>
 </body>
 </html>
-
