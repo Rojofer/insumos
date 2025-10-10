@@ -4140,131 +4140,90 @@ let ingresosSearchTerm = '';
             coverageContainer.innerHTML = `<span class="font-bold text-lg ${coverageClass}">${coverageDays === Infinity ? '∞' : Math.round(coverageDays)}</span>`;
         }
 
-        // REEMPLAZA LA FUNCIÓN ANTIGUA COMPLETA CON ESTA NUEVA VERSIÓN
         function renderSimulationPanel() {
+            simulatedIncomes = []; // Resetear ingresos simulados al cambiar de producto
+            simulatedIncomeCounter = 1;
+            simulationShowAllWeeks = false; // Resetear vista de semanas
             const panel = document.getElementById('consumo-panel-comparison');
-            if (!panel || !selectedConsumptionItemId) {
-                if (panel) panel.innerHTML = '';
+            if (!panel) return;
+            const primaryItem = items.find(i => i.id === selectedConsumptionItemId);
+            if (!primaryItem) {
+                panel.innerHTML = '<p class="p-6 text-center text-slate-500">Seleccione un producto principal para iniciar la simulación.</p>';
                 return;
             }
-        
-            const item = items.find(i => i.id === selectedConsumptionItemId);
-            if (!item) {
-                panel.innerHTML = '<div class="p-6">Error: No se encontró el insumo principal para la simulación.</div>';
-                return;
-            }
-        
-            const simulationResults = calculateSimulation(item);
-            const manualEntriesList = simulationResults.manualEntries.map((entry, index) => `
-                <div class="flex justify-between items-center text-sm p-2 rounded-md ${index % 2 === 0 ? 'bg-slate-50' : ''}">
-                    <span class="font-medium text-slate-700">${entry.name || `Ingreso SIM-${index + 1}`}</span>
-                    <div class="flex items-center gap-2">
-                        <span class="text-slate-500">${formatNumber(entry.quantity)} uds (Sem. ${entry.week})</span>
-                        <button data-entry-id="${entry.id}" class="remove-manual-entry-btn text-red-500 hover:text-red-700">&times;</button>
-                    </div>
-                </div>
-            `).join('');
-        
-            const expiredOcAlerts = simulationResults.alerts.expiredOcs.length > 0 ? `
-                <div class="p-3 rounded-lg bg-red-50 border border-red-200">
-                    <h4 class="font-bold text-sm text-red-800">⚠️ Órdenes de Compra Vencidas</h4>
-                    <div class="text-xs text-red-700 mt-1 space-y-1">
-                        ${simulationResults.alerts.expiredOcs.map(oc => `
-                            <div><strong>O/C ${oc.nro_oc}:</strong> ${formatNumber(oc.cantidad)} uds - Vencida el ${oc.fecha_entrega} (Sem. ${getWeekNumber(new Date(oc.fecha_entrega + 'T00:00:00'))[1]})</div>
-                        `).join('')}
-                    </div>
-                </div>
-            ` : '';
-            
+
             panel.innerHTML = `
-            <div class="h-full flex flex-col bg-white">
-                <div class="flex-grow grid grid-cols-10 gap-6 h-full p-4">
+            <div class="p-4 h-full flex flex-col">
+                <div class="flex-shrink-0">
+                    <div class="flex justify-between items-center gap-2 pb-2 border-b">
+                        <div class="flex items-center gap-2 min-w-0">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500 flex-shrink-0"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                            <h3 class="text-lg font-bold text-slate-800 truncate">Simulación: <span class="text-[#6366f1]">${primaryItem.name.toUpperCase()}</span></h3>
+                        </div>
+                        <button id="export-simulation-btn" title="Exportar Simulación" class="btn-main-style !w-9 !h-9 !p-0 flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row items-start gap-4 mt-4 flex-shrink-0">
+                    <!-- Controles de Stock y Consumo -->
+                    <div class="w-full md:flex-1">
+                         <div class="flex gap-2">
+                             <div class="flex-1">
+                                <label for="sim-stock" class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">Stock Actual</label>
+                                <div class="relative flex items-center">
+                                    <button data-target="sim-stock" data-step="-100" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">-</button>
+                                    <input id="sim-stock" type="text" inputmode="numeric" value="${formatNumber(Math.round(primaryItem.stock))}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                    <button data-target="sim-stock" data-step="100" class="sim-adjust-btn absolute right-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">+</button>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                 <label for="sim-consumption" class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">CONS.MENS</label>
+                                <div class="relative flex items-center">
+                                    <button data-target="sim-consumption" data-step="-50" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">-</button>
+                                    <input id="sim-consumption" type="text" inputmode="numeric" value="${formatNumber(Math.round(primaryItem.monthlyConsumption))}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                    <button data-target="sim-consumption" data-step="50" class="sim-adjust-btn absolute right-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">+</button>
+                                </div>
+                            </div>
+                            <div class="w-24">
+                                <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">COB.DIAS</label>
+                                <div id="sim-coverage-indicator" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-center">
+                                    <span class="font-bold text-lg text-slate-700">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
-                    <!-- Columna Principal (Tabla) -->
-                    <div class="col-span-10 lg:col-span-7 flex flex-col h-full">
-                        <div class="flex justify-between items-center pb-2">
-                            <h2 class="text-lg font-bold text-slate-800 truncate pr-4">
-                                Simulación: <span class="text-indigo-600">${item.cod} ${item.desc}</span>
-                            </h2>
-                            <button id="download-simulation-btn" class="btn-main-style !h-9">
-                                <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                                <span class="ml-2">Descargar</span>
-                            </button>
-                        </div>
-                        <div id="simulation-table-container" class="flex-grow overflow-auto border-t border-slate-200">
-                            <table class="w-full text-sm text-left">
-                                 <thead class="bg-slate-50 sticky top-0">
-                                    <tr>
-                                        <th class="p-2 font-semibold text-slate-600">SEMANA</th>
-                                        <th class="p-2 font-semibold text-slate-600 text-right">STOCK INICIAL</th>
-                                        <th class="p-2 font-semibold text-slate-600 text-right">INGRESOS</th>
-                                        <th class="p-2 font-semibold text-slate-600 text-right">CONSUMO</th>
-                                        <th class="p-2 font-semibold text-slate-600 text-right">STOCK FINAL</th>
-                                        <th class="p-2 font-semibold text-slate-600 text-right">COB.(DIAS)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${simulationResults.table.map(row => `
-                                        <tr class="border-b border-slate-100 ${row.coverageDays < appSettings.coverageThresholds.red ? 'bg-red-50' : (row.coverageDays < appSettings.coverageThresholds.yellow ? 'bg-yellow-50' : '')}">
-                                            <td class="p-2 font-medium">${row.week} (${row.date})</td>
-                                            <td class="p-2 text-right">${formatNumber(row.initialStock)}</td>
-                                            <td class="p-2 text-right text-green-600 font-medium">${row.incomes > 0 ? `+${formatNumber(row.incomes)}` : '0'}</td>
-                                            <td class="p-2 text-right text-orange-600">${row.consumption > 0 ? `-${formatNumber(row.consumption)}` : '0'}</td>
-                                            <td class="p-2 text-right font-bold">${formatNumber(row.finalStock)}</td>
-                                            <td class="p-2 text-right font-medium">${Math.round(row.coverageDays)}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-        
-                    <!-- Columna Lateral (Controles) -->
-                    <div class="col-span-10 lg:col-span-3 flex flex-col gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200 h-full overflow-y-auto">
-                        <!-- KPIs -->
-                        <div class="grid grid-cols-3 gap-3 text-center">
-                            <div>
-                                <div class="text-xs text-slate-500 font-semibold">STOCK ACTUAL</div>
-                                <div class="text-lg font-bold text-indigo-600">${formatNumber(item.stock)}</div>
-                            </div>
-                            <div>
-                                <div class="text-xs text-slate-500 font-semibold">CONS.MENS</div>
-                                <div class="text-lg font-bold text-indigo-600">${formatNumber(item.promedio)}</div>
-                            </div>
-                            <div>
-                                <div class="text-xs text-slate-500 font-semibold">COB.DIAS</div>
-                                <div class="text-lg font-bold text-indigo-600">${Math.round(item.cobertura_dias)}</div>
-                            </div>
-                        </div>
-                        
-                        <!-- Simular Ingreso Manual -->
-                        <div class="border-t border-slate-200 pt-4">
-                            <h4 class="font-bold text-sm text-slate-700 mb-2">Simular Ingreso Manual</h4>
-                            <div class="flex items-center gap-2">
-                                <input type="text" id="manual-entry-name" placeholder="Nombre (Opcional)" class="direct-edit-input w-full !bg-white text-sm">
-                                <input type="text" id="manual-entry-quantity" placeholder="Cantidad" class="direct-edit-input w-24 !bg-white text-sm text-right">
-                                <select id="manual-entry-week" class="direct-edit-input !bg-white text-sm">
-                                     ${simulationResults.weekOptions.map(w => `<option value="${w.week}">${w.week} (${w.date})</option>`).join('')}
+                    <div class="w-px bg-slate-200 self-stretch mx-2"></div>
+
+                    <!-- Simular Ingreso -->
+                    <div class="flex-1">
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">Simular Ingreso Manual</p>
+                        <div class="flex gap-2 items-center">
+                            <input id="sim-income-name" type="text" placeholder="Nombre (Opcional)" class="w-1/3 h-10 bg-white border border-slate-300 rounded-md shadow-sm px-3 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            <input id="sim-income-qty" type="text" inputmode="numeric" placeholder="Cantidad" class="w-1/3 h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                            <div class="w-1/3 flex gap-2">
+                                <select id="sim-income-week" class="flex-grow h-10 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold">
+                                    <!-- Options will be populated dynamically -->
                                 </select>
-                                <button id="add-manual-entry-btn" class="bg-indigo-600 text-white rounded-md h-8 w-8 flex-shrink-0 hover:bg-indigo-700">+</button>
+                                <button id="add-sim-income-btn" class="btn-main-style !h-10 !w-10 !p-0 !bg-indigo-600 !text-white hover:!bg-indigo-700 flex-shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                </button>
                             </div>
                         </div>
-        
-                        <!-- Ingresos Simulados (con scroll) -->
-                        <div class="border-t border-slate-200 pt-4 flex-grow flex flex-col min-h-0">
-                            <h4 class="font-bold text-sm text-slate-700 mb-2">Ingresos Simulados</h4>
-                            <div id="manual-entries-container" class="flex-grow overflow-y-auto space-y-1 pr-1">
-                                ${manualEntriesList || '<div class="text-sm text-slate-400 text-center py-4">No hay ingresos manuales.</div>'}
-                            </div>
-                        </div>
-                        
-                        <!-- Alertas -->
-                        ${expiredOcAlerts ? `<div class="border-t border-slate-200 pt-4">${expiredOcAlerts}</div>` : ''}
                     </div>
+                </div>
+
+                <div id="simulated-incomes-list" class="mt-2 text-sm flex-shrink-0"></div>
+
+                <div id="overdue-ocs-container" class="mt-4 flex-shrink-0"></div>
+
+                <div id="simulation-results-container" class="mt-4 flex-grow overflow-y-auto">
+                    <!-- Results will be injected here by runAndRenderSimulation() -->
                 </div>
             </div>
             `;
-        }
 
             const weekSelect = panel.querySelector('#sim-income-week');
             if (weekSelect) {
@@ -7093,8 +7052,4 @@ let ingresosSearchTerm = '';
     </script>
 </body>
 </html>
-
-
-
-
 
