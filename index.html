@@ -11,7 +11,10 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { font-family: 'Aptos', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif; }
+        body { 
+            font-family: 'Aptos', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif; 
+        }
+        
         .font-quicksand * {
             font-family: 'Quicksand', sans-serif !important;
         }
@@ -266,7 +269,7 @@
         .calendar-week-row.selected-week .calendar-day.has-income::after { background-color: white; }
         .week-number-cell {
             font-size: 0.75rem; color: #94a3b8; font-weight: 500;
-            vertical-align: middle; text-align: center; padding-right: 0.5rem;
+            vertical-align: middle; text-align: center;
         }
         .tooltip-container {
             position: relative;
@@ -348,7 +351,7 @@
             background-color: #fef3c7 !important; /* amber-100 */
             border-color: #fcd34d !important; /* amber-300 */
         }
-        .accordion-chevron.rotate-180, .record-consumption-chevron.rotate-180 {
+        .accordion-chevron.rotate-180, .record-consumption-chevron.rotate-180, .note-chevron.rotate-180 {
             transform: rotate(180deg);
         }
 
@@ -385,7 +388,7 @@
             
             <div id="login-view" class="bg-white p-8 rounded-2xl shadow-lg hidden">
                 <h2 class="text-2xl font-bold text-center text-slate-800">ALMACEN</h2>
-                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v3.10 (27-09-2025)</p>
+                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v3.11 (18-10-2025)</p>
                 <form id="login-form" class="space-y-4">
                     <div>
                         <label for="login-email" class="text-sm font-medium text-slate-700">Email</label>
@@ -499,7 +502,7 @@
                                 </div>
                                 <div class="dropdown-divider"></div>
                                 <div class="px-4 py-2 text-center text-xs text-slate-400">
-                                    Versión 3.10 (27-09-2025)
+                                    Versión 3.11 (18-10-2025)
                                 </div>
                             </div>
                         </div>
@@ -517,12 +520,30 @@
                         <div id="kpi-detail-container" class="hidden"></div>
                     </div>
                     
-                    <div class="flex flex-col gap-6 lg:col-span-4">
-                        
-                        <div id="low-stock-container" class="bg-white rounded-lg shadow">
-                            
+                    <div class="lg:col-span-4">
+                        <div id="dashboard-notes-container" class="hidden bg-white rounded-lg shadow flex flex-col">
+                             <div class="p-4 bg-[#6366f1] rounded-t-lg flex justify-between items-center flex-shrink-0">
+                                <h3 class="text-lg font-semibold text-white uppercase tracking-wider">INVENTARIOS</h3>
+                                <div class="flex items-center gap-2">
+                                    <button id="export-dashboard-notes-btn" title="Descargar Notas en Excel" class="w-9 h-9 flex items-center justify-center bg-white/20 hover:bg-white/40 text-white rounded-full transition-colors">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="p-4 flex flex-col h-[450px]">
+                                <div id="add-note-form-container" class="flex gap-2 mb-4 flex-shrink-0">
+                                    <input type="text" id="new-note-title-input" placeholder="Título de la nueva nota..." class="flex-grow h-10 bg-white border border-slate-300 rounded-md shadow-sm px-3 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                    <button id="add-new-note-btn" class="btn-main-style !h-10 !w-10 !p-0 !bg-indigo-600 !text-white hover:!bg-indigo-700 flex-shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                    </button>
+                                </div>
+                                <div id="inventory-notes-list" class="flex-grow overflow-y-auto pr-2 space-y-2">
+                                    <!-- Dynamic notes list -->
+                                </div>
+                            </div>
                         </div>
                     </div>
+                    
                 </div>
             </div>
 
@@ -1141,7 +1162,8 @@
             consumptionMonthLabels: [],
             immobilizationMonths: 6,
             iwebSapUrl: '',
-            depositosExternosUrl: ''
+            depositosExternosUrl: '',
+            inventoryNotes: []
         };
         let solpedsSortConfig = { key: 'fechaSolicitud', direction: 'desc' };
         let ocsSortConfig = { key: 'proxFechaEntrega', direction: 'asc' };
@@ -1170,8 +1192,6 @@
         let solpedsSelectedGroup = 'all';
         let solpedsSelectedYear = 'all';
         let solpedsSelectedMonths = [];
-        let showOnlyFavoriteCriticals = false;
-        let criticalsSelectedGroup = 'all';
         let indiceSearchTerm = '';
         let indiceSelectedGroup = 'all';
         let indiceFavoriteFilter = 'all'; // Can be 'all', 'favorites', 'non-favorites'
@@ -1179,6 +1199,8 @@
         let notesSaveTimeout;
         let notesSaveTimeoutReview;
         let updateDebounceTimers = new Map();
+        let noteUpdateDebounceTimers = new Map();
+        let noteTitleUpdateDebounceTimers = new Map();
 let groupNotes = new Map();
 let activeKpi = null;
 let isInitialLoad = true;
@@ -1232,6 +1254,124 @@ let ingresosSearchTerm = '';
                 showToast('No se pudo copiar el texto.', 'error');
             }
             document.body.removeChild(tempTextArea);
+        }
+
+        function handleExportDashboardNotes() {
+            const notes = appSettings.inventoryNotes || [];
+            if (notes.length === 0) {
+                showToast('No hay notas para exportar.', 'info');
+                return;
+            }
+            
+            const dataToExport = notes.map(note => ({
+                'Título': note.title,
+                'Contenido': note.content
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+
+            if(!worksheet['!cols']) worksheet['!cols'] = [];
+            worksheet['!cols'][0] = { wch: 40 }; 
+            worksheet['!cols'][1] = { wch: 100 }; 
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Notas de Inventario');
+            
+            const filename = `${getCurrentDateString()}_Notas_Inventarios.xlsx`;
+            XLSX.writeFile(workbook, filename);
+            showToast(`Notas exportadas como ${filename}`, 'success');
+        }
+
+        async function handleAddInventoryNote() {
+            if (currentUserRole !== 'owner') {
+                showToast('No tienes permiso para añadir notas.', 'error');
+                return;
+            }
+            const titleInput = document.getElementById('new-note-title-input');
+            const title = titleInput.value.trim();
+            if (!title) {
+                showToast('Por favor, introduce un título para la nota.', 'error');
+                return;
+            }
+
+            const newNote = {
+                id: new Date().getTime().toString(), // Simple unique ID
+                title: title,
+                content: ''
+            };
+
+            const newNotesArray = [...(appSettings.inventoryNotes || []), newNote];
+
+            try {
+                await updateDoc(appConfigDocRef, { "settings.inventoryNotes": newNotesArray });
+                titleInput.value = '';
+                showToast('Nota añadida.', 'success');
+                // The onSnapshot listener will handle re-rendering
+            } catch (error) {
+                console.error("Error al añadir nota:", error);
+                showToast('Error al añadir la nota.', 'error');
+            }
+        }
+
+        async function handleUpdateInventoryNoteTitle(noteId, newTitle) {
+            if (currentUserRole !== 'owner') return;
+
+            if (!newTitle || newTitle.trim() === '') {
+                showToast('El título no puede estar vacío.', 'error');
+                renderInventoryNotesList(); // Re-render to show the old title from state
+                return;
+            }
+
+            const currentNotes = appSettings.inventoryNotes || [];
+            const noteIndex = currentNotes.findIndex(note => note.id === noteId);
+
+            if (noteIndex === -1) return;
+
+            const updatedNotes = [...currentNotes];
+            updatedNotes[noteIndex] = { ...updatedNotes[noteIndex], title: newTitle.trim() };
+            
+            try {
+                await updateDoc(appConfigDocRef, { "settings.inventoryNotes": updatedNotes });
+                showToast('Título actualizado.', 'success');
+            } catch (error) {
+                console.error("Error al actualizar el título:", error);
+                showToast('Error al actualizar el título.', 'error');
+            }
+        }
+
+        async function handleUpdateInventoryNoteContent(noteId, content) {
+            if (currentUserRole !== 'owner') return;
+            const currentNotes = appSettings.inventoryNotes || [];
+            const noteIndex = currentNotes.findIndex(note => note.id === noteId);
+
+            if (noteIndex === -1) return;
+
+            const updatedNotes = [...currentNotes];
+            updatedNotes[noteIndex] = { ...updatedNotes[noteIndex], content: content };
+            
+            try {
+                await updateDoc(appConfigDocRef, { "settings.inventoryNotes": updatedNotes });
+                showToast('Nota guardada.', 'success');
+            } catch (error) {
+                console.error("Error al guardar la nota:", error);
+                showToast('Error al guardar la nota.', 'error');
+            }
+        }
+
+        async function handleDeleteInventoryNote(noteId) {
+            if (currentUserRole !== 'owner') {
+                showToast('No tienes permiso para eliminar notas.', 'error');
+                return;
+            }
+            const updatedNotes = (appSettings.inventoryNotes || []).filter(note => note.id !== noteId);
+             try {
+                await updateDoc(appConfigDocRef, { "settings.inventoryNotes": updatedNotes });
+                showToast('Nota eliminada.', 'success');
+            } catch (error)
+                {
+                console.error("Error al eliminar la nota:", error);
+                showToast('Error al eliminar la nota.', 'error');
+            }
         }
 
         function formatDate(isoDateString, separator = '-') {
@@ -1590,9 +1730,11 @@ let ingresosSearchTerm = '';
                         <h3 class="text-lg font-bold text-slate-800">${capitalizedMonthName} ${year}</h3>
                         <button id="calendar-today-btn" class="btn-main-style !text-xs !h-8 !px-3">Semana Actual</button>
                     </div>
-                    <div class="calendar-grid">
-                        <div class="week-number-cell"></div> <!-- Empty cell for week number header -->
-                        ${['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'].map(day => `<div class="calendar-day-name">${day}</div>`).join('')}
+                    <div class="flex items-center">
+                        <div class="week-number-cell w-8 flex-shrink-0"></div> <!-- Empty cell for week number header -->
+                        <div class="calendar-grid flex-grow">
+                            ${['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'].map(day => `<div class="calendar-day-name">${day}</div>`).join('')}
+                        </div>
                     </div>
                     <div id="calendar-body"></div>
                 </div>`;
@@ -1610,7 +1752,7 @@ let ingresosSearchTerm = '';
                 const weekNumber = parseInt(weekId.split('-')[1], 10);
                 
                 calendarHtml += `<div class="calendar-week-row flex items-center" data-week-id="${weekId}">
-                                    <div class="week-number-cell">${weekNumber}</div>
+                                    <div class="week-number-cell w-8 flex-shrink-0">${weekNumber}</div>
                                     <div class="calendar-grid flex-grow">`;
                 
                 for (let j = 0; j < 7; j++) {
@@ -2453,16 +2595,13 @@ let ingresosSearchTerm = '';
                 { type: 'groups', title: 'Total de Grupos', value: uniqueGroups, subtitle: 'Categorías activas', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>', color: 'green' },
                 { type: 'consumption-peak', title: 'Consumo Récord', value: recordConsumptionCount, subtitle: 'Superando pico histórico', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>', color: 'red' },
                 { type: 'solpeds-vencidas', title: 'Solpeds Vencidas', value: solpedsVencidasCount, subtitle: 'Liberación pasada', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M12 22a2 2 0 0 0 2-2V7H10v13a2 2 0 0 0 2 2z"/><path d="M16 10h4l-4-4v4z"/><path d="M16 10h4l-4-4v4z"/></svg>', color: 'red' },
-                { type: 'ocs-vencidas', title: 'O/C Vencidas', value: ocsVencidasCount, subtitle: 'Entrega demorada', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>', color: 'red' }
+                { type: 'ocs-vencidas', title: 'O/C Vencidas', value: ocsVencidasCount, subtitle: 'Entrega demorada', icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>', color: 'red' },
             ];
             
             kpiContainer.innerHTML = kpis.map(kpi => {
                 let iconClass = 'bg-indigo-100 text-indigo-600';
                 let cardClass = '';
 
-                if (kpi.color === 'blue') {
-                    iconClass = 'bg-blue-100 text-blue-600';
-                }
                 if ((kpi.type === 'consumption-peak' || kpi.type === 'solpeds-vencidas' || kpi.type === 'ocs-vencidas') && kpi.value > 0) {
                     iconClass = 'bg-red-100 text-red-600';
                     cardClass = 'border-2 border-red-400';
@@ -2476,98 +2615,66 @@ let ingresosSearchTerm = '';
                 </div>`;
             }).join('');
             
-            renderCriticalItemsTable();
+            const notesContainer = document.getElementById('dashboard-notes-container');
+            if (notesContainer) {
+                notesContainer.classList.remove('hidden');
 
+                const addNoteFormContainer = document.getElementById('add-note-form-container');
+                if (addNoteFormContainer) {
+                    addNoteFormContainer.style.display = currentUserRole === 'owner' ? 'flex' : 'none';
+                }
+
+                renderInventoryNotesList();
+            }
+            
             if (isInitialLoad && items.length > 0) {
                 handleKpiClick('consumption-peak');
                 isInitialLoad = false;
             }
         }
 
-        function renderCriticalItemsTable() {
-            const container = document.getElementById('low-stock-container');
-            if (!container) return;
+        function renderInventoryNotesList() {
+            const listContainer = document.getElementById('inventory-notes-list');
+            if (!listContainer) return;
 
-            const redThreshold = appSettings.coverageThresholds.red;
-            let processedItems = getProcessedItems(true);
-            let lowStockItems = processedItems.filter(item => item.coverageDays < redThreshold && item.coverageDays !== Infinity);
-            const allGroups = [...new Set(lowStockItems.map(item => item.group || 'General'))].sort();
+            const notes = appSettings.inventoryNotes || [];
 
-            const searchInput = container.querySelector('#low-stock-search');
-            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-
-            if (criticalsSelectedGroup !== 'all') {
-                lowStockItems = lowStockItems.filter(item => item.group === criticalsSelectedGroup);
-            }
-            
-            if (showOnlyFavoriteCriticals) {
-                lowStockItems = lowStockItems.filter(item => item.isFavorite);
+            if (notes.length === 0) {
+                listContainer.innerHTML = '<p class="text-center text-slate-400 pt-10">No hay notas guardadas.</p>';
+                return;
             }
 
-            if (searchTerm) {
-                const searchWords = searchTerm.toLowerCase().split(' ').filter(Boolean);
-                lowStockItems = lowStockItems.filter(item => {
-                    const textToSearch = item.name.toLowerCase();
-                    return searchWords.every(word => textToSearch.includes(word));
-                });
-            }
-            
-            lowStockItems.sort((a, b) => a.coverageDays - b.coverageDays);
+            // Sort notes alphabetically by title
+            notes.sort((a, b) => a.title.localeCompare(b.title));
 
-            let groupFilterHTML = `<select id="low-stock-group-filter" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 w-full h-9"><option value="all">TODOS LOS GRUPOS</option>`;
-            allGroups.forEach(group => {
-                const selected = group === criticalsSelectedGroup ? 'selected' : '';
-                groupFilterHTML += `<option value="${group}" ${selected}>${group}</option>`;
-            });
-            groupFilterHTML += `</select>`;
+            const isOwner = currentUserRole === 'owner';
 
-            let contentHTML = `
-                <div class="p-4 border-b bg-[#6366f1] rounded-t-lg flex justify-between items-center flex-shrink-0">
-                    <div class="flex items-center gap-4">
-                        <span class="text-3xl font-bold text-white">${lowStockItems.length}</span>
-                        <div>
-                             <h3 class="text-lg font-semibold text-white uppercase tracking-wider">Insumos Críticos</h3>
-                             <p class="text-xs text-indigo-100 -mt-1">con &lt; ${redThreshold} días</p>
+            listContainer.innerHTML = notes.map(note => `
+                <div class="border rounded-lg overflow-hidden bg-white shadow-sm" data-note-id="${note.id}">
+                    <div class="p-3 flex items-center justify-between hover:bg-slate-50 cursor-pointer note-header">
+                        <div class="flex-1 min-w-0 pr-2">
+                            ${isOwner 
+                                ? `<input type="text" value="${note.title}" class="note-title-input font-semibold text-indigo-700 truncate bg-transparent w-full focus:outline-none focus:ring-1 focus:ring-indigo-300 focus:bg-white rounded px-1 py-0.5" placeholder="Título...">`
+                                : `<p class="font-semibold text-indigo-700 truncate px-1 py-0.5">${note.title}</p>`
+                            }
+                        </div>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            ${isOwner ? `
+                            <button class="delete-note-btn p-1 text-red-400 hover:text-red-600 rounded-full hover:bg-red-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
+                            ` : ''}
+                            <svg class="w-5 h-5 text-slate-400 transition-transform duration-200 note-chevron" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                         </div>
                     </div>
-                    <button id="low-stock-favorites-filter-btn" class="btn-main-style h-8 !text-xs ${showOnlyFavoriteCriticals ? 'bg-yellow-200 !text-yellow-800 !border-yellow-300 hover:!bg-yellow-300' : '!bg-transparent !text-white !border-white/40 hover:!bg-white/10'}">Favoritos</button>
-                </div>
-                 <div class="p-4 border-b">
-                     <div class="grid grid-cols-2 gap-2">
-                        <div>${groupFilterHTML}</div>
-                        <input type="text" id="low-stock-search" value="${searchTerm}" placeholder="Buscar en críticos..." class="w-full p-2 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off">
-                    </div>
-                </div>
-                <div id="low-stock-list" class="max-h-[580px] overflow-y-auto">
-                    ${generateLowStockListHTML(lowStockItems)}
-                </div>
-            `;
-            container.innerHTML = contentHTML;
-        }
-
-        function generateLowStockListHTML(itemsToRender) {
-            if (itemsToRender.length === 0) {
-                return '<p class="p-4 text-center text-slate-500">No se encontraron insumos.</p>';
-            }
-            return itemsToRender.map(item => `
-                <div class="p-3 flex items-center justify-between hover:bg-slate-50 border-b">
-                    <div class="flex items-center gap-3 flex-1 min-w-0">
-                         <button class="favorite-btn ${item.isFavorite ? 'is-favorite' : ''}" data-item-id="${item.id}" data-btn-type="low-stock-fav" ${currentUserRole === 'viewer' ? 'disabled' : ''}>
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
-                        </button>
-                        <div class="flex-1 cursor-pointer low-stock-item-details" data-item-id="${item.id}">
-                            <p class="font-semibold text-xs text-slate-800 truncate">${item.name.toUpperCase()}</p>
-                            <p class="text-xs text-slate-500">Grupo: ${item.group}</p>
+                    <div class="hidden note-content">
+                        <div class="p-2 border-t">
+                            <textarea class="note-content-textarea w-full h-24 p-2 border border-slate-200 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500 resize-y" placeholder="Escribe los detalles aquí..." ${!isOwner ? 'disabled' : ''}>${note.content || ''}</textarea>
                         </div>
-                    </div>
-                    <div class="text-right pl-2 cursor-pointer low-stock-item-details" data-item-id="${item.id}">
-                        <p class="font-bold text-lg ${item.coverageDays < 7 ? 'text-red-600' : 'text-yellow-600'}">${Math.round(item.coverageDays)}</p>
-                        <p class="text-xs text-slate-500 -mt-1">días</p>
                     </div>
                 </div>
             `).join('');
         }
-
 
         async function renderReviewTable() {
             const reviewContainer = document.getElementById('review-container');
@@ -3177,9 +3284,27 @@ let ingresosSearchTerm = '';
                     updatedAt: serverTimestamp()
                 }, { merge: true });
                 showToast('Revisión guardada en la base de datos.', 'success');
+
+                // Clean up reviews older than 8 weeks
+                const today = new Date();
+                const cutoffDate = new Date(today);
+                cutoffDate.setDate(today.getDate() - (8 * 7)); // 8 weeks ago
+                const cutoffWeekId = getWeekId(cutoffDate);
+
+                const oldReviewsQuery = query(reviewHistoryCollectionRef, where("weekId", "<", cutoffWeekId));
+                const oldReviewsSnapshot = await getDocs(oldReviewsQuery);
+                
+                if (!oldReviewsSnapshot.empty) {
+                    const batch = writeBatch(db);
+                    oldReviewsSnapshot.forEach(doc => {
+                        batch.delete(doc.ref);
+                    });
+                    await batch.commit();
+                }
+
             } catch (error) {
-                console.error("Error al guardar la revisión: ", error);
-                showToast('Error al guardar la revisión.', 'error');
+                console.error("Error al guardar la revisión o limpiar datos antiguos: ", error);
+                showToast('Error al guardar o limpiar datos.', 'error');
             }
         }
 
@@ -3252,6 +3377,7 @@ let ingresosSearchTerm = '';
                 });
 
                 const allWeeks = [...historyMap.keys()].sort().reverse();
+                const visibleWeeks = allWeeks.slice(0, 8); // Limit export to the last 8 weeks
                 const dataToExport = [];
                 
                 allGroups.forEach(groupName => {
@@ -3259,7 +3385,7 @@ let ingresosSearchTerm = '';
                         'Notas': groupNotes.get(groupName) || '',
                         'Grupo': groupName
                     };
-                    allWeeks.forEach(weekId => {
+                    visibleWeeks.forEach(weekId => {
                          row[weekId] = historyMap.get(weekId)?.has(groupName) ? 'Sí' : 'No';
                     });
                     dataToExport.push(row);
@@ -5895,7 +6021,8 @@ let ingresosSearchTerm = '';
                 const history = querySnapshot.docs.map(doc => doc.data());
                 
                 let allGroups = [...new Set(items.map(item => item.group || 'General'))].sort();
-                const allWeeks = [...new Set(history.map(h => h.weekId))].sort().reverse();
+                const allWeeksSorted = [...new Set(history.map(h => h.weekId))].sort().reverse();
+                const visibleWeeks = allWeeksSorted.slice(0, 8); // Only show the last 8 weeks
 
                 if (history.length === 0 && allGroups.length === 0) {
                     container.innerHTML = '<p class="text-center text-slate-500 p-8">No hay grupos de insumos ni historial de revisiones.</p>';
@@ -5928,7 +6055,7 @@ let ingresosSearchTerm = '';
                 }, {});
 
                 let tableHTML = `<table class="w-full text-sm text-left text-slate-500 history-table table-fixed"><thead class="text-xs text-slate-700 uppercase"><tr><th class="px-4 py-3 font-bold w-40">Grupo</th>`;
-                allWeeks.forEach(weekId => {
+                visibleWeeks.forEach(weekId => {
                     const weekNum = weekId.split('-')[1];
                     tableHTML += `<th class="px-1 py-3 text-center">${weekNum}</th>`;
                 });
@@ -5941,7 +6068,7 @@ let ingresosSearchTerm = '';
                             <p class="text-base font-medium text-indigo-600">${groupName}</p>
                             <p class="text-xs text-slate-500">${count} insumos</p>
                         </td>`;
-                    allWeeks.forEach(weekId => {
+                    visibleWeeks.forEach(weekId => {
                         const isChecked = historyMatrix[weekId] && historyMatrix[weekId].has(groupName);
                         tableHTML += `<td class="px-1 py-1 text-center text-green-500 font-bold align-middle">${isChecked ? '✓' : ''}</td>`;
                     });
@@ -5959,7 +6086,7 @@ let ingresosSearchTerm = '';
                                     ${currentUserRole !== 'owner' ? 'disabled' : ''}
                                 >${note}</textarea>
                             </td>
-                            <td colspan="${allWeeks.length}"></td>
+                            <td colspan="${visibleWeeks.length}"></td>
                         </tr>`;
                 });
 
@@ -5996,6 +6123,24 @@ let ingresosSearchTerm = '';
             document.getElementById('manual-button-dropdown')?.addEventListener('click', () => document.getElementById('manual-modal').classList.remove('hidden'));
             document.getElementById('close-manual-modal-button')?.addEventListener('click', () => document.getElementById('manual-modal').classList.add('hidden'));
 
+            const notificationBellBtn = document.getElementById('notification-bell-btn');
+            const notificationDropdown = document.getElementById('notification-dropdown');
+
+            notificationBellBtn?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notificationDropdown.classList.toggle('show');
+            });
+
+            notificationDropdown?.addEventListener('click', (e) => {
+                if (e.target.closest('#mark-all-read-btn')) {
+                    e.stopPropagation();
+                    notifications.forEach(n => n.read = true);
+                    renderNotifications();
+                } else if (e.target.closest('.notification-item')) {
+                     handleNotificationClick(e);
+                }
+            });
+
             document.getElementById('manual-modal')?.addEventListener('click', (e) => {
                 const header = e.target.closest('.accordion-header');
                 if (header) {
@@ -6008,20 +6153,42 @@ let ingresosSearchTerm = '';
                 }
             });
 
-            document.getElementById('notification-bell-btn')?.addEventListener('click', (e) => {
-                e.stopPropagation();
-                document.getElementById('notification-dropdown').classList.toggle('show');
-            });
-            document.getElementById('notification-dropdown')?.addEventListener('click', (e) => {
-                if (e.target.id === 'mark-all-read-btn') {
-                    notifications.forEach(n => n.read = true);
-                    renderNotifications();
-                } else {
-                    handleNotificationClick(e);
-                }
-            });
-
             document.getElementById('dashboard-view')?.addEventListener('click', (e) => {
+                const addNoteBtn = e.target.closest('#add-new-note-btn');
+                if (addNoteBtn) {
+                    handleAddInventoryNote();
+                    return;
+                }
+
+                const deleteNoteBtn = e.target.closest('.delete-note-btn');
+                if (deleteNoteBtn) {
+                    e.stopPropagation(); // Prevent accordion from toggling
+                    const noteId = deleteNoteBtn.closest('[data-note-id]').dataset.noteId;
+                    handleDeleteInventoryNote(noteId);
+                    return;
+                }
+
+                const noteHeader = e.target.closest('.note-header');
+                if (noteHeader) {
+                    // Do not toggle if the user is interacting with the title input.
+                    if (e.target.closest('.note-title-input')) {
+                        return;
+                    }
+                    const content = noteHeader.nextElementSibling;
+                    const chevron = noteHeader.querySelector('.note-chevron');
+                    if (content && chevron) {
+                        content.classList.toggle('hidden');
+                        chevron.classList.toggle('rotate-180');
+                    }
+                    return;
+                }
+
+                const exportNotesBtn = e.target.closest('#export-dashboard-notes-btn');
+                if(exportNotesBtn) {
+                    handleExportDashboardNotes();
+                    return;
+                }
+
                 const kpiCard = e.target.closest('.kpi-card');
                 if (kpiCard) {
                     handleKpiClick(kpiCard.dataset.kpi);
@@ -6040,8 +6207,8 @@ let ingresosSearchTerm = '';
                     return;
                 }
 
-                // Handler for clicking on items within KPI detail views (Favorites, Record Consumption) or Critical Items list
-                const detailItem = e.target.closest('.kpi-detail-item-row, .low-stock-item-details');
+                // Handler for clicking on items within KPI detail views (Favorites, Record Consumption)
+                const detailItem = e.target.closest('.kpi-detail-item-row');
                 if (detailItem && detailItem.dataset.itemId) {
                     selectedConsumptionItemId = detailItem.dataset.itemId;
                     comparisonItemId = null;
@@ -6077,20 +6244,6 @@ let ingresosSearchTerm = '';
                     switchMainView('ocs');
                     return;
                 }
-
-                const lowStockFavFilterBtn = e.target.closest('#low-stock-favorites-filter-btn');
-                if (lowStockFavFilterBtn) {
-                    showOnlyFavoriteCriticals = !showOnlyFavoriteCriticals;
-                    renderCriticalItemsTable();
-                    return;
-                }
-
-                // Handler for favorite button in critical items list
-                const favBtn = e.target.closest('.favorite-btn[data-btn-type="low-stock-fav"]');
-                if (favBtn) {
-                    handleToggleFavorite(favBtn.dataset.itemId);
-                    return;
-                }
                 
                 if (e.target.closest('#export-record-consumption-btn')) {
                     handleExportRecordConsumption();
@@ -6115,6 +6268,40 @@ let ingresosSearchTerm = '';
                         chevron.classList.toggle('rotate-180');
                     }
                     return;
+                }
+            });
+
+            document.getElementById('dashboard-view')?.addEventListener('input', (e) => {
+                if (e.target.matches('.note-title-input')) {
+                    const noteId = e.target.closest('[data-note-id]').dataset.noteId;
+                    const newTitle = e.target.value;
+
+                    if (noteTitleUpdateDebounceTimers.has(noteId)) {
+                        clearTimeout(noteTitleUpdateDebounceTimers.get(noteId));
+                    }
+
+                    const timer = setTimeout(() => {
+                        handleUpdateInventoryNoteTitle(noteId, newTitle);
+                        noteTitleUpdateDebounceTimers.delete(noteId);
+                    }, 1500); // 1.5 second debounce
+
+                    noteTitleUpdateDebounceTimers.set(noteId, timer);
+                }
+                
+                if (e.target.matches('.note-content-textarea')) {
+                    const noteId = e.target.closest('[data-note-id]').dataset.noteId;
+                    const content = e.target.value;
+
+                    if (noteUpdateDebounceTimers.has(noteId)) {
+                        clearTimeout(noteUpdateDebounceTimers.get(noteId));
+                    }
+
+                    const timer = setTimeout(() => {
+                        handleUpdateInventoryNoteContent(noteId, content);
+                        noteUpdateDebounceTimers.delete(noteId);
+                    }, 1500); // 1.5 second debounce
+
+                    noteUpdateDebounceTimers.set(noteId, timer);
                 }
             });
 
@@ -6304,6 +6491,7 @@ let ingresosSearchTerm = '';
                 const exportBtn = e.target.closest('#export-indice-btn');
                 const clearFiltersBtn = e.target.closest('#indice-clear-filters-btn');
                 const favHeaderBtn = e.target.closest('#indice-favorites-header-filter-btn');
+                const coverageBtn = e.target.closest('.indice-coverage-btn');
 
                 if (sortBtn) {
                     const key = sortBtn.dataset.sort;
@@ -6328,6 +6516,9 @@ let ingresosSearchTerm = '';
                     if (indiceFavoriteFilter === 'all') indiceFavoriteFilter = 'favorites';
                     else if (indiceFavoriteFilter === 'favorites') indiceFavoriteFilter = 'non-favorites';
                     else indiceFavoriteFilter = 'all';
+                    renderIndiceView();
+                } else if (coverageBtn) {
+                    indiceCoverageFilter = coverageBtn.dataset.filter;
                     renderIndiceView();
                 }
             });
@@ -7054,3 +7245,109 @@ let ingresosSearchTerm = '';
     </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
