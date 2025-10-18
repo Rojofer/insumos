@@ -857,19 +857,7 @@
                              <h3 class="text-base font-semibold text-slate-900">Visualización de Consumos</h3>
                              <p class="text-sm text-slate-500 mt-1">Selecciona los meses del historial de consumo que se mostrarán en el gráfico.</p>
                              <div id="consumption-months-checkboxes" class="mt-4 grid grid-cols-4 sm:grid-cols-6 gap-x-6 gap-y-3">
-                                <!-- Checkboxes for months -->
-                                <label class="flex items-center space-x-2"><input type="checkbox" data-month-index="0" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"> <span class="text-sm font-medium text-slate-700">M1</span></label>
-                                <label class="flex items-center space-x-2"><input type="checkbox" data-month-index="1" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"> <span class="text-sm font-medium text-slate-700">M2</span></label>
-                                <label class="flex items-center space-x-2"><input type="checkbox" data-month-index="2" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"> <span class="text-sm font-medium text-slate-700">M3</span></label>
-                                <label class="flex items-center space-x-2"><input type="checkbox" data-month-index="3" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"> <span class="text-sm font-medium text-slate-700">M4</span></label>
-                                <label class="flex items-center space-x-2"><input type="checkbox" data-month-index="4" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"> <span class="text-sm font-medium text-slate-700">M5</span></label>
-                                <label class="flex items-center space-x-2"><input type="checkbox" data-month-index="5" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"> <span class="text-sm font-medium text-slate-700">M6</span></label>
-                                <label class="flex items-center space-x-2"><input type="checkbox" data-month-index="6" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"> <span class="text-sm font-medium text-slate-700">M7</span></label>
-                                <label class="flex items-center space-x-2"><input type="checkbox" data-month-index="7" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"> <span class="text-sm font-medium text-slate-700">M8</span></label>
-                                <label class="flex items-center space-x-2"><input type="checkbox" data-month-index="8" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"> <span class="text-sm font-medium text-slate-700">M9</span></label>
-                                <label class="flex items-center space-x-2"><input type="checkbox" data-month-index="9" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"> <span class="text-sm font-medium text-slate-700">M10</span></label>
-                                <label class="flex items-center space-x-2"><input type="checkbox" data-month-index="10" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"> <span class="text-sm font-medium text-slate-700">M11</span></label>
-                                <label class="flex items-center space-x-2"><input type="checkbox" data-month-index="11" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"> <span class="text-sm font-medium text-slate-700">M12</span></label>
+                                <!-- Checkboxes will be dynamically inserted here -->
                              </div>
                         </div>
                      </div>
@@ -1150,6 +1138,7 @@
             coverageThresholds: { red: 30, yellow: 60 },
             notificationThreshold: 15,
             consumptionMonths: [true, true, true, true, true, true, true, true, true, true, true, true],
+            consumptionMonthLabels: [],
             immobilizationMonths: 6,
             iwebSapUrl: '',
             depositosExternosUrl: ''
@@ -2023,7 +2012,7 @@ let ingresosSearchTerm = '';
                     const workbook = XLSX.read(new Uint8Array(event.target.result), { type: 'array', cellDates: true });
                     
                     const { inventoryItems: newItemsFromExcel } = processInventorySheet(workbook);
-                    const { historyMap } = processHistorySheet(workbook);
+                    const { historyMap, monthLabels } = processHistorySheet(workbook);
                     const { solpedsData } = processSolpedsSheet(workbook);
                     const { ocsData } = processOCSheet(workbook);
 
@@ -2050,6 +2039,12 @@ let ingresosSearchTerm = '';
                     ocsData.forEach(item => batch.set(doc(ocsCollectionRef), item));
 
                     batch.set(metadataDocRef, { filename: file.name, lastUpdated: new Date().toISOString() });
+
+                    if (monthLabels && monthLabels.length > 0) {
+                        const newSettings = { ...appSettings, consumptionMonthLabels: monthLabels };
+                        batch.set(appConfigDocRef, { settings: newSettings }, { merge: true });
+                    }
+
                     await batch.commit();
                     showToast(`Sincronización completa.`, 'success');
                     setTimeout(handleClosePreloadModal, 2500);
@@ -2137,16 +2132,19 @@ let ingresosSearchTerm = '';
         }
         function processHistorySheet(workbook) {
             const sheetName = workbook.SheetNames[1];
-            if (!sheetName) return { historyMap: new Map(), historyReport: { processedCount: 0, ignoredCount: 0 } };
+            if (!sheetName) return { historyMap: new Map(), historyReport: { processedCount: 0, ignoredCount: 0 }, monthLabels: [] };
             const worksheet = workbook.Sheets[sheetName];
             const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false, defval: null });
             const historyMap = new Map();
             const report = { processedCount: 0, ignoredCount: 0 };
             const headerRow = rows[0].map(h => String(h).trim().toLowerCase());
             const codeIndex = headerRow.indexOf('material') !== -1 ? headerRow.indexOf('material') : headerRow.indexOf('cod');
+            
+            const monthLabels = rows[0].slice(2).map(h => String(h).trim());
+
             if (codeIndex === -1) {
                 console.error("No se encontró la columna 'material' o 'cod' en la Hoja2.");
-                return { historyMap, historyReport: report };
+                return { historyMap, historyReport: report, monthLabels: [] };
             }
             const parseNumeric = (val) => {
                 if (val === null || val === undefined || typeof val === 'string' && val.trim() === '' || val === '-') return 0;
@@ -2166,7 +2164,7 @@ let ingresosSearchTerm = '';
                 }
             }
             report.processedCount = historyMap.size;
-            return { historyMap, historyReport: report };
+            return { historyMap, historyReport: report, monthLabels };
         }
         function processSolpedsSheet(workbook) {
             const sheetName = workbook.SheetNames.find(name => name.toLowerCase().includes('solped'));
@@ -2243,11 +2241,25 @@ let ingresosSearchTerm = '';
             document.getElementById('setting-iweb-sap-url').value = appSettings.iwebSapUrl || '';
             document.getElementById('setting-depositos-externos-url').value = appSettings.depositosExternosUrl || '';
             
-            const monthCheckboxes = document.querySelectorAll('#consumption-months-checkboxes input[type="checkbox"]');
+            const consumptionMonthsContainer = document.getElementById('consumption-months-checkboxes');
             const selectedMonths = appSettings.consumptionMonths || Array(12).fill(true);
-            monthCheckboxes.forEach((checkbox, index) => {
-                checkbox.checked = selectedMonths[index];
-            });
+            const defaultMonthNames = Array.from({ length: 12 }, (_, i) => `M${i + 1}`);
+            const monthLabels = (appSettings.consumptionMonthLabels && appSettings.consumptionMonthLabels.length > 0)
+                ? appSettings.consumptionMonthLabels
+                : defaultMonthNames;
+
+            let checkboxesHTML = '';
+            for (let i = 0; i < 12; i++) {
+                const label = monthLabels[i] || defaultMonthNames[i]; // Fallback if labels array is short
+                const isChecked = selectedMonths[i];
+                checkboxesHTML += `
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" data-month-index="${i}" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" ${isChecked ? 'checked' : ''}>
+                        <span class="text-sm font-medium text-slate-700">${label}</span>
+                    </label>
+                `;
+            }
+            consumptionMonthsContainer.innerHTML = checkboxesHTML;
         }
         function closeAdminModal() { document.getElementById('admin-modal').classList.add('hidden'); }
         async function renderPermissionsList() {
@@ -3608,14 +3620,6 @@ let ingresosSearchTerm = '';
                 }
             }
 
-            const consumoIcons = {
-                stock: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>',
-                avg: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>',
-                peak: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>',
-                monthly: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>',
-                coverage: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>'
-            };
-
             const notesDisabledAttr = currentUserRole === 'viewer' ? 'disabled' : '';
             let notesAndSimulateSection;
             if (type === 'primary' && itemId) {
@@ -3665,31 +3669,26 @@ let ingresosSearchTerm = '';
                         <p id="consumo-kpi-group-${type}" class="text-base font-semibold text-[#6366f1] consumo-group-link cursor-pointer hover:underline">-</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mt-4">
-                    <div class="relative bg-white p-2 rounded-lg shadow text-center flex flex-col justify-center min-h-[90px]">
-                        <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.stock}</div>
-                        <input type="text" id="consumo-kpi-stock-${type}" class="direct-edit-input text-center w-full bg-transparent text-2xl font-bold text-slate-900 h-9" ${notesDisabledAttr}>
-                        <p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Stock</p>
+                <div class="grid grid-cols-5 gap-2 mt-4">
+                    <div class="bg-slate-50 border border-slate-200 p-1 rounded-lg flex flex-col justify-center items-center h-20">
+                        <input type="text" id="consumo-kpi-stock-${type}" class="direct-edit-input text-center w-full bg-transparent text-xl font-bold text-slate-800" ${notesDisabledAttr}>
+                        <p class="text-xs font-medium text-slate-500 uppercase mt-1">Stock</p>
                     </div>
-                    <div class="relative bg-white p-2 rounded-lg shadow text-center flex flex-col justify-center min-h-[90px]">
-                        <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.avg}</div>
-                        <div><p id="consumo-kpi-avg-${type}" class="text-2xl font-bold text-indigo-600">-</p></div>
-                        <p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Promedio</p>
+                    <div class="bg-slate-50 border border-slate-200 p-1 rounded-lg flex flex-col justify-center items-center h-20">
+                        <p id="consumo-kpi-avg-${type}" class="text-xl font-bold text-indigo-600">-</p>
+                        <p class="text-xs font-medium text-slate-500 uppercase mt-1">Promedio</p>
                     </div>
-                    <div class="relative bg-white p-2 rounded-lg shadow text-center flex flex-col justify-center min-h-[90px]">
-                        <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.peak}</div>
-                        <div><p id="consumo-kpi-peak-${type}" class="text-2xl font-bold text-green-600">-</p></div>
-                        <div class="flex justify-center items-baseline gap-1"><p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Pico</p><p id="consumo-kpi-peak-month-${type}" class="text-xs text-slate-500 truncate"></p></div>
+                    <div class="bg-slate-50 border border-slate-200 p-1 rounded-lg flex flex-col justify-center items-center h-20">
+                        <p id="consumo-kpi-peak-${type}" class="text-xl font-bold text-green-600">-</p>
+                        <p class="text-xs font-medium text-slate-500 uppercase truncate mt-1">Pico <span id="consumo-kpi-peak-month-${type}" class="font-normal"></span></p>
                     </div>
-                    <div class="relative bg-white p-2 rounded-lg shadow text-center border-2 border-indigo-500 flex flex-col justify-center min-h-[90px]">
-                        <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.monthly}</div>
-                        <input type="text" id="consumo-kpi-monthly-consumption-${type}" class="direct-edit-input text-center w-full bg-transparent text-2xl font-bold text-slate-900 h-9" ${notesDisabledAttr}>
-                        <p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Cons. Mensual</p>
+                    <div class="bg-white border-2 border-indigo-300 p-1 rounded-lg flex flex-col justify-center items-center h-20">
+                        <input type="text" id="consumo-kpi-monthly-consumption-${type}" class="direct-edit-input text-center w-full bg-transparent text-xl font-bold text-slate-800" ${notesDisabledAttr}>
+                        <p class="text-xs font-medium text-slate-500 uppercase mt-1">Cons. Mensual</p>
                     </div>
-                    <div class="relative bg-white p-2 rounded-lg shadow text-center border-2 border-indigo-500 flex flex-col justify-center min-h-[90px]">
-                        <div class="absolute -top-2 -left-2 p-1.5 rounded-lg bg-indigo-100 text-indigo-600 shadow-md">${consumoIcons.coverage}</div>
-                        <div><p id="consumo-kpi-coverage-today-${type}" class="text-2xl font-bold text-slate-900">-</p></div>
-                        <p class="text-xs font-medium text-slate-500 mt-0.5 uppercase">Cobertura</p>
+                    <div class="bg-white border-2 border-indigo-300 p-1 rounded-lg flex flex-col justify-center items-center h-20">
+                        <p id="consumo-kpi-coverage-today-${type}" class="text-xl font-bold text-slate-800">-</p>
+                        <p class="text-xs font-medium text-slate-500 uppercase mt-1">Cobertura</p>
                     </div>
                 </div>
                 <div id="consumo-chart-wrapper-${type}" class="consumo-chart-wrapper">
@@ -3760,7 +3759,10 @@ let ingresosSearchTerm = '';
             
             const allConsumos = item.consumos || [];
             const selectedMonths = appSettings.consumptionMonths || Array(12).fill(true);
-            const allMonthNames = ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12"];
+            const defaultMonthNames = ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12"];
+            const allMonthNames = (appSettings.consumptionMonthLabels && appSettings.consumptionMonthLabels.length > 0) 
+                ? appSettings.consumptionMonthLabels 
+                : defaultMonthNames;
             
             const consumos = [];
             const monthLabels = [];
@@ -7052,4 +7054,3 @@ let ingresosSearchTerm = '';
     </script>
 </body>
 </html>
-
