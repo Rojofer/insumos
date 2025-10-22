@@ -359,6 +359,22 @@
 </head>
 <body class="bg-slate-100 text-slate-800">
 
+    <!-- 
+    ======================================================================
+    NOTAS DE DESARROLLO Y SIMULACIÓN
+    ======================================================================
+    Fernando, usemos esta sección para anotar las ideas sobre la 
+    simulación y no perder el progreso.
+
+    IDEAS ACTUALES:
+    1.  Crear una nueva pestaña/vista llamada "Simulación".
+    2.  Permitir al usuario seleccionar un producto.
+    3.  Añadir controles para modificar variables (ej. "aumento de demanda %", "retraso en entrega de O/C en días").
+    4.  Mostrar un gráfico o tabla con el stock proyectado a futuro basado en la simulación.
+    
+    ======================================================================
+    -->
+
     <div id="auth-container" class="hidden min-h-screen bg-slate-100 flex flex-col justify-center items-center p-4">
         <div class="w-full max-w-sm">
             <div class="text-center mb-8">
@@ -372,7 +388,7 @@
             
             <div id="login-view" class="bg-white p-8 rounded-2xl shadow-lg hidden">
                 <h2 class="text-2xl font-bold text-center text-slate-800">ALMACEN</h2>
-                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v3.11 (18-10-2025)</p>
+                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v3.20 (20-10-2025)</p>
                 <form id="login-form" class="space-y-4">
                     <div>
                         <label for="login-email" class="text-sm font-medium text-slate-700">Email</label>
@@ -486,7 +502,7 @@
                                 </div>
                                 <div class="dropdown-divider"></div>
                                 <div class="px-4 py-2 text-center text-xs text-slate-400">
-                                    Versión 3.11 (18-10-2025)
+                                    Versión 3.20 (20-10-2025)
                                 </div>
                             </div>
                         </div>
@@ -4272,66 +4288,74 @@ let ingresosSearchTerm = '';
                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500 flex-shrink-0"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
                             <h3 class="text-lg font-bold text-slate-800 truncate">Simulación: <span class="text-[#6366f1]">${primaryItem.name.toUpperCase()}</span></h3>
                         </div>
-                        <button id="export-simulation-btn" title="Exportar Simulación" class="btn-main-style !w-9 !h-9 !p-0 flex-shrink-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="flex flex-col md:flex-row items-start gap-4 mt-4 flex-shrink-0">
-                    <!-- Controles de Stock y Consumo -->
-                    <div class="w-full md:flex-1">
-                         <div class="flex gap-2">
-                             <div class="flex-1">
-                                <label for="sim-stock" class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">Stock Actual</label>
-                                <div class="relative flex items-center">
-                                    <button data-target="sim-stock" data-step="-100" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">-</button>
-                                    <input id="sim-stock" type="text" inputmode="numeric" value="${formatNumber(Math.round(primaryItem.stock))}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                    <button data-target="sim-stock" data-step="100" class="sim-adjust-btn absolute right-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">+</button>
-                                </div>
-                            </div>
-                            <div class="flex-1">
-                                 <label for="sim-consumption" class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">CONS.MENS</label>
-                                <div class="relative flex items-center">
-                                    <button data-target="sim-consumption" data-step="-50" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">-</button>
-                                    <input id="sim-consumption" type="text" inputmode="numeric" value="${formatNumber(Math.round(primaryItem.monthlyConsumption))}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                    <button data-target="sim-consumption" data-step="50" class="sim-adjust-btn absolute right-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">+</button>
-                                </div>
-                            </div>
-                            <div class="w-24">
-                                <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">COB.DIAS</label>
-                                <div id="sim-coverage-indicator" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-center">
-                                    <span class="font-bold text-lg text-slate-700">-</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="w-px bg-slate-200 self-stretch mx-2"></div>
-
-                    <!-- Simular Ingreso -->
-                    <div class="flex-1">
-                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">Simular Ingreso Manual</p>
-                        <div class="flex gap-2 items-center">
-                            <input id="sim-income-name" type="text" placeholder="Nombre (Opcional)" class="w-1/3 h-10 bg-white border border-slate-300 rounded-md shadow-sm px-3 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            <input id="sim-income-qty" type="text" inputmode="numeric" placeholder="Cantidad" class="w-1/3 h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            <div class="w-1/3 flex gap-2">
-                                <select id="sim-income-week" class="flex-grow h-10 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold">
-                                    <!-- Options will be populated dynamically -->
-                                </select>
-                                <button id="add-sim-income-btn" class="btn-main-style !h-10 !w-10 !p-0 !bg-indigo-600 !text-white hover:!bg-indigo-700 flex-shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                </button>
-                            </div>
+                        <div class="flex items-center gap-2">
+                            <button id="toggle-sim-controls-btn" title="Ocultar/Mostrar Controles" class="btn-main-style !w-9 !h-9 !p-0 flex-shrink-0">
+                                <svg id="toggle-sim-chevron" class="w-6 h-6 transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" /></svg>
+                            </button>
+                            <button id="export-simulation-btn" title="Exportar Simulación" class="btn-main-style !w-9 !h-9 !p-0 flex-shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                <div id="simulated-incomes-list" class="mt-2 text-sm flex-shrink-0"></div>
+                <div id="simulation-controls-container" class="transition-all duration-300 ease-in-out">
+                    <div class="flex flex-col md:flex-row items-start gap-4 mt-4 flex-shrink-0">
+                        <!-- Controles de Stock y Consumo -->
+                        <div class="w-full md:flex-1">
+                             <div class="flex gap-2">
+                                 <div class="flex-1">
+                                    <label for="sim-stock" class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">Stock Actual</label>
+                                    <div class="relative flex items-center">
+                                        <button data-target="sim-stock" data-step="-100" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">-</button>
+                                        <input id="sim-stock" type="text" inputmode="numeric" value="${formatNumber(Math.round(primaryItem.stock))}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                        <button data-target="sim-stock" data-step="100" class="sim-adjust-btn absolute right-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">+</button>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                     <label for="sim-consumption" class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">CONS.MENS</label>
+                                    <div class="relative flex items-center">
+                                        <button data-target="sim-consumption" data-step="-50" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">-</button>
+                                        <input id="sim-consumption" type="text" inputmode="numeric" value="${formatNumber(Math.round(primaryItem.monthlyConsumption))}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                        <button data-target="sim-consumption" data-step="50" class="sim-adjust-btn absolute right-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">+</button>
+                                    </div>
+                                </div>
+                                <div class="w-24">
+                                    <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">COB.DIAS</label>
+                                    <div id="sim-coverage-indicator" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-center">
+                                        <span class="font-bold text-lg text-slate-700">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="w-px bg-slate-200 self-stretch mx-2"></div>
+    
+                        <!-- Simular Ingreso -->
+                        <div class="flex-1">
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">Simular Ingreso Manual</p>
+                            <div class="flex gap-2 items-center">
+                                <input id="sim-income-name" type="text" placeholder="Nombre (Opcional)" class="w-1/3 h-10 bg-white border border-slate-300 rounded-md shadow-sm px-3 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <input id="sim-income-qty" type="text" inputmode="numeric" placeholder="Cantidad" class="w-1/3 h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <div class="w-1/3 flex gap-2">
+                                    <select id="sim-income-week" class="flex-grow h-10 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold">
+                                        <!-- Options will be populated dynamically -->
+                                    </select>
+                                    <button id="add-sim-income-btn" class="btn-main-style !h-10 !w-10 !p-0 !bg-indigo-600 !text-white hover:!bg-indigo-700 flex-shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div id="simulation-info-container" class="flex-shrink-0 overflow-y-auto no-scrollbar py-2" style="max-height: 140px;">
+                        <div id="simulated-incomes-list" class="text-sm"></div>
+                        <div id="overdue-ocs-container" class="mt-2"></div>
+                    </div>
+                </div>
 
-                <div id="overdue-ocs-container" class="mt-4 flex-shrink-0"></div>
-
-                <div id="simulation-results-container" class="mt-4 flex-grow overflow-y-auto">
+                <div id="simulation-results-container" class="mt-2 flex-grow overflow-y-auto no-scrollbar">
                     <!-- Results will be injected here by runAndRenderSimulation() -->
                 </div>
             </div>
@@ -4364,6 +4388,11 @@ let ingresosSearchTerm = '';
                 runAndRenderSimulation();
                 updateSimulationCoverageIndicator();
             };
+
+            document.getElementById('toggle-sim-controls-btn')?.addEventListener('click', () => {
+                document.getElementById('simulation-controls-container').classList.toggle('hidden');
+                document.getElementById('toggle-sim-chevron').classList.toggle('rotate-180');
+            });
 
             document.getElementById('sim-stock').addEventListener('input', simulationInputHandler);
             document.getElementById('sim-consumption').addEventListener('input', simulationInputHandler);
@@ -4624,7 +4653,7 @@ let ingresosSearchTerm = '';
                                 <span class="tooltip-text">${tooltipContent}</span>
                             </div>
                         </td>
-                        <td class="px-3 py-2 text-center text-red-600 font-medium">-${formatNumber(Math.round(res.consumption))}</td>
+                        <td class="px-3 py-2 text-center font-medium">-${formatNumber(Math.round(res.consumption))}</td>
                         <td class="px-3 py-2 text-center font-bold">${formatNumber(Math.round(res.endStock))}</td>
                         <td class="px-3 py-2 text-center ${coverageClass}">${res.coverage === Infinity ? '∞' : Math.round(res.coverage)}</td>
                     </tr>`;
@@ -7229,3 +7258,113 @@ let ingresosSearchTerm = '';
     </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
