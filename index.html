@@ -354,6 +354,10 @@
         .accordion-chevron.rotate-180, .record-consumption-chevron.rotate-180, .note-chevron.rotate-180 {
             transform: rotate(180deg);
         }
+        .dashboard-group-highlight-toggle:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
 
     </style>
 </head>
@@ -388,7 +392,7 @@
             
             <div id="login-view" class="bg-white p-8 rounded-2xl shadow-lg hidden">
                 <h2 class="text-2xl font-bold text-center text-slate-800">ALMACEN</h2>
-                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v3.20 (20-10-2025)</p>
+                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v3.40 (08-11-2025)</p>
                 <form id="login-form" class="space-y-4">
                     <div>
                         <label for="login-email" class="text-sm font-medium text-slate-700">Email</label>
@@ -502,7 +506,7 @@
                                 </div>
                                 <div class="dropdown-divider"></div>
                                 <div class="px-4 py-2 text-center text-xs text-slate-400">
-                                    Versión 3.20 (20-10-2025)
+                                    Versión 3.40 (08-11-2025)
                                 </div>
                             </div>
                         </div>
@@ -585,7 +589,7 @@
 
             <div id="consumos-view" class="hidden">
                 <div class="flex flex-col h-[calc(100vh-56px)]">
-                    <div class="bg-indigo-500 p-4 z-10 sticky top-14 shadow-md">
+                    <div id="consumos-header-bar" class="bg-indigo-500 p-4 z-10 sticky top-14 shadow-md">
                         <div class="flex flex-col lg:flex-row items-center gap-4">
                             <div id="primary-search-wrapper" class="w-full lg:w-1/2">
                                 <div class="flex items-center gap-2 w-full">
@@ -935,6 +939,18 @@
                 </div>
             </div>
         </div>
+        <!-- Modal de Detalle de Notificaciones por Grupo -->
+        <div id="notification-group-detail-modal" class="fixed inset-0 bg-slate-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+            <div class="relative top-20 mx-auto p-5 border w-full max-w-xl shadow-lg rounded-md bg-white">
+                <div class="flex justify-between items-center mb-4 pb-4 border-b">
+                    <h3 id="notification-group-detail-title" class="text-lg leading-6 font-medium text-slate-900">Alarmas: [Grupo]</h3>
+                    <button id="close-notification-group-detail-modal-button" class="text-slate-400 hover:text-slate-600 text-3xl">&times;</button>
+                </div>
+                <ul id="notification-group-detail-list" class="max-h-[60vh] overflow-y-auto divide-y divide-slate-100">
+                    <!-- Los items de notificación detallados se inyectarán aquí -->
+                </ul>
+            </div>
+        </div>
         <div id="manual-modal" class="fixed inset-0 bg-slate-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 font-quicksand">
             <div class="relative top-10 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white">
                  <div class="flex justify-between items-center mb-4 pb-4 border-b">
@@ -1200,11 +1216,11 @@
         let notesSaveTimeoutReview;
         let updateDebounceTimers = new Map();
         let noteUpdateDebounceTimers = new Map();
-        let noteTitleUpdateDebounceTimers = new Map();
-let groupNotes = new Map();
-let activeKpi = null;
-let isInitialLoad = true;
-let currentUserTag = '';
+        let groupNotes = new Map();
+        let groupCheckedState = new Map();
+        let activeKpi = null;
+        let isInitialLoad = true;
+        let currentUserTag = '';
 let calendarCurrentDate = new Date();
 let ingresosSelectedGroup = 'all';
 let ingresosSearchTerm = '';
@@ -1702,311 +1718,70 @@ let ingresosSearchTerm = '';
             renderIncomingItemsForWeek(startOfWeek, endOfWeek);
         }
 
-        function renderMonthlyCalendar(date) {
-            const container = document.getElementById('ingresos-calendar-container');
-            if (!container) return;
-
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            const year = date.getFullYear();
-            const month = date.getMonth();
-
-            const firstDay = new Date(Date.UTC(year, month, 1));
-            const lastDay = new Date(Date.UTC(year, month + 1, 0));
-
-            const monthName = firstDay.toLocaleString('es-AR', { month: 'long', timeZone: 'UTC' });
-            const capitalizedMonthName = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-
-            const incomeDates = new Set(ocs.map(oc => oc.proxFechaEntrega).filter(Boolean));
-
-            let html = `
-                <div class="calendar">
-                    <div class="calendar-header">
-                        <div class="flex items-center gap-2">
-                            <button id="calendar-prev-month" class="p-2 rounded-full hover:bg-slate-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
-                            <button id="calendar-next-month" class="p-2 rounded-full hover:bg-slate-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-800">${capitalizedMonthName} ${year}</h3>
-                        <button id="calendar-today-btn" class="btn-main-style !text-xs !h-8 !px-3">Semana Actual</button>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="week-number-cell w-8 flex-shrink-0"></div> <!-- Empty cell for week number header -->
-                        <div class="calendar-grid flex-grow">
-                            ${['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'].map(day => `<div class="calendar-day-name">${day}</div>`).join('')}
-                        </div>
-                    </div>
-                    <div id="calendar-body"></div>
-                </div>`;
-            container.innerHTML = html;
-
-            const calendarBody = document.getElementById('calendar-body');
-            let calendarHtml = '';
-            
-            const startDate = new Date(firstDay);
-            const startDayOfWeek = (firstDay.getUTCDay() + 6) % 7; // Monday = 0
-            startDate.setUTCDate(startDate.getUTCDate() - startDayOfWeek);
-
-            for (let i = 0; i < 6; i++) { // Render up to 6 weeks
-                const weekId = getWeekId(startDate);
-                const weekNumber = parseInt(weekId.split('-')[1], 10);
-                
-                calendarHtml += `<div class="calendar-week-row flex items-center" data-week-id="${weekId}">
-                                    <div class="week-number-cell w-8 flex-shrink-0">${weekNumber}</div>
-                                    <div class="calendar-grid flex-grow">`;
-                
-                for (let j = 0; j < 7; j++) {
-                    const currentDate = new Date(startDate);
-                    const isOtherMonth = currentDate.getUTCMonth() !== month;
-                    const isToday = currentDate.getTime() === today.getTime();
-                    const dateISO = currentDate.toISOString().split('T')[0];
-                    const hasIncome = incomeDates.has(dateISO);
-
-                    let dayClasses = 'calendar-day';
-                    if (isOtherMonth) dayClasses += ' other-month';
-                    if (isToday) dayClasses += ' today';
-                    if (hasIncome) dayClasses += ' has-income';
-                    
-                    calendarHtml += `<div class="${dayClasses}" data-date="${currentDate.getUTCFullYear()}-${currentDate.getUTCMonth()+1}-${currentDate.getUTCDate()}" data-week-id="${weekId}">${currentDate.getUTCDate()}</div>`;
-                    startDate.setUTCDate(startDate.getUTCDate() + 1);
+        function findNotificationById(itemId) {
+            if (!Array.isArray(notifications)) return null; // Asegurarse de que notifications es un array (de grupos)
+            for (const group of notifications) {
+                if (group.items && Array.isArray(group.items)) {
+                    const item = group.items.find(i => i.id === itemId);
+                    if (item) return item;
                 }
-                calendarHtml += `</div></div>`;
-
-                if (startDate > lastDay && i > 3) break;
             }
-
-            calendarBody.innerHTML = calendarHtml;
-        }
-
-        function renderIncomingItemsForWeek(startOfWeek, endOfWeek, renderHeader = true) {
-            currentIngresosWeek.start = startOfWeek;
-            currentIngresosWeek.end = endOfWeek;
-            const headerContainer = document.getElementById('ingresos-header-container');
-            const detailsContainer = document.getElementById('ingresos-details-container');
-            const kpiContainer = document.getElementById('ingresos-kpi-container');
-            if (!headerContainer || !detailsContainer || !kpiContainer) return;
-
-            const incomingOCs = ocs.filter(oc => {
-                const deliveryDate = parseDateString(oc.proxFechaEntrega);
-                return deliveryDate && deliveryDate >= startOfWeek && deliveryDate <= endOfWeek;
-            });
-            
-            // --- KPI Calculation & Rendering ---
-            // Dynamic group KPI calculation
-            const groupKpis = incomingOCs.reduce((acc, oc) => {
-                const group = extractGroupCode(oc.grupoDeArticulos);
-                if (group) {
-                    if (!acc[group]) {
-                        acc[group] = new Set();
-                    }
-                    acc[group].add(oc.codigo);
-                }
-                return acc;
-            }, {});
-
-            const sortedGroupKpis = Object.entries(groupKpis)
-                .map(([group, itemsSet]) => ({ group, count: itemsSet.size }))
-                .sort((a, b) => b.count - a.count); // Sort by count descending
-
-            let kpiHtml = '';
-            if (sortedGroupKpis.length > 0) {
-                kpiHtml = `
-                <div class="grid grid-cols-4 gap-2">
-                    ${sortedGroupKpis.map(kpi => {
-                        const isSelected = kpi.group === ingresosSelectedGroup;
-                        const selectedClass = isSelected ? 'border-2 border-indigo-500 ring-2 ring-indigo-300' : 'border-slate-200/80';
-                        return `
-                        <div class="bg-white ${selectedClass} rounded-lg overflow-hidden shadow-sm transition hover:shadow-lg hover:-translate-y-1 cursor-pointer ingresos-kpi-card" data-group-name="${kpi.group}">
-                            <div class="p-2 bg-slate-50/70 border-b border-slate-200/80">
-                                <p class="text-xs font-semibold text-slate-600 uppercase truncate" title="${kpi.group}">${kpi.group}</p>
-                            </div>
-                            <div class="p-2 text-right">
-                                <p class="text-2xl font-bold text-indigo-600">${kpi.count}</p>
-                            </div>
-                        </div>
-                        `
-                    }).join('')}
-                </div>
-                `;
-            }
-
-            kpiContainer.innerHTML = kpiHtml;
-            
-            const weekId = getWeekId(startOfWeek);
-            const weekNumber = parseInt(weekId.split('-')[1], 10);
-
-            // Filter logic
-            let filteredOCs = incomingOCs;
-            if (ingresosSelectedGroup !== 'all') {
-                filteredOCs = filteredOCs.filter(oc => extractGroupCode(oc.grupoDeArticulos) === ingresosSelectedGroup);
-            }
-
-            if (ingresosSearchTerm) {
-                const searchWords = ingresosSearchTerm.toLowerCase().split(' ').filter(Boolean);
-                filteredOCs = filteredOCs.filter(oc => {
-                    const item = items.find(i => i.code === oc.codigo);
-                    const itemName = item ? item.name : oc.denominacion;
-                    const textToSearch = `${itemName} ${oc.ordenDeCompra || ''} ${oc.codigo || ''}`.toLowerCase();
-                    return searchWords.every(word => textToSearch.includes(word));
-                });
-            }
-
-            if (renderHeader) {
-                // Generate group filter dropdown HTML
-                const uniqueGroups = [...new Set(incomingOCs.map(oc => extractGroupCode(oc.grupoDeArticulos)).filter(Boolean))].sort();
-                let groupFilterHTML = '';
-                if (uniqueGroups.length > 1) { // Only show filter if there's more than one group
-                    const totalCountInGroups = incomingOCs.filter(oc => uniqueGroups.includes(extractGroupCode(oc.grupoDeArticulos))).length;
-                    groupFilterHTML = `
-                        <select id="ingresos-group-filter" class="w-full max-w-xs bg-white/90 border-2 border-transparent text-slate-900 text-sm rounded-lg focus:ring-indigo-300 focus:border-indigo-300 block p-2 h-9 transition">
-                            <option value="all">TODOS LOS GRUPOS (${totalCountInGroups})</option>
-                            ${uniqueGroups.map(group => {
-                                const groupCount = incomingOCs.filter(oc => extractGroupCode(oc.grupoDeArticulos) === group).length;
-                                return `<option value="${group}" ${ingresosSelectedGroup === group ? 'selected' : ''}>${group} (${groupCount})</option>`
-                            }).join('')}
-                        </select>`;
-                }
-
-                // Header HTML
-                const exportButtonHTML = incomingOCs.length > 0 ? `<button id="export-incoming-items-btn" title="Exportar a Excel" class="btn-main-style !bg-white/90 !text-indigo-700 hover:!bg-white flex-shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            </button>` : '';
-
-                let headerHTML = `
-                    <div class="bg-indigo-500 p-4 -m-4 border-b border-indigo-600 flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <div class="flex items-center gap-4 w-full sm:w-auto">
-                            <h3 class="text-2xl font-bold text-white whitespace-nowrap">Semana ${weekNumber}</h3>
-                            <span class="text-sm font-medium text-indigo-200">(${filteredOCs.length} de ${incomingOCs.length})</span>
-                        </div>
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                           ${groupFilterHTML}
-                           <div class="relative flex-grow">
-                                <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                <input type="text" id="ingresos-search-input" placeholder="Buscar..." class="w-full p-2 pl-10 bg-white/90 text-slate-800 border-2 border-transparent focus:border-indigo-300 focus:bg-white rounded-lg h-9 transition" autocomplete="off" value="${ingresosSearchTerm}">
-                           </div>
-                           ${exportButtonHTML}
-                        </div>
-                    </div>`;
-                headerContainer.innerHTML = headerHTML;
-            }
-            
-
-            // List or empty state HTML
-            let contentHTML;
-            if (incomingOCs.length === 0) {
-                contentHTML = '<p class="text-center text-slate-500 py-4">No hay ingresos programados para esta semana.</p>';
-            } else if (filteredOCs.length === 0) {
-                 contentHTML = '<p class="text-center text-slate-500 py-4">No hay ingresos que coincidan con los filtros.</p>';
-            } else {
-                const groupedByDate = filteredOCs.reduce((acc, oc) => {
-                    const dateStr = formatDate(oc.proxFechaEntrega);
-                    if (!acc[dateStr]) { acc[dateStr] = []; }
-                    acc[dateStr].push(oc);
-                    return acc;
-                }, {});
-
-                const sortedDates = Object.keys(groupedByDate).sort((a, b) => {
-                    const dateA = a.split('-').reverse().join('-');
-                    const dateB = b.split('-').reverse().join('-');
-                    return new Date(dateA) - new Date(dateB);
-                });
-                
-                let listHtml = '<div class="space-y-3">';
-                sortedDates.forEach(dateStr => {
-                    const date = parseDateString(dateStr);
-                    const dayName = date.toLocaleDateString('es-AR', { weekday: 'long', timeZone: 'UTC' });
-                    
-                    listHtml += `<div>
-                        <p class="font-bold text-indigo-600">${dayName.charAt(0).toUpperCase() + dayName.slice(1)} ${date.getUTCDate()}</p>
-                        <ul class="divide-y divide-slate-200 border rounded-md mt-1 shadow-sm bg-white">`;
-                    
-                    groupedByDate[dateStr].forEach(oc => {
-                        const item = items.find(i => i.code === oc.codigo);
-                        const cleanItemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
-                        const displayName = `${oc.codigo || ''} - ${cleanItemName}`;
-                        const itemGroup = extractGroupCode(oc.grupoDeArticulos || 'Sin Grupo');
-                        const itemId = item ? item.id : null;
-                        const cursorClass = itemId ? 'cursor-pointer' : '';
-                        const dataAttr = itemId ? `data-item-id="${itemId}"` : '';
-
-                        listHtml += `<li class="px-4 py-3 hover:bg-slate-50 incoming-item-row ${cursorClass}" ${dataAttr}>
-                            <div class="flex justify-between items-center">
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-indigo-600">${itemGroup}</p>
-                                    <p class="font-medium text-slate-800 truncate" title="${displayName}">${displayName}</p>
-                                    <p class="text-xs text-slate-500 mt-1">O/C: ${oc.ordenDeCompra || 'N/A'} - ${oc.posicion || ''}</p>
-                                </div>
-                                <div class="ml-4 flex-shrink-0">
-                                    <span class="text-2xl font-bold text-slate-800">${formatNumber(oc.cantEntregaSiguiente)}</span>
-                                </div>
-                            </div>
-                        </li>`;
-                    });
-                    listHtml += `</ul></div>`;
-                });
-                listHtml += '</div>';
-                contentHTML = listHtml;
-            }
-
-            detailsContainer.innerHTML = contentHTML;
-        }
-
-        function goToCurrentWeek() {
-            calendarCurrentDate = new Date();
-            renderMonthlyCalendar(calendarCurrentDate);
-
-            const todayRaw = new Date();
-            const today = new Date(Date.UTC(todayRaw.getFullYear(), todayRaw.getMonth(), todayRaw.getDate()));
-            
-            const startOfWeek = new Date(today);
-            const dayOfWeek = (startOfWeek.getUTCDay() + 6) % 7; // Monday = 0
-            startOfWeek.setUTCDate(startOfWeek.getUTCDate() - dayOfWeek);
-
-            const weekId = getWeekId(startOfWeek);
-            
-            document.querySelectorAll('.calendar-week-row.selected-week').forEach(row => row.classList.remove('selected-week'));
-            const selectedWeekRow = document.querySelector(`.calendar-week-row[data-week-id="${weekId}"]`);
-            if (selectedWeekRow) {
-                selectedWeekRow.classList.add('selected-week');
-            }
-            
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setUTCDate(endOfWeek.getUTCDate() + 6);
-            renderIncomingItemsForWeek(startOfWeek, endOfWeek);
+            return null;
         }
 
         function generateNotifications() {
             if (!items.length) return;
             const processed = getProcessedItems();
-            notifications = []; // Reset notifications
-
+            
             const lowStockItems = processed.filter(item => 
                 item.isFavorite && item.coverageDays < appSettings.notificationThreshold && item.coverageDays !== Infinity
             );
 
+            const groupedNotifications = new Map();
+
             lowStockItems.forEach(item => {
-                notifications.push({
-                    id: `low_stock_${item.id}`,
+                const group = item.group || 'Sin Grupo';
+                if (!groupedNotifications.has(group)) {
+                    groupedNotifications.set(group, []);
+                }
+
+                // Preservar el estado 'read' si la notificación ya existía
+                const oldNotification = findNotificationById(item.id);
+                const readState = oldNotification ? oldNotification.read : false;
+
+                groupedNotifications.get(group).push({
+                    id: item.id,
                     type: 'low_stock',
-                    targetId: item.id,
-                    read: false, // Default to unread
-                    text: `Stock bajo para <strong>${item.name.toUpperCase()}</strong>. Cobertura: ${Math.round(item.coverageDays)} días.`
+                    read: readState,
+                    text: `Stock bajo para <strong>${item.name.toUpperCase()}</strong>. Cobertura: ${Math.round(item.coverageDays)} días.`, // Texto original (aunque ahora se usa desglosado)
+                    group: group,
+                    itemName: item.name.toUpperCase(),
+                    itemCode: item.code,
+                    coverage: Math.round(item.coverageDays)
                 });
             });
             
-            // Can add other notification types here later (e.g., delayed OCs)
-
-            notifications.sort((a, b) => a.text.localeCompare(b.text)); // Sort for consistent order
+            // Convertir el Map a un array y ordenarlo por nombre de grupo
+            notifications = Array.from(groupedNotifications.entries()).map(([groupName, items]) => {
+                // Ordenar los items dentro de cada grupo por cobertura (más crítico primero)
+                items.sort((a, b) => a.coverage - b.coverage);
+                return { groupName, items };
+            }).sort((a, b) => a.groupName.localeCompare(b.groupName));
+            
             renderNotifications();
         }
 
         function renderNotifications() {
             const badge = document.getElementById('notification-count-badge');
             const dropdown = document.getElementById('notification-dropdown');
-            const unreadCount = notifications.filter(n => !n.read).length;
 
-            if (unreadCount > 0) {
-                badge.textContent = unreadCount;
+            let totalUnread = 0;
+            notifications.forEach(group => {
+                totalUnread += group.items.filter(i => !i.read).length;
+            });
+
+            if (totalUnread > 0) {
+                badge.textContent = totalUnread;
                 badge.style.display = 'flex';
             } else {
                 badge.style.display = 'none';
@@ -2014,26 +1789,130 @@ let ingresosSearchTerm = '';
             
             let dropdownHTML = `
                 <div class="p-3 border-b flex justify-between items-center">
-                    <h4 class="font-semibold text-slate-800">Notificaciones</h4>
-                    ${unreadCount > 0 ? '<button id="mark-all-read-btn" class="text-xs font-medium text-indigo-600 hover:underline">Marcar todas como leídas</button>' : ''}
+                    <h4 class="font-semibold text-slate-800">Alarmas de Stock Bajo</h4>
+                    ${totalUnread > 0 ? '<button id="mark-all-read-btn" class="text-xs font-medium text-indigo-600 hover:underline">Marcar todas como leídas</button>' : ''}
                 </div>
             `;
             
             if (notifications.length === 0) {
                 dropdownHTML += '<p class="p-4 text-sm text-center text-slate-500">No hay notificaciones.</p>';
             } else {
-                dropdownHTML += notifications.map(n => `
-                    <div class="p-3 border-b text-sm notification-item ${!n.read ? 'unread' : ''}" data-id="${n.id}" data-type="${n.type}" data-target-id="${n.targetId}">
-                        <div class="flex items-start gap-3">
-                           <div class="flex-shrink-0 mt-1">
-                                <svg class="w-5 h-5 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                           </div>
-                           <div>${n.text}</div>
+                dropdownHTML += notifications.map(group => {
+                    const unreadInGroup = group.items.filter(i => !i.read).length;
+                    const iconColor = unreadInGroup > 0 ? 'text-yellow-500' : 'text-slate-400';
+                    const groupTextColor = unreadInGroup > 0 ? 'text-slate-800' : 'text-slate-500';
+                    const countTextColor = unreadInGroup > 0 ? 'text-slate-600' : 'text-slate-400';
+
+                    return `
+                    <div class="p-3 border-b ${unreadInGroup > 0 ? 'unread' : ''} hover:bg-slate-50 cursor-pointer notification-group-item" data-group-name="${group.groupName}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-start gap-3">
+                               <div class="flex-shrink-0 mt-1">
+                                    <svg class="w-5 h-5 ${iconColor}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                               </div>
+                               <div>
+                                    <p class="font-semibold ${groupTextColor}">${group.groupName}</p>
+                                    <p class="text-xs ${countTextColor}">${group.items.length} insumos con stock bajo.</p>
+                               </div>
+                            </div>
+                            ${unreadInGroup > 0 ? `<span class="flex-shrink-0 ml-4 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">${unreadInGroup}</span>` : ''}
                         </div>
                     </div>
-                `).join('');
+                `;
+                }).join('');
             }
             dropdown.innerHTML = dropdownHTML;
+        }
+
+        function handleMarkAllNotificationsRead() {
+            notifications.forEach(group => {
+                group.items.forEach(item => item.read = true);
+            });
+            renderNotifications(); // Actualizar UI y contador
+        }
+
+        function openNotificationGroupModal(groupName) {
+            const modal = document.getElementById('notification-group-detail-modal');
+            const titleEl = document.getElementById('notification-group-detail-title');
+            const listEl = document.getElementById('notification-group-detail-list');
+            
+            const groupData = notifications.find(g => g.groupName === groupName);
+            if (!groupData) return;
+
+            titleEl.textContent = `Alarmas: ${groupName}`;
+            
+            if (groupData.items.length === 0) {
+                listEl.innerHTML = '<li class="p-4 text-center text-slate-500">No hay items para este grupo.</li>';
+            } else {
+                listEl.innerHTML = groupData.items.map(item => {
+                    const coverageClass = item.coverage < appSettings.coverageThresholds.red ? 'text-red-600' : 'text-yellow-600';
+                    const cleanItemName = item.itemName.replace(new RegExp(`^${item.itemCode}\\s*`), '');
+
+                    return `
+                    <li class="p-3 text-sm notification-item-detail ${!item.read ? 'unread' : ''} hover:bg-slate-50 cursor-pointer" data-item-id="${item.id}" data-group-name="${groupName}">
+                        <div class="flex items-center gap-3">
+                            <div class="flex-shrink-0">
+                                <svg class="w-5 h-5 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-slate-800 truncate">${cleanItemName}</p>
+                                <p class="text-xs text-slate-500">${item.itemCode}</p>
+                            </div>
+                            <div class="ml-auto text-right flex-shrink-0">
+                                <p class="font-bold text-xl ${coverageClass}">${item.coverage}</p>
+                                <p class="text-xs text-slate-500 -mt-1">días</p>
+                            </div>
+                        </div>
+                    </li>
+                    `;
+                }).join('');
+            }
+            
+            modal.classList.remove('hidden');
+        }
+
+        function markNotificationItemAsRead(itemId, groupName) {
+            const group = notifications.find(g => g.groupName === groupName);
+            if (group) {
+                const item = group.items.find(i => i.id === itemId);
+                if (item) {
+                    item.read = true;
+                }
+            }
+            renderNotifications(); // Actualizar el contador principal
+        }
+
+        function handleNotificationDropdownClick(e) {
+            const markAllBtn = e.target.closest('#mark-all-read-btn');
+            const groupItem = e.target.closest('.notification-group-item');
+
+            if (markAllBtn) {
+                e.stopPropagation();
+                handleMarkAllNotificationsRead();
+            } else if (groupItem) {
+                const groupName = groupItem.dataset.groupName;
+                openNotificationGroupModal(groupName);
+                // Cerrar el dropdown
+                document.getElementById('notification-dropdown').classList.remove('show');
+            }
+        }
+
+        function handleNotificationItemClick(e) {
+            const itemEl = e.target.closest('.notification-item-detail');
+            if (!itemEl) return;
+            
+            const { itemId, groupName } = itemEl.dataset;
+            
+            // Marcar como leído
+            markNotificationItemAsRead(itemId, groupName);
+            
+            // Navegar
+            selectedConsumptionItemId = itemId;
+            comparisonItemId = null;
+            switchMainView('consumos');
+            
+            // Cerrar el modal
+            document.getElementById('notification-group-detail-modal').classList.add('hidden');
         }
 
         function handleNotificationClick(e) {
@@ -2882,31 +2761,34 @@ let ingresosSearchTerm = '';
                                 else if (item.coverageDays <= yellow) coverageClass = 'text-yellow-600';
                                 else coverageClass = 'text-green-600';
                             } else {
-                                coverageClass = 'text-green-600';
+                                 coverageClass = 'text-green-600 font-bold';
                             }
 
-                            return `
-                            <li class="p-3 pl-6 flex items-center justify-between hover:bg-slate-50 cursor-pointer kpi-detail-item-row" data-item-id="${item.id}">
-                                <div>
-                                    <p class="font-medium text-slate-800">${item.name.toUpperCase()}</p>
-                                    <p class="text-xs text-slate-500">${item.code}</p>
-                                </div>
-                                <div class="text-right ml-4">
-                                    <p class="font-bold text-lg ${coverageClass}">${item.coverageDays === Infinity ? '∞' : Math.round(item.coverageDays)}</p>
-                                    <p class="text-xs text-slate-500 -mt-1">días</p>
-                                </div>
-                            </li>`;
-                        }).join('')}
+                return `
+                    <li class="p-4 hover:bg-slate-50 kpi-detail-item-row" data-item-id="${item.id}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-slate-800 truncate">${item.name.replace(new RegExp(`^${item.code}\\s*`), '').toUpperCase()}</p>
+                                <p class="text-sm text-slate-500">${item.group}</p>
+                            </div>
+                            <div class="text-right ml-4">
+                                <p class="font-bold text-xl ${coverageClass}">${item.coverageDays === Infinity ? '∞' : Math.round(item.coverageDays)}</p>
+                                <p class="text-xs text-slate-500 -mt-1">días</p>
+                            </div>
+                        </div>
+                    </li>
+                `;
+            }).join('')}
                         </ul>
                     </div>
-                </div>`;
-            });
-            html += '</div>';
-            return html;
+                </div>
+            `}).join('');
+
+            modal.classList.remove('hidden');
         }
 
         function generateRecordConsumptionHTML() {
-            const recordConsumptionItems = getProcessedItems(true).filter(item => {
+            const recordConsumptionItems = getProcessedItems().filter(item => {
                 if (item.consumos && item.consumos.length > 1) {
                     const currentMonthConsumption = item.consumos[item.consumos.length - 1];
                     const historicalConsumptions = item.consumos.slice(0, -1);
@@ -2919,52 +2801,52 @@ let ingresosSearchTerm = '';
             });
 
             if (recordConsumptionItems.length === 0) {
-                return '<p class="text-center text-slate-500 py-4">No hay insumos con consumo récord este mes.</p>';
+                return '<p class="text-center text-slate-500 py-4">Ningún insumo ha superado su pico de consumo histórico este mes.</p>';
             }
 
             const groupedItems = recordConsumptionItems.reduce((acc, item) => {
                 const group = item.group || 'Sin Grupo';
-                if (!acc[group]) {
-                    acc[group] = { items: [], favoriteCount: 0 };
-                }
-                acc[group].items.push(item);
-                if (item.isFavorite) {
-                    acc[group].favoriteCount++;
-                }
+                if (!acc[group]) acc[group] = [];
+                acc[group].push(item);
                 return acc;
             }, {});
 
             const sortedGroups = Object.entries(groupedItems)
-                .map(([groupName, data]) => ({ groupName, ...data }))
+                .map(([groupName, items]) => ({ groupName, items }))
                 .sort((a, b) => a.groupName.localeCompare(b.groupName));
 
             let html = '<div class="space-y-2">';
             sortedGroups.forEach(group => {
-                const highlightClass = group.favoriteCount > 0 ? 'border-2 border-red-400 ring-1 ring-red-200' : 'border';
                 html += `
-                <div class="${highlightClass} rounded-lg overflow-hidden bg-white shadow-sm">
+                <div class="border rounded-lg overflow-hidden bg-white shadow-sm">
                     <div class="p-3 flex items-center justify-between hover:bg-slate-50 cursor-pointer record-consumption-group-header" data-group-name="${group.groupName}">
                         <div>
                             <p class="font-semibold text-indigo-700">${group.groupName}</p>
-                            <p class="text-sm text-slate-500">${group.items.length} insumos (${group.favoriteCount} favoritos)</p>
+                            <p class="text-sm text-slate-500">${group.items.length} insumos con récord</p>
                         </div>
-                        <svg class="w-5 h-5 text-slate-400 transition-transform duration-200 record-consumption-chevron" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        <svg class="w-5 h-5 text-slate-400 transition-transform duration-200 record-consumption-chevron" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                     </div>
                     <div class="hidden record-consumption-item-list" data-group-list="${group.groupName}">
                         <ul class="divide-y divide-slate-200 border-t">
-                        ${group.items.sort((a, b) => a.name.localeCompare(b.name)).map(item => {
-                            const currentConsumption = item.consumos[item.consumos.length - 1];
+                        ${group.items.sort((a, b) => b.consumos[b.consumos.length - 1] - a.consumos[a.consumos.length - 1]).map(item => {
+                            const currentMonthConsumption = item.consumos[item.consumos.length - 1];
+                            const historicalConsumptions = item.consumos.slice(0, -1);
+                            const peakHistoricalConsumption = historicalConsumptions.length > 0 ? Math.max(...historicalConsumptions) : 0;
+                            const isFav = item.isFavorite ? 'bg-red-50' : '';
                             return `
-                            <li class="p-3 pl-6 flex items-center justify-between hover:bg-slate-50 cursor-pointer kpi-detail-item-row" data-item-id="${item.id}">
-                                <div>
-                                    <p class="font-medium text-slate-800">${item.name.toUpperCase()}</p>
-                                    <p class="text-xs text-slate-500">${item.isFavorite ? '★ Favorito' : ''}</p>
+                            <li class="p-4 ${isFav} hover:bg-slate-50 kpi-detail-item-row" data-item-id="${item.id}">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex-1 min-w-0">
+                                        <p class="font-semibold text-slate-800 truncate">${item.name.replace(new RegExp(`^${item.code}\\s*`), '').toUpperCase()}</p>
+                                        <p class="text-sm text-slate-500">${item.group}</p>
+                                    </div>
+                                    <div class="text-right ml-4">
+                                        <p class="font-bold text-xl text-red-600">${formatNumber(Math.round(currentMonthConsumption))}</p>
+                                        <p class="text-xs text-slate-500 -mt-1" title="Pico Histórico: ${formatNumber(Math.round(peakHistoricalConsumption))}">vs ${formatNumber(Math.round(peakHistoricalConsumption))}</p>
+                                    </div>
                                 </div>
-                                <div class="text-right ml-4">
-                                    <p class="font-bold text-green-600">${formatNumber(currentConsumption)}</p>
-                                    <p class="text-xs text-slate-500">Cons. Actual</p>
-                                </div>
-                            </li>`;
+                            </li>
+                            `;
                         }).join('')}
                         </ul>
                     </div>
@@ -2973,113 +2855,56 @@ let ingresosSearchTerm = '';
             html += '</div>';
             return html;
         }
-        
+
         function generateGroupStatsHTML() {
             const stats = calculateGroupStats();
             if (!stats || stats.length === 0) {
                 return '<p class="text-center text-slate-500 p-8">No hay grupos para mostrar.</p>';
             }
 
-            let listHTML = '';
-            stats.forEach(group => {
-                listHTML += `
-                <div class="p-4 flex items-center justify-between hover:bg-slate-50 border-b cursor-pointer kpi-detail-group-row" data-group-name="${group.name}">
-                    <div>
-                        <p class="font-semibold text-lg text-slate-800">${group.name}</p>
-                        <p class="text-sm text-slate-500">${group.totalItems} insumos en total</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-bold text-2xl text-yellow-600">${group.favoriteItems}</p>
-                        <p class="text-sm text-slate-500">Favoritos (${group.percentage}%)</p>
-                    </div>
-                </div>`;
-            });
-            return listHTML;
-        }
-
-        function generateDelayedSolpedsHTML() {
-            const stats = calculateDelayedSolpedsStats();
-            if (!stats || stats.length === 0) {
-                return '<p class="text-center text-slate-500 p-8">No hay Solpeds vencidas para mostrar.</p>';
-            }
-
-            let listHTML = '';
-            stats.forEach(group => {
-                listHTML += `
-                <div class="p-4 flex items-center justify-between hover:bg-slate-50 border-b cursor-pointer kpi-detail-solped-row" data-group-compras="${group.name}">
-                    <div>
-                        <p class="font-semibold text-slate-800">${group.name.toUpperCase()}</p>
-                        <p class="text-sm text-slate-500">${group.percentage}% del total vencido</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-bold text-xl text-red-600">${group.count}</p>
-                        <p class="text-xs text-slate-500 -mt-1">Solpeds</p>
-                    </div>
-                </div>`;
-            });
-            return listHTML;
-        }
-        
-        function generateDelayedOCsHTML() {
-            const stats = calculateDelayedOCsStats();
-            if (!stats || stats.length === 0) {
-                return '<p class="text-center text-slate-500 p-8">No hay O/C vencidas para mostrar.</p>';
-            }
-
-            let listHTML = '';
-            stats.forEach(group => {
-                listHTML += `
-                <div class="p-4 flex items-center justify-between hover:bg-slate-50 border-b cursor-pointer kpi-detail-oc-row" data-group-compras="${group.name}">
-                    <div>
-                        <p class="font-semibold text-slate-800">${group.name.toUpperCase()}</p>
-                        <p class="text-sm text-slate-500">${group.percentage}% del total vencido</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-bold text-xl text-red-600">${group.count}</p>
-                        <p class="text-xs text-slate-500 -mt-1">O/C</p>
-                    </div>
-                </div>`;
-            });
-            return listHTML;
-        }
-
-        function openRecordConsumptionModal() {
-            const recordConsumptionItems = getProcessedItems(true).filter(item => {
-                if (item.consumos && item.consumos.length > 1) {
-                    const currentMonthConsumption = item.consumos[item.consumos.length - 1];
-                    const historicalConsumptions = item.consumos.slice(0, -1);
-                    if (historicalConsumptions.length > 0) {
-                        const peakHistoricalConsumption = Math.max(...historicalConsumptions);
-                        return currentMonthConsumption > peakHistoricalConsumption;
-                    }
-                }
-                return false;
-            });
-
-            if (recordConsumptionItems.length === 0) {
-                showToast('No hay insumos con consumo récord este mes.', 'info');
-                return;
-            }
+            const isOwner = currentUserRole === 'owner';
             
-            const modal = document.getElementById('record-consumption-modal');
-            const listContainer = document.getElementById('record-consumption-item-list');
+            let listHTML = '<div class="divide-y divide-slate-200">';
+            stats.forEach(group => {
+                const note = groupNotes.get(group.name) || '';
+                const isHighlighted = groupCheckedState.get(group.name) || false;
+                const highlightClass = isHighlighted ? 'bg-green-100 hover:bg-green-200' : 'hover:bg-slate-50';
 
-            listContainer.innerHTML = recordConsumptionItems.map(item => {
-                const currentConsumption = item.consumos[item.consumos.length - 1];
-                return `
-                <div class="p-3 flex items-center justify-between hover:bg-slate-50 border-b cursor-pointer record-consumption-item" data-item-id="${item.id}">
-                    <div>
-                        <p class="font-semibold text-slate-800">${item.name}</p>
-                        <p class="text-sm text-slate-500">Grupo: ${item.group}</p>
+                listHTML += `
+                <div class="p-4 ${highlightClass} kpi-detail-group-row-container" data-group-name="${group.name}">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                             <input
+                                type="checkbox"
+                                class="dashboard-group-highlight-toggle h-5 w-5 rounded border-slate-400 text-indigo-600 focus:ring-indigo-500 flex-shrink-0"
+                                data-group-name="${group.name}"
+                                ${isHighlighted ? 'checked' : ''}
+                                ${!isOwner ? 'disabled' : ''}
+                            />
+                            <div class="kpi-detail-group-row cursor-pointer flex-1 min-w-0" data-group-name="${group.name}">
+                                <p class="font-semibold text-lg text-slate-800 truncate">${group.name}</p>
+                                <p class="text-sm text-slate-500">${group.totalItems} insumos en total</p>
+                            </div>
+                        </div>
+                        <div class="text-right w-1/4 kpi-detail-group-row cursor-pointer" data-group-name="${group.name}">
+                            <p class="font-bold text-xl text-yellow-600">${group.favoriteItems}</p>
+                            <p class="text-xs text-slate-500 -mt-1">Favoritos (${group.percentage}%)</p>
+                        </div>
+                        <div class="w-1/4 ml-4">
+                            <input
+                                type="text"
+                                class="w-full bg-slate-50 border border-slate-200 rounded text-sm p-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white review-notes-input"
+                                data-group-name="${group.name}"
+                                placeholder="Nota/Fecha..."
+                                value="${note}"
+                                ${!isOwner ? 'disabled' : ''}
+                            />
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <p class="font-bold text-green-600">${formatNumber(currentConsumption)}</p>
-                        <p class="text-xs text-slate-500">Cons. Actual</p>
-                    </div>
-                </div>
-            `}).join('');
-
-            modal.classList.remove('hidden');
+                </div>`;
+            });
+            listHTML += '</div>';
+            return listHTML;
         }
 
         function openGroupStatsModal() {
@@ -3247,6 +3072,7 @@ let ingresosSearchTerm = '';
                 <table class="w-full text-sm text-left text-slate-500">
                     <thead class="text-xs text-slate-700 uppercase bg-slate-50 sticky top-0">
                         <tr>
+                            <th class="px-4 py-2 w-12"></th>
                             <th class="px-4 py-2">Grupo</th>
                             <th class="px-4 py-2 text-right">Total Insumos</th>
                             <th class="px-4 py-2 text-right">Favoritos</th>
@@ -3256,12 +3082,25 @@ let ingresosSearchTerm = '';
                     <tbody class="divide-y divide-slate-100">`;
 
             stats.forEach(group => {
+                const isHighlighted = groupCheckedState.get(group.name) || false;
+                const highlightClass = isHighlighted ? 'bg-green-100 hover:bg-green-200' : 'hover:bg-slate-50';
+                const isOwner = currentUserRole === 'owner';
+
                 tableHTML += `
-                    <tr class="hover:bg-slate-50 cursor-pointer" data-group-name="${group.name}">
-                        <td class="px-4 py-2 font-medium text-slate-900">${group.name}</td>
-                        <td class="px-4 py-2 text-right">${group.totalItems}</td>
-                        <td class="px-4 py-2 text-right text-yellow-600 font-semibold">${group.favoriteItems}</td>
-                        <td class="px-4 py-2 text-right">${group.percentage}%</td>
+                    <tr class="${highlightClass} group-stats-modal-row" data-group-name="${group.name}">
+                        <td class="px-4 py-2 text-center">
+                            <input
+                                type="checkbox"
+                                class="dashboard-group-highlight-toggle h-5 w-5 rounded border-slate-400 text-indigo-600 focus:ring-indigo-500"
+                                data-group-name="${group.name}"
+                                ${isHighlighted ? 'checked' : ''}
+                                ${!isOwner ? 'disabled' : ''}
+                            />
+                        </td>
+                        <td class="px-4 py-2 font-medium text-slate-900 cursor-pointer group-stats-name-cell">${group.name}</td>
+                        <td class="px-4 py-2 text-right cursor-pointer group-stats-name-cell">${group.totalItems}</td>
+                        <td class="px-4 py-2 text-right text-yellow-600 font-semibold cursor-pointer group-stats-name-cell">${group.favoriteItems}</td>
+                        <td class="px-4 py-2 text-right cursor-pointer group-stats-name-cell">${group.percentage}%</td>
                     </tr>`;
             });
 
@@ -4085,8 +3924,9 @@ let ingresosSearchTerm = '';
                 if(comparisonSearch) comparisonSearch.value = '';
                 const primaryClear = document.getElementById('consumo-clear-text-btn');
                 const comparisonClear = document.getElementById('consumo-comparison-clear-text-btn');
-                if(primaryClear) primaryClear.classList.add('hidden');
-                if(comparisonClear) comparisonClear.classList.add('hidden');
+            document.getElementById('consumo-comparison-clear-text-btn');
+            if(primaryClear) primaryClear.classList.add('hidden');
+            if(comparisonClear) comparisonClear.classList.add('hidden');
             } else { // comparison
                 comparisonItemId = null;
                 isSimulationModeActive = false;
@@ -4389,17 +4229,27 @@ let ingresosSearchTerm = '';
                 updateSimulationCoverageIndicator();
             };
 
-            document.getElementById('toggle-sim-controls-btn')?.addEventListener('click', () => {
-                document.getElementById('simulation-controls-container').classList.toggle('hidden');
-                document.getElementById('toggle-sim-chevron').classList.toggle('rotate-180');
-            });
-
             document.getElementById('sim-stock').addEventListener('input', simulationInputHandler);
             document.getElementById('sim-consumption').addEventListener('input', simulationInputHandler);
             document.getElementById('sim-income-qty').addEventListener('input', handleNumericInputFormatting);
             panel.querySelectorAll('.sim-adjust-btn').forEach(btn => btn.addEventListener('click', handleSimAdjust));
             document.getElementById('add-sim-income-btn').addEventListener('click', handleAddSimulatedIncome);
             document.getElementById('export-simulation-btn')?.addEventListener('click', handleExportSimulation);
+            
+            document.getElementById('toggle-sim-controls-btn')?.addEventListener('click', () => {
+                const controlsContainer = document.getElementById('simulation-controls-container');
+                const chevron = document.getElementById('toggle-sim-chevron');
+                const headerBar = document.getElementById('consumos-header-bar'); // Get the blue bar
+
+                const isHiding = !controlsContainer.classList.contains('hidden');
+                
+                controlsContainer.classList.toggle('hidden', isHiding);
+                chevron.classList.toggle('rotate-180', isHiding); // rotate-180 when hidden (arrow points down)
+                
+                if (headerBar) {
+                    headerBar.classList.toggle('hidden', isHiding);
+                }
+            });
 
             runAndRenderSimulation(); // Run initial simulation
             updateSimulationCoverageIndicator();
@@ -4603,9 +4453,17 @@ let ingresosSearchTerm = '';
             weeksToRender.forEach(res => {
                 const { red, yellow } = appSettings.coverageThresholds;
                 let coverageClass = '';
+                let rowBgClass = 'bg-white even:bg-slate-50'; // Fondo por defecto
+
                  if (res.coverage !== Infinity) {
-                    if (res.coverage < red) coverageClass = 'text-red-600 font-bold';
-                    else if (res.coverage <= yellow) coverageClass = 'text-yellow-600 font-bold';
+                    if (res.coverage === 0) { // Condición específica para cobertura CERO
+                        coverageClass = 'text-red-700 font-bold'; // Texto rojo oscuro para contraste
+                        rowBgClass = 'bg-red-100'; // Fondo rojo tenue para la fila
+                    } else if (res.coverage < red) {
+                        coverageClass = 'text-red-600 font-bold';
+                    } else if (res.coverage <= yellow) {
+                        coverageClass = 'text-yellow-500 font-bold'; // Tono de naranja más claro
+                    }
                 }
                 
                 let tooltipContent = '';
@@ -4644,7 +4502,7 @@ let ingresosSearchTerm = '';
                 const incomeCellContent = res.incoming > 0 ? `+${formatNumber(Math.round(res.incoming))}` : '0';
 
                 tableHTML += `
-                    <tr class="bg-white even:bg-slate-50">
+                    <tr class="${rowBgClass}">
                         <td class="px-3 py-2 font-medium text-slate-900 whitespace-nowrap text-center">${res.week}</td>
                         <td class="px-3 py-2 text-center">${formatNumber(Math.round(res.startStock))}</td>
                         <td class="px-3 py-2 text-center ${incomeCellClass}">
@@ -4655,7 +4513,7 @@ let ingresosSearchTerm = '';
                         </td>
                         <td class="px-3 py-2 text-center font-medium">-${formatNumber(Math.round(res.consumption))}</td>
                         <td class="px-3 py-2 text-center font-bold">${formatNumber(Math.round(res.endStock))}</td>
-                        <td class="px-3 py-2 text-center ${coverageClass}">${res.coverage === Infinity ? '∞' : Math.round(res.coverage)}</td>
+                        <td class="px-3 py-2 text-center text-base ${coverageClass}">${res.coverage === Infinity ? '∞' : Math.round(res.coverage)}</td>
                     </tr>`;
             });
 
@@ -5986,6 +5844,21 @@ let ingresosSearchTerm = '';
                             groupNotes.set(groupName, note || '');
                         }
                     }
+
+                    // --- Cargar y Migrar Estado de Resaltado de Grupos ---
+                    let loadedCheckedState = data.groupCheckedState;
+                    
+                    // (Lógica de migración eliminada por solicitud)
+                    
+                    // Poblar el Map local
+                    groupCheckedState.clear();
+                    if (loadedCheckedState) {
+                         for (const [groupName, isChecked] of Object.entries(loadedCheckedState)) {
+                            groupCheckedState.set(groupName, isChecked || false);
+                        }
+                    }
+                    // --- Fin de Carga y Migración ---
+
                 }
                 updateExternalLinks();
                 renderApp(); 
@@ -6154,6 +6027,8 @@ let ingresosSearchTerm = '';
                 }
             });
 
+            notificationDropdown?.addEventListener('click', handleNotificationDropdownClick);
+
             document.getElementById('manual-modal')?.addEventListener('click', (e) => {
                 const header = e.target.closest('.accordion-header');
                 if (header) {
@@ -6229,8 +6104,18 @@ let ingresosSearchTerm = '';
                     return;
                 }
                 
+                // Click en el check de resaltar grupo
+                if (e.target.matches('.dashboard-group-highlight-toggle')) {
+                    handleToggleGroupHighlight(e.target);
+                    return;
+                }
+                
                 const groupStatsRow = e.target.closest('.kpi-detail-group-row');
                 if (groupStatsRow && groupStatsRow.dataset.groupName) {
+                    // Evitar que el input o el checkbox disparen la navegación
+                    if (e.target.closest('.review-notes-input') || e.target.closest('.dashboard-group-highlight-toggle')) {
+                        return;
+                    }
                     const groupName = groupStatsRow.dataset.groupName;
                     handleClearIndiceFilters();
                     indiceSelectedGroup = groupName;
@@ -6315,6 +6200,11 @@ let ingresosSearchTerm = '';
                     }, 1500); // 1.5 second debounce
 
                     noteUpdateDebounceTimers.set(noteId, timer);
+                }
+
+                // Añadir listener para las nuevas notas de grupo en el dashboard
+                if (e.target.matches('.review-notes-input')) {
+                    handleReviewNotesInput(e);
                 }
             });
 
@@ -6591,10 +6481,25 @@ let ingresosSearchTerm = '';
             document.getElementById('close-record-consumption-modal-button')?.addEventListener('click', () => document.getElementById('record-consumption-modal').classList.add('hidden'));
 
             document.getElementById('close-group-stats-modal-button')?.addEventListener('click', () => document.getElementById('group-stats-modal').classList.add('hidden'));
+            
+            // Nuevo: Listener para el modal de detalle de notificaciones
+            document.getElementById('close-notification-group-detail-modal-button')?.addEventListener('click', () => {
+                document.getElementById('notification-group-detail-modal').classList.add('hidden');
+            });
+            document.getElementById('notification-group-detail-list')?.addEventListener('click', handleNotificationItemClick);
 
             document.getElementById('group-stats-modal')?.addEventListener('click', (e) => {
                  const row = e.target.closest('tr[data-group-name]');
-                 if (row) {
+                 if (!row) return;
+                 
+                 // Si se hace clic en el checkbox, manejar el resaltado
+                 if (e.target.matches('.dashboard-group-highlight-toggle')) {
+                    handleToggleGroupHighlight(e.target);
+                    return;
+                 }
+
+                 // Si se hace clic en cualquier otra celda, navegar
+                 if (e.target.closest('.group-stats-name-cell')) {
                      const groupName = row.dataset.groupName;
                      indiceSelectedGroup = groupName;
                      indiceShowFavorites = false;
@@ -6945,7 +6850,7 @@ let ingresosSearchTerm = '';
                 }, 1000); // Debounce for 1 second
             }
         }
-
+        
         async function saveDirectItemUpdate(itemId, field, value, inputElement) {
             if (currentUserRole === 'viewer') {
                 return;
@@ -7016,6 +6921,65 @@ let ingresosSearchTerm = '';
             }, 1200);
 
             updateDebounceTimers.set(key, timer);
+        }
+
+        async function handleToggleGroupHighlight(checkbox) {
+            if (currentUserRole !== 'owner') {
+                checkbox.checked = !checkbox.checked; // Revertir el clic
+                showToast('No tienes permiso para esta acción.', 'error');
+                return;
+            }
+
+            const groupName = checkbox.dataset.groupName;
+            const newState = checkbox.checked;
+
+            // Actualizar Map local
+            groupCheckedState.set(groupName, newState);
+
+            // Actualizar UI en el modal
+            const modalRow = document.querySelector(`.group-stats-modal-row[data-group-name="${groupName}"]`);
+            if (modalRow) {
+                modalRow.classList.toggle('bg-green-100', newState);
+                modalRow.classList.toggle('hover:bg-green-200', newState);
+                modalRow.classList.toggle('hover:bg-slate-50', !newState);
+            }
+            
+            // Actualizar UI en el dashboard
+            const dashboardRow = document.querySelector(`.kpi-detail-group-row-container[data-group-name="${groupName}"]`);
+            if (dashboardRow) {
+                dashboardRow.classList.toggle('bg-green-100', newState);
+                dashboardRow.classList.toggle('hover:bg-green-200', newState);
+                dashboardRow.classList.toggle('hover:bg-slate-50', !newState);
+            }
+
+            // Actualizar Firestore
+            try {
+                // Convertir el Map local completo a un objeto
+                const checkedStateObject = Object.fromEntries(groupCheckedState);
+                
+                // Guardar el objeto completo. Esto evita problemas de notación de puntos
+                // con nombres de campo que contienen un ".".
+                await updateDoc(appConfigDocRef, {
+                    groupCheckedState: checkedStateObject
+                });
+                showToast('Marca guardada.', 'success');
+            } catch (error) {
+                console.error("Error al guardar el resaltado:", error);
+                showToast('Error al guardar la marca.', 'error');
+                // Revertir UI en caso de error
+                groupCheckedState.set(groupName, !newState);
+                checkbox.checked = !newState;
+                if (modalRow) {
+                    modalRow.classList.toggle('bg-green-100', !newState);
+                    modalRow.classList.toggle('hover:bg-green-200', !newState);
+                    modalRow.classList.toggle('hover:bg-slate-50', newState);
+                }
+                if (dashboardRow) {
+                    dashboardRow.classList.toggle('bg-green-100', !newState);
+                    dashboardRow.classList.toggle('hover:bg-green-200', !newState);
+                    dashboardRow.classList.toggle('hover:bg-slate-50', newState);
+                }
+            }
         }
 
         function handleReviewNotesInput(e) {
@@ -7258,113 +7222,3 @@ let ingresosSearchTerm = '';
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
