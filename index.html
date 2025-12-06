@@ -392,7 +392,7 @@
             
             <div id="login-view" class="bg-white p-8 rounded-2xl shadow-lg hidden">
                 <h2 class="text-2xl font-bold text-center text-slate-800">ALMACEN</h2>
-                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v3.40 (08-11-2025)</p>
+                <p class="text-center text-sm text-slate-500 mt-1 mb-6">v3.5 (06-12-2025)</p>
                 <form id="login-form" class="space-y-4">
                     <div>
                         <label for="login-email" class="text-sm font-medium text-slate-700">Email</label>
@@ -506,7 +506,7 @@
                                 </div>
                                 <div class="dropdown-divider"></div>
                                 <div class="px-4 py-2 text-center text-xs text-slate-400">
-                                    Versión 3.40 (08-11-2025)
+                                    Versión 3.5 (06-12-2025)
                                 </div>
                             </div>
                         </div>
@@ -1221,10 +1221,13 @@
         let activeKpi = null;
         let isInitialLoad = true;
         let currentUserTag = '';
-let calendarCurrentDate = new Date();
-let ingresosSelectedGroup = 'all';
-let ingresosSearchTerm = '';
+        let calendarCurrentDate = new Date();
+        let ingresosSelectedGroup = 'all';
+        let ingresosSearchTerm = '';
         let currentIngresosWeek = { start: null, end: null };
+        let ingresosViewMode = 'weekly'; // 'weekly', 'byItem', 'byGroup'
+        let ingresosTargetItemCode = null; // Para almacenar el insumo seleccionado en la vista "Por Insumo"
+        let ingresosTargetGroup = null; // Para almacenar el grupo seleccionado en la vista "Por Grupo"
         
         // --- VARIABLES DE FIREBASE Y USUARIO ---
         let app, db, auth, userId, appId;
@@ -1645,7 +1648,7 @@ let ingresosSearchTerm = '';
             if (clearButton) clearButton.classList.toggle('hidden', !isOwner && !isEditor);
             if (addItemBtn) addItemBtn.classList.toggle('hidden', !isOwner && !isEditor);
             if (checkNavlink) checkNavlink.classList.toggle('hidden', !isOwner);
-            if (notificationContainer) notificationContainer.classList.toggle('hidden', !isOwner);
+            if (notificationContainer) notificationContainer.classList.toggle('hidden', !isOwner && !isEditor);
             
             const userMenuButton = document.getElementById('user-menu-button');
             if (userMenuButton) userMenuButton.disabled = !user;
@@ -1696,6 +1699,651 @@ let ingresosSearchTerm = '';
             }
         }
 
+        // --- INICIO DE FUNCIONES FALTANTES ---
+
+        function renderMonthlyCalendar(date) {
+            const container = document.getElementById('ingresos-calendar-container');
+            if (!container) return;
+
+            const todayRaw = new Date();
+            const today = new Date(Date.UTC(todayRaw.getFullYear(), todayRaw.getMonth(), todayRaw.getDate()));
+            
+            const month = date.getUTCMonth();
+            const year = date.getUTCFullYear();
+            
+            const monthName = new Date(Date.UTC(year, month)).toLocaleString('es-AR', { month: 'long', timeZone: 'UTC' });
+            const monthNameCapitalized = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+
+            let calendarHTML = `
+                <div class="calendar">
+                    <div class="calendar-header">
+                        <button id="calendar-prev-month" class="p-2 rounded-full hover:bg-slate-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                        </button>
+                        <div class="text-center">
+                            <h3 class="text-xl font-bold text-slate-800">${monthNameCapitalized}</h3>
+                            <p class="text-sm font-semibold text-indigo-600">${year}</p>
+                        </div>
+                        <button id="calendar-next-month" class="p-2 rounded-full hover:bg-slate-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                        </button>
+                    </div>
+                    <table class="w-full mt-4">
+                        <thead>
+                            <tr class="text-center">
+                                <th class="week-number-cell"></th> <!-- Header for week numbers -->
+                                <th class="calendar-day-name">L</th>
+                                <th class="calendar-day-name">M</th>
+                                <th class="calendar-day-name">M</th>
+                                <th class="calendar-day-name">J</th>
+                                <th class="calendar-day-name">V</th>
+                                <th class="calendar-day-name">S</th>
+                                <th class="calendar-day-name">D</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                    `;
+
+            const firstDayOfMonth = new Date(Date.UTC(year, month, 1));
+            const startDayOfWeek = (firstDayOfMonth.getUTCDay() + 6) % 7; // 0 = Lunes, 6 = Domingo
+            
+            let currentDate = new Date(firstDayOfMonth);
+            currentDate.setUTCDate(firstDayOfMonth.getUTCDate() - startDayOfWeek);
+            
+            const ocsInThisPeriod = new Set(
+                ocs.filter(oc => {
+                    const d = parseDateString(oc.proxFechaEntrega);
+                    return d && d.getUTCFullYear() === year && d.getUTCMonth() === month;
+                }).map(oc => parseDateString(oc.proxFechaEntrega).toISOString().split('T')[0])
+            );
+
+            let weekRowOpen = false;
+
+            for (let i = 0; i < 42; i++) { // 6 weeks
+                const dayOfMonth = currentDate.getUTCDate();
+                const currentMonth = currentDate.getUTCMonth();
+                const dateISO = currentDate.toISOString().split('T')[0];
+
+                // Start new week row
+                if (i % 7 === 0) {
+                    if (weekRowOpen) calendarHTML += `</tr>`;
+                    const weekId = getWeekId(currentDate);
+                    const weekNum = parseInt(weekId.split('-')[1], 10);
+                    calendarHTML += `<tr class="calendar-week-row" data-week-id="${weekId}">
+                                     <td class="week-number-cell">${weekNum}</td>`;
+                    weekRowOpen = true;
+                }
+
+                let dayClasses = "calendar-day";
+                if (currentMonth !== month) {
+                    dayClasses += " other-month";
+                }
+                if (currentDate.getTime() === today.getTime()) {
+                    dayClasses += " today";
+                }
+                if (ocsInThisPeriod.has(dateISO)) {
+                    dayClasses += " has-income";
+                }
+
+                calendarHTML += `<td><div class="${dayClasses}">${dayOfMonth}</div></td>`;
+                currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+            }
+            
+            if (weekRowOpen) calendarHTML += `</tr>`;
+            calendarHTML += `</tbody></table></div>`;
+            
+            calendarHTML += `
+                <div class="text-center mt-4">
+                    <button id="calendar-today-btn" class="btn-main-style !h-8 !text-xs !bg-indigo-500 !text-white hover:!bg-indigo-600">
+                        Ir a la semana actual
+                    </button>
+                </div>
+            `;
+            container.innerHTML = calendarHTML;
+        }
+        
+        // Function to navigate calendar to the current week
+        function goToCurrentWeek() {
+            calendarCurrentDate = new Date(); // Reset to today's date
+            renderIngresosView(); // This will re-render the calendar and select the current week
+        }
+
+        // Función orquestadora para el contenido del panel derecho de Ingresos
+        function renderIngresosContent() {
+            const headerContainer = document.getElementById('ingresos-header-container');
+            const detailsContainer = document.getElementById('ingresos-details-container');
+            const kpiContainer = document.getElementById('ingresos-kpi-container');
+            
+            if (!headerContainer || !detailsContainer) return;
+
+            // Renderizar el selector de modo (Pestañas)
+            headerContainer.innerHTML = `
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-lg w-fit self-start">
+                        <button class="px-4 py-1.5 text-sm rounded-md transition-colors ingresos-mode-btn ${ingresosViewMode === 'weekly' ? 'bg-white shadow-sm text-indigo-700 font-semibold' : 'text-slate-500 hover:text-slate-700'}" data-mode="weekly">
+                            Vista Semanal
+                        </button>
+                        <button class="px-4 py-1.5 text-sm rounded-md transition-colors ingresos-mode-btn ${ingresosViewMode === 'byItem' ? 'bg-white shadow-sm text-indigo-700 font-semibold' : 'text-slate-500 hover:text-slate-700'}" data-mode="byItem">
+                            Buscar por Insumo
+                        </button>
+                        <button class="px-4 py-1.5 text-sm rounded-md transition-colors ingresos-mode-btn ${ingresosViewMode === 'byGroup' ? 'bg-white shadow-sm text-indigo-700 font-semibold' : 'text-slate-500 hover:text-slate-700'}" data-mode="byGroup">
+                            Buscar por Grupo
+                        </button>
+                    </div>
+                    <div id="ingresos-sub-header"></div>
+                </div>
+            `;
+
+            if (ingresosViewMode === 'weekly') {
+                kpiContainer.classList.remove('hidden');
+                renderIncomingItemsForWeek(currentIngresosWeek.start, currentIngresosWeek.end);
+            } else if (ingresosViewMode === 'byItem') {
+                kpiContainer.classList.add('hidden');
+                renderIngresosByItemUI();
+            } else {
+                kpiContainer.classList.add('hidden');
+                renderIngresosByGroupUI();
+            }
+        }
+
+        function renderIngresosByGroupUI() {
+            const subHeader = document.getElementById('ingresos-sub-header');
+            const detailsContainer = document.getElementById('ingresos-details-container');
+            
+            // 1. Renderizar Buscador de Grupo en el Sub-Header
+            subHeader.innerHTML = `
+                <div class="relative w-full max-w-xl">
+                    <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" id="ingresos-group-search-input" placeholder="Escribe el nombre del grupo..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg h-10 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" autocomplete="off">
+                    <div id="ingresos-group-search-results" class="absolute top-full left-0 right-0 bg-white border mt-1 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto hidden"></div>
+                </div>
+            `;
+
+            const searchInput = document.getElementById('ingresos-group-search-input');
+            const resultsContainer = document.getElementById('ingresos-group-search-results');
+            
+            // Obtener lista única de grupos desde los items
+            const uniqueGroups = [...new Set(items.map(i => i.group).filter(Boolean))].sort();
+
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                
+                // Mostrar todos si está vacío o filtrar
+                const matches = uniqueGroups.filter(g => g.toLowerCase().includes(term));
+
+                if (matches.length > 0) {
+                    resultsContainer.innerHTML = matches.map(group => `
+                        <div class="p-3 hover:bg-slate-50 cursor-pointer border-b last:border-0 ingresos-group-result-item" data-group="${group}">
+                            <p class="font-semibold text-sm text-slate-800">${group}</p>
+                        </div>
+                    `).join('');
+                    resultsContainer.classList.remove('hidden');
+                } else {
+                    resultsContainer.innerHTML = `<div class="p-3 text-sm text-slate-500">No se encontraron grupos.</div>`;
+                    resultsContainer.classList.remove('hidden');
+                }
+            });
+            
+            // Mostrar lista al hacer foco
+            searchInput.addEventListener('focus', () => {
+                if(searchInput.value === '') searchInput.dispatchEvent(new Event('input'));
+            });
+
+            // Listener para selección de resultados
+            resultsContainer.addEventListener('click', (e) => {
+                const groupEl = e.target.closest('.ingresos-group-result-item');
+                if (groupEl) {
+                    ingresosTargetGroup = groupEl.dataset.group;
+                    searchInput.value = ingresosTargetGroup;
+                    resultsContainer.classList.add('hidden');
+                    renderIngresosByGroupList();
+                }
+            });
+
+            // 2. Renderizar Lista (o estado vacío)
+            if (!ingresosTargetGroup) {
+                detailsContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-64 text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="mb-4"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                        <p>Selecciona un grupo para ver su cronograma de ingresos.</p>
+                    </div>
+                `;
+            } else {
+                // Si ya había una selección previa, rellenar el input y mostrar lista
+                searchInput.value = ingresosTargetGroup;
+                renderIngresosByGroupList();
+            }
+        }
+
+        function renderIngresosByGroupList() {
+            const detailsContainer = document.getElementById('ingresos-details-container');
+            
+            // Filtrar OCs que pertenezcan a insumos de este grupo
+            // Usamos 'items' para mapear código -> grupo de forma segura
+            const groupItemCodes = new Set(items.filter(i => i.group === ingresosTargetGroup).map(i => i.code));
+            
+            const groupOCs = ocs.filter(oc => groupItemCodes.has(oc.codigo));
+            
+            // Ordenar por fecha (más reciente primero, o futura primero?)
+            // Generalmente para cronograma: futuras primero (ascendente), pero mezcladas con pasadas puede ser confuso.
+            // Vamos a ordenar ascendente por fecha.
+            groupOCs.sort((a, b) => {
+                const dateA = parseDateString(a.proxFechaEntrega) || new Date(0);
+                const dateB = parseDateString(b.proxFechaEntrega) || new Date(0);
+                return dateA - dateB;
+            });
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            let html = `
+                <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-4">
+                    <h3 class="text-lg font-bold text-indigo-800">Grupo: ${ingresosTargetGroup}</h3>
+                    <p class="text-sm text-indigo-600">${groupOCs.length} órdenes registradas</p>
+                </div>
+            `;
+
+            if (groupOCs.length === 0) {
+                html += `<div class="text-center py-10 bg-slate-50 rounded-lg border border-dashed border-slate-300">
+                            <p class="text-slate-500">No hay ingresos registrados para este grupo.</p>
+                         </div>`;
+            } else {
+                html += `<div class="overflow-hidden rounded-lg border border-slate-200">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Material</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">O/C</th>
+                                <th scope="col" class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Cant.</th>
+                                <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-slate-200">`;
+                
+                groupOCs.forEach(oc => {
+                    const date = parseDateString(oc.proxFechaEntrega);
+                    const isPast = date && date < today;
+                    const status = transformOCStatus(oc.status);
+                    const item = items.find(i => i.code === oc.codigo);
+                    const itemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
+                    
+                    let statusClass = 'bg-slate-100 text-slate-800';
+                    if (status === 'Pendiente') statusClass = 'bg-yellow-100 text-yellow-800';
+                    else if (status === 'Aprobada') statusClass = 'bg-green-100 text-green-800';
+                    else if (status === 'Rechazada') statusClass = 'bg-red-100 text-red-800';
+
+                    // Clases para el hover y cursor pointer, añadiendo clase identificadora 'ingresos-table-row'
+                    let rowClass = isPast && status !== 'Rechazada' ? 'bg-red-50' : 'hover:bg-slate-50';
+                    rowClass += ' cursor-pointer ingresos-table-row transition-colors';
+                    
+                    const dateClass = isPast ? 'text-red-600 font-bold' : 'text-slate-900 font-medium';
+
+                    html += `
+                        <tr class="${rowClass}" data-item-id="${item ? item.id : ''}">
+                            <td class="px-4 py-3 whitespace-nowrap text-sm ${dateClass}">
+                                ${formatDate(oc.proxFechaEntrega)}
+                            </td>
+                            <td class="px-4 py-3 text-sm text-slate-700">
+                                <div class="font-medium truncate max-w-xs" title="${itemName}">${itemName}</div>
+                                <div class="text-xs text-slate-400">${oc.codigo}</div>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">
+                                ${oc.ordenDeCompra}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-bold text-slate-700">
+                                ${formatNumber(oc.cantEntregaSiguiente)}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-center text-sm">
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                    ${status}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `</tbody></table></div>`;
+            }
+
+            detailsContainer.innerHTML = html;
+        }
+
+        function renderIngresosByItemUI() {
+            const subHeader = document.getElementById('ingresos-sub-header');
+            const detailsContainer = document.getElementById('ingresos-details-container');
+            
+            // 1. Renderizar Buscador en el Sub-Header (si no existe ya)
+            if (!document.getElementById('ingresos-item-search-input')) {
+                subHeader.innerHTML = `
+                    <div class="relative w-full max-w-xl">
+                        <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <input type="text" id="ingresos-item-search-input" placeholder="Escribe el nombre o código del insumo..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg h-10 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" autocomplete="off">
+                        <div id="ingresos-item-search-results" class="absolute top-full left-0 right-0 bg-white border mt-1 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto hidden"></div>
+                    </div>
+                `;
+
+                // Agregar listener al input recién creado
+                const searchInput = document.getElementById('ingresos-item-search-input');
+                const resultsContainer = document.getElementById('ingresos-item-search-results');
+                
+                searchInput.addEventListener('input', (e) => {
+                    const term = e.target.value.toLowerCase();
+                    if (term.length < 2) {
+                        resultsContainer.classList.add('hidden');
+                        return;
+                    }
+                    
+                    const matches = items.filter(item => 
+                        item.name.toLowerCase().includes(term) || item.code.toLowerCase().includes(term)
+                    ).slice(0, 10); // Limitar resultados
+
+                    if (matches.length > 0) {
+                        resultsContainer.innerHTML = matches.map(item => `
+                            <div class="p-3 hover:bg-slate-50 cursor-pointer border-b last:border-0 ingresos-search-result-item" data-code="${item.code}" data-name="${item.name}">
+                                <p class="font-semibold text-sm text-slate-800">${item.name}</p>
+                                <p class="text-xs text-slate-500">${item.code}</p>
+                            </div>
+                        `).join('');
+                        resultsContainer.classList.remove('hidden');
+                    } else {
+                        resultsContainer.innerHTML = `<div class="p-3 text-sm text-slate-500">No se encontraron insumos.</div>`;
+                        resultsContainer.classList.remove('hidden');
+                    }
+                });
+
+                // Listener para selección de resultados
+                resultsContainer.addEventListener('click', (e) => {
+                    const itemEl = e.target.closest('.ingresos-search-result-item');
+                    if (itemEl) {
+                        ingresosTargetItemCode = itemEl.dataset.code;
+                        searchInput.value = itemEl.dataset.name; // Poner nombre en el input
+                        resultsContainer.classList.add('hidden');
+                        renderIngresosByItemList(); // Renderizar la lista
+                    }
+                });
+            }
+
+            // 2. Renderizar Lista de Resultados (o estado vacío)
+            if (!ingresosTargetItemCode) {
+                detailsContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-64 text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="mb-4"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <p>Busca un insumo para ver su historial de ingresos.</p>
+                    </div>
+                `;
+            } else {
+                renderIngresosByItemList();
+            }
+        }
+
+        function renderIngresosByItemList() {
+            const detailsContainer = document.getElementById('ingresos-details-container');
+            const item = items.find(i => i.code === ingresosTargetItemCode);
+            
+            if (!item) {
+                detailsContainer.innerHTML = `<p class="text-center text-red-500 p-4">Error: Insumo no encontrado.</p>`;
+                return;
+            }
+
+            // Buscar todas las O/C para este insumo
+            const itemOCs = ocs.filter(oc => oc.codigo === ingresosTargetItemCode);
+            
+            // Ordenar por fecha
+            itemOCs.sort((a, b) => {
+                const dateA = parseDateString(a.proxFechaEntrega) || new Date(0);
+                const dateB = parseDateString(b.proxFechaEntrega) || new Date(0);
+                return dateA - dateB;
+            });
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            // Cabecera clicable
+            let html = `
+                <div class="bg-white rounded-lg border border-slate-200 p-4 mb-4 shadow-sm cursor-pointer hover:bg-slate-50 transition-colors ingresos-item-header-link" data-item-id="${item.id}" title="Click para ver Análisis">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-lg font-bold text-indigo-700">${item.name}</h3>
+                            <p class="text-sm text-slate-500">Código: ${item.code} | Grupo: ${item.group}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs font-bold text-slate-400 uppercase">Stock Actual</p>
+                            <p class="text-xl font-bold text-slate-800">${formatNumber(item.stock)}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (itemOCs.length === 0) {
+                html += `<div class="text-center py-10 bg-slate-50 rounded-lg border border-dashed border-slate-300">
+                            <p class="text-slate-500">No hay Órdenes de Compra registradas para este insumo.</p>
+                         </div>`;
+            } else {
+                html += `<div class="overflow-hidden rounded-lg border border-slate-200">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha Entrega</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">O/C</th>
+                                <th scope="col" class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Cantidad</th>
+                                <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-slate-200">`;
+                
+                itemOCs.forEach(oc => {
+                    const date = parseDateString(oc.proxFechaEntrega);
+                    const isPast = date && date < today;
+                    const status = transformOCStatus(oc.status);
+                    
+                    let statusClass = 'bg-slate-100 text-slate-800';
+                    if (status === 'Pendiente') statusClass = 'bg-yellow-100 text-yellow-800';
+                    else if (status === 'Aprobada') statusClass = 'bg-green-100 text-green-800';
+                    else if (status === 'Rechazada') statusClass = 'bg-red-100 text-red-800';
+
+                    const rowClass = isPast && status !== 'Rechazada' ? 'bg-red-50' : 'hover:bg-slate-50';
+                    const dateClass = isPast ? 'text-red-600 font-bold' : 'text-slate-900 font-medium';
+
+                    html += `
+                        <tr class="${rowClass}">
+                            <td class="px-4 py-3 whitespace-nowrap text-sm ${dateClass}">
+                                ${formatDate(oc.proxFechaEntrega)}
+                                ${isPast ? '<span class="ml-1 text-xs text-red-500 font-normal">(Pasada)</span>' : ''}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">
+                                <span class="font-medium">${oc.ordenDeCompra}</span>
+                                <span class="text-xs text-slate-400 ml-1">Pos: ${oc.posicion}</span>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-bold text-slate-700">
+                                ${formatNumber(oc.cantEntregaSiguiente)}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-center text-sm">
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                    ${status}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `</tbody></table></div>`;
+            }
+
+            detailsContainer.innerHTML = html;
+        }
+
+        function renderIncomingItemsForWeek(weekStartDate, weekEndDate, detailsOnly = false) {
+            currentIngresosWeek = { start: weekStartDate, end: weekEndDate }; // Store current week
+            
+            // Si el modo no es 'weekly', no hacemos nada aquí, renderIngresosContent se encarga
+            if (ingresosViewMode !== 'weekly') return;
+
+            const headerContainer = document.getElementById('ingresos-sub-header'); // Usamos sub-header ahora
+            const detailsContainer = document.getElementById('ingresos-details-container');
+            const kpiContainer = document.getElementById('ingresos-kpi-container');
+
+            if (!headerContainer || !detailsContainer || !kpiContainer) return;
+
+            const weekId = getWeekId(weekStartDate);
+            const weekNumber = parseInt(weekId.split('-')[1], 10);
+            
+            const incomingOCs = ocs.filter(oc => {
+                const deliveryDate = parseDateString(oc.proxFechaEntrega);
+                return deliveryDate && deliveryDate >= weekStartDate && deliveryDate <= weekEndDate;
+            });
+
+            // --- 1. Render Header (only if detailsOnly is false) ---
+            if (!detailsOnly) {
+                const uniqueGroups = [...new Set(incomingOCs.map(oc => extractGroupCode(oc.grupoDeArticulos)).filter(Boolean))].sort();
+                
+                let groupFilterHTML = `<select id="ingresos-group-filter" class="bg-white border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 h-9"><option value="all">TODOS LOS GRUPOS</option>`;
+                uniqueGroups.forEach(group => {
+                    const selected = group === ingresosSelectedGroup ? 'selected' : '';
+                    groupFilterHTML += `<option value="${group}" ${selected}>${group}</option>`;
+                });
+                groupFilterHTML += `</select>`;
+
+                // Inyectamos en el sub-header
+                headerContainer.innerHTML = `
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mt-2 border-t pt-4">
+                        <h3 class="text-xl font-bold text-slate-800">Semana ${parseInt(weekId.split('-')[1], 10)} <span class="text-sm font-normal text-slate-500 ml-2">(${formatDate(weekStartDate.toISOString().split('T')[0])} al ${formatDate(weekEndDate.toISOString().split('T')[0])})</span></h3>
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            ${groupFilterHTML}
+                            <div class="relative flex-grow">
+                                <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <input type="text" id="ingresos-search-input" placeholder="Buscar en la semana..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off" value="${ingresosSearchTerm}">
+                            </div>
+                            <button id="export-incoming-items-btn" class="btn-main-style !w-9 !h-9 !p-0 flex-shrink-0" title="Exportar semana">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Update filter/search values if they changed
+                const groupSelect = document.getElementById('ingresos-group-filter');
+                if (groupSelect) groupSelect.value = ingresosSelectedGroup;
+                const searchInput = document.getElementById('ingresos-search-input');
+                if (searchInput) searchInput.value = ingresosSearchTerm;
+            }
+
+            // --- 2. Filter Details ---
+            let filteredOCs = incomingOCs;
+            if (ingresosSelectedGroup !== 'all') {
+                filteredOCs = filteredOCs.filter(oc => extractGroupCode(oc.grupoDeArticulos) === ingresosSelectedGroup);
+            }
+            if (ingresosSearchTerm) {
+                const searchWords = ingresosSearchTerm.toLowerCase().split(' ').filter(Boolean);
+                filteredOCs = filteredOCs.filter(oc => {
+                    const item = items.find(i => i.code === oc.codigo);
+                    const cleanItemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
+                    const text = `${oc.codigo} ${cleanItemName} ${oc.ordenDeCompra} ${oc.posicion} ${oc.status}`.toLowerCase();
+                    return searchWords.every(word => text.includes(word));
+                });
+            }
+            
+            // Group by day
+            const groupedByDay = filteredOCs.reduce((acc, oc) => {
+                const dateStr = formatDate(oc.proxFechaEntrega, '/');
+                if (!acc[dateStr]) {
+                    acc[dateStr] = [];
+                }
+                acc[dateStr].push(oc);
+                return acc;
+            }, {});
+            
+            // Sort days
+            const sortedDays = Object.keys(groupedByDay).sort((a, b) => {
+                const dateA = parseDateString(a);
+                const dateB = parseDateString(b);
+                return dateA.getTime() - dateB.getTime();
+            });
+
+            // --- 3. Render KPIs (always update) ---
+            const kpiStats = incomingOCs.reduce((acc, oc) => {
+                const group = extractGroupCode(oc.grupoDeArticulos) || 'Sin Grupo';
+                acc[group] = (acc[group] || 0) + 1;
+                return acc;
+            }, {});
+            
+            const sortedKpis = Object.entries(kpiStats).sort((a, b) => b[1] - a[1]); // Sort by count desc
+            
+            kpiContainer.innerHTML = `
+                <h4 class="font-bold text-slate-700 mb-2">Ingresos de la Semana por Grupo</h4>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    ${sortedKpis.map(([groupName, count]) => {
+                        const isActive = ingresosSelectedGroup === groupName;
+                        return `
+                        <div class="p-3 rounded-lg border cursor-pointer transition-all ingresos-kpi-card
+                                    ${isActive ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white hover:bg-slate-50'}"
+                             data-group-name="${groupName}">
+                            <p class="text-2xl font-bold">${count}</p>
+                            <p class="text-sm font-medium ${isActive ? 'text-indigo-200' : 'text-slate-500'}">${groupName}</p>
+                        </div>`;
+                    }).join('')}
+                </div>
+            `;
+
+            // --- 4. Render Details List (always update) ---
+            if (sortedDays.length === 0) {
+                detailsContainer.innerHTML = '<p class="text-center text-slate-500 pt-10">No hay ingresos programados para esta semana' + (ingresosSelectedGroup !== 'all' ? ` en el grupo ${ingresosSelectedGroup}` : '') + '.</p>';
+                return;
+            }
+
+            let detailsHTML = '<div class="space-y-4">';
+            sortedDays.forEach(dateStr => {
+                const dayOcs = groupedByDay[dateStr];
+                const date = parseDateString(dateStr);
+                const dayName = (date.toLocaleString('es-AR', { weekday: 'long', timeZone: 'UTC' })).toUpperCase();
+                
+                detailsHTML += `
+                    <div>
+                        <h4 class="text-lg font-bold text-indigo-600 mb-2">${dayName} ${dateStr}</h4>
+                        <ul class="divide-y divide-slate-200 bg-white rounded-lg border border-slate-200">
+                `;
+                
+                dayOcs.sort((a, b) => (extractGroupCode(a.grupoDeArticulos) || '').localeCompare(extractGroupCode(b.grupoDeArticulos) || ''));
+
+                dayOcs.forEach(oc => {
+                    const item = items.find(i => i.code === oc.codigo);
+                    const cleanItemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
+                    const groupName = extractGroupCode(oc.grupoDeArticulos) || 'Sin Grupo';
+                    const status = transformOCStatus(oc.status);
+
+                    let statusClass = 'bg-green-100 text-green-800';
+                    if (status === 'Pendiente') statusClass = 'bg-yellow-100 text-yellow-800';
+                    else if (status === 'Rechazada') statusClass = 'bg-red-100 text-red-800';
+
+                    detailsHTML += `
+                        <li class="p-3 hover:bg-slate-50 incoming-item-row" data-item-id="${item ? item.id : ''}">
+                            <div class="flex items-center gap-4">
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-semibold text-slate-800 truncate">${cleanItemName}</p>
+                                    <p class="text-sm text-slate-500">${oc.codigo} | ${groupName}</p>
+                                </div>
+                                <div class="flex-shrink-0 text-right">
+                                    <p class="font-bold text-lg text-slate-700">${formatNumber(oc.cantEntregaSiguiente)}</p>
+                                    <p class="text-xs text-slate-500 -mt-1">Unidades</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between text-xs text-slate-600 mt-2 pt-2 border-t border-slate-100">
+                                <span class="font-medium">O/C: ${oc.ordenDeCompra} (Pos: ${oc.posicion})</span>
+                                <span class="px-2 py-0.5 rounded-full font-semibold ${statusClass}">${status}</span>
+                            </div>
+                        </li>
+                    `;
+                });
+
+                detailsHTML += '</ul></div>';
+            });
+
+            detailsHTML += '</div>';
+            detailsContainer.innerHTML = detailsHTML;
+        }
+        
+        // --- FIN DE FUNCIONES FALTANTES ---
+
         function renderIngresosView() {
             renderMonthlyCalendar(calendarCurrentDate);
 
@@ -1707,15 +2355,28 @@ let ingresosSearchTerm = '';
             const dayOfWeek = (startOfWeek.getUTCDay() + 6) % 7; // Monday = 0
             startOfWeek.setUTCDate(startOfWeek.getUTCDate() - dayOfWeek);
 
+            // Calcular weekId una sola vez
             const weekId = getWeekId(startOfWeek);
-            const selectedWeekRow = document.querySelector(`.calendar-week-row[data-week-id="${weekId}"]`);
-            if (selectedWeekRow) {
-                selectedWeekRow.classList.add('selected-week');
-            }
             
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setUTCDate(endOfWeek.getUTCDate() + 6);
-            renderIncomingItemsForWeek(startOfWeek, endOfWeek);
+            // Set current week globally if not set
+            if (!currentIngresosWeek.start) {
+                 const endOfWeek = new Date(startOfWeek);
+                 endOfWeek.setUTCDate(endOfWeek.getUTCDate() + 6);
+                 currentIngresosWeek = { start: startOfWeek, end: endOfWeek };
+            }
+
+            // Highlight calendar row
+            // Nota: El calendario se regenera en renderMonthlyCalendar, así que seleccionamos la fila después.
+            setTimeout(() => {
+                const selectedWeekRow = document.querySelector(`.calendar-week-row[data-week-id="${weekId}"]`);
+                if (selectedWeekRow) {
+                    document.querySelectorAll('.calendar-week-row.selected-week').forEach(row => row.classList.remove('selected-week'));
+                    selectedWeekRow.classList.add('selected-week');
+                }
+            }, 0);
+            
+            // Render content based on current mode
+            renderIngresosContent();
         }
 
         function findNotificationById(itemId) {
@@ -2721,6 +3382,58 @@ let ingresosSearchTerm = '';
             activeKpi = null;
         }
 
+        function generateDelayedSolpedsHTML() {
+            const stats = calculateDelayedSolpedsStats();
+            if (!stats || stats.length === 0) {
+                return '<p class="text-center text-slate-500 py-4">No hay Solpeds vencidas actualmente.</p>';
+            }
+
+            let html = '<div class="divide-y divide-slate-200 border-t">';
+            stats.forEach(group => {
+                html += `
+                <div class="p-4 hover:bg-slate-50 cursor-pointer kpi-detail-solped-row transition-colors" data-group-compras="${group.name}">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-indigo-700 truncate">${group.name}</p>
+                            <p class="text-sm text-slate-500">Grupo de Compras</p>
+                        </div>
+                        <div class="text-right ml-4">
+                            <p class="font-bold text-xl text-red-600">${group.count}</p>
+                            <p class="text-xs text-slate-500 -mt-1">Vencidas</p>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        function generateDelayedOCsHTML() {
+            const stats = calculateDelayedOCsStats();
+            if (!stats || stats.length === 0) {
+                return '<p class="text-center text-slate-500 py-4">No hay Órdenes de Compra vencidas actualmente.</p>';
+            }
+
+            let html = '<div class="divide-y divide-slate-200 border-t">';
+            stats.forEach(group => {
+                html += `
+                <div class="p-4 hover:bg-slate-50 cursor-pointer kpi-detail-oc-row transition-colors" data-group-compras="${group.name}">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-indigo-700 truncate">${group.name}</p>
+                            <p class="text-sm text-slate-500">Grupo de Compras</p>
+                        </div>
+                        <div class="text-right ml-4">
+                            <p class="font-bold text-xl text-red-600">${group.count}</p>
+                            <p class="text-xs text-slate-500 -mt-1">Vencidas</p>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            html += '</div>';
+            return html;
+        }
+
         function generateFavoriteItemsTableHTML() {
             const favoriteItems = getProcessedItems().filter(item => item.isFavorite);
             if (favoriteItems.length === 0) {
@@ -2782,9 +3495,11 @@ let ingresosSearchTerm = '';
                         </ul>
                     </div>
                 </div>
-            `}).join('');
-
-            modal.classList.remove('hidden');
+            `;
+            });
+            
+            html += '</div>';
+            return html;
         }
 
         function generateRecordConsumptionHTML() {
@@ -3357,6 +4072,17 @@ let ingresosSearchTerm = '';
                 const key = indiceSortConfig.key;
                 const dir = indiceSortConfig.direction === 'asc' ? 1 : -1;
 
+                if (key === 'hasOC') {
+                     const hasA = ocs.some(oc => String(oc.codigo).trim() === String(a.code).trim());
+                     const hasB = ocs.some(oc => String(oc.codigo).trim() === String(b.code).trim());
+                     return (hasA === hasB ? 0 : hasA ? 1 : -1) * dir;
+                }
+                if (key === 'hasSP') {
+                     const hasA = solpeds.some(s => String(s.cod).trim() === String(a.code).trim());
+                     const hasB = solpeds.some(s => String(s.cod).trim() === String(b.code).trim());
+                     return (hasA === hasB ? 0 : hasA ? 1 : -1) * dir;
+                }
+
                 if (key === 'name') {
                     const nameA = a.name.replace(new RegExp(`^${a.code}\\s*`), '').toLowerCase();
                     const nameB = b.name.replace(new RegExp(`^${b.code}\\s*`), '').toLowerCase();
@@ -3387,11 +4113,13 @@ let ingresosSearchTerm = '';
                 { key: 'isFavorite', label: '★', noSort: true, width: 'w-[4%]' },
                 { key: 'group', label: 'GRUPO', width: 'w-[8%]' },
                 { key: 'code', label: 'CÓDIGO', width: 'w-[8%]' },
-                { key: 'name', label: 'MATERIAL', width: 'w-[27%]' },
-                { key: 'stock', label: 'STOCK ACTUAL', class: 'justify-end border-l border-r border-slate-300', width: 'w-[10%]' },
-                { key: 'monthlyConsumption', label: 'CONS. MENSUAL', class: 'justify-end', width: 'w-[10%]' },
-                { key: 'coverageDays', label: 'COBERTURA (DÍAS)', class: 'justify-end', width: 'w-[10%]' },
-                { key: 'description_notes', label: 'NOTAS', noSort: true, width: 'w-[20%]' }
+                { key: 'name', label: 'MATERIAL', width: 'w-[22%]' },
+                { key: 'stock', label: 'STOCK ACTUAL', class: 'justify-end border-l border-r border-slate-300', width: 'w-[9%]' },
+                { key: 'monthlyConsumption', label: 'CONS. MENSUAL', class: 'justify-end', width: 'w-[9%]' },
+                { key: 'coverageDays', label: 'COBERTURA (DÍAS)', class: 'justify-end', width: 'w-[9%]' },
+                { key: 'hasOC', label: 'O/C', width: 'w-[5%]', class: 'text-center' },
+                { key: 'hasSP', label: 'SP', width: 'w-[5%]', class: 'text-center' },
+                { key: 'description_notes', label: 'NOTAS', noSort: true, width: 'w-[21%]' }
             ];
 
             let tableHTML = `<table class="w-full text-sm text-left text-slate-500 table-fixed"><thead class="text-xs text-slate-700 uppercase bg-slate-50 sticky top-0 z-10" style="box-shadow: 0 2px 0 #a5b4fc;"><tr>`;
@@ -3460,6 +4188,40 @@ let ingresosSearchTerm = '';
                         <span class="tooltip-text">Modificado por ${modifiedBy} ${modifiedAt}</span>
                     </div>` : '';
 
+                // Calculate O/C status and color
+                const itemOCs = ocs.filter(oc => String(oc.codigo).trim() === String(item.code).trim());
+                let ocContent = `<span class="text-slate-300">-</span>`;
+
+                if (itemOCs.length > 0) {
+                    // Mapeamos los estados normalizados
+                    const statuses = itemOCs.map(oc => transformOCStatus(oc.status));
+                    
+                    let badgeClass = '';
+                    // Prioridad de semáforo:
+                    // 1. Amarillo: Si hay algo pendiente, es lo que requiere atención inmediata.
+                    // 2. Verde: Si no hay pendientes, pero hay aprobadas, todo ok.
+                    // 3. Rojo: Si no hay ni pendientes ni aprobadas, solo rechazadas.
+                    
+                    if (statuses.includes('Pendiente')) {
+                        badgeClass = 'bg-yellow-100 text-yellow-700';
+                    } else if (statuses.includes('Aprobada')) {
+                        badgeClass = 'bg-green-100 text-green-700';
+                    } else if (statuses.includes('Rechazada')) {
+                        badgeClass = 'bg-red-100 text-red-700';
+                    } else {
+                        // Fallback por si hay estados desconocidos pero existe la OC
+                        badgeClass = 'bg-slate-100 text-slate-700';
+                    }
+
+                    ocContent = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full ${badgeClass} font-bold text-xs" title="Ver O/C">Sí</span>`;
+                }
+
+                // Calculate SP status
+                const hasSP = solpeds.some(s => String(s.cod).trim() === String(item.code).trim());
+                const spContent = hasSP 
+                    ? `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs">Sí</span>` 
+                    : `<span class="text-slate-300">-</span>`;
+
                 tableHTML += `<tr class="border-b hover:bg-slate-100 even:bg-slate-50">
                     <td class="px-4 py-2 text-center">
                         <button class="favorite-btn ${item.isFavorite ? 'is-favorite' : ''}" data-item-id="${item.id}" data-btn-type="indice-fav" ${currentUserRole === 'viewer' ? 'disabled' : ''}>
@@ -3480,7 +4242,9 @@ let ingresosSearchTerm = '';
                     <td class="px-2 py-1 text-right relative">
                         <input type="text" value="${formatNumber(item.monthlyConsumption)}" data-item-id="${item.id}" data-field="monthlyConsumption" class="direct-edit-input text-right w-full bg-transparent text-base" ${currentUserRole === 'viewer' ? 'disabled' : ''}>
                     </td>
-                    <td class="px-4 py-2 text-right ${coverageClass} text-base">${coverageText}</td>
+                    <td class="px-4 py-2 text-right ${coverageClass} text-base indice-item-details cursor-pointer" data-item-id="${item.id}">${coverageText}</td>
+                    <td class="px-2 py-1 text-center indice-item-details cursor-pointer" data-item-id="${item.id}">${ocContent}</td>
+                    <td class="px-2 py-1 text-center indice-item-details cursor-pointer" data-item-id="${item.id}">${spContent}</td>
                     <td class="px-4 py-2">
                         <input type="text" value="${item.description_notes || ''}" data-item-id="${item.id}" class="w-full bg-transparent text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white rounded p-1 notes-input-indice placeholder:text-center placeholder:text-slate-400 placeholder:text-lg" placeholder="+" ${currentUserRole === 'viewer' ? 'disabled' : ''}>
                     </td>
@@ -3741,20 +4505,21 @@ let ingresosSearchTerm = '';
 
             const avgConsumption = consumos.length > 0 ? consumos.reduce((a, b) => a + b, 0) / consumos.length : 0;
             const peakConsumption = consumos.length > 0 ? Math.max(...consumos) : 0;
-            let peakMonths = [];
+            
+            // Modificado: Solo mostrar el primer mes del pico
+            let peakMonthLabel = '';
             if (peakConsumption > 0) {
-                consumos.forEach((consumo, index) => {
-                    if (consumo === peakConsumption) {
-                        peakMonths.push(monthLabels[index]);
-                    }
-                });
+                const firstIndex = consumos.findIndex(c => c === peakConsumption);
+                if (firstIndex !== -1 && monthLabels[firstIndex]) {
+                    peakMonthLabel = monthLabels[firstIndex];
+                }
             }
 
             document.getElementById(`consumo-kpi-avg-${type}`).textContent = formatNumber(Math.round(avgConsumption));
             document.getElementById(`consumo-kpi-peak-${type}`).textContent = formatNumber(Math.round(peakConsumption));
             const peakMonthEl = document.getElementById(`consumo-kpi-peak-month-${type}`);
             if(peakMonthEl) {
-               peakMonthEl.textContent = peakMonths.join(', ');
+               peakMonthEl.textContent = peakMonthLabel;
             }
             
             document.getElementById(`consumo-kpi-coverage-today-${type}`).textContent = (processedItem.coverageDays === Infinity) ? '∞' : Math.round(processedItem.coverageDays);
@@ -5270,13 +6035,16 @@ let ingresosSearchTerm = '';
                 const dateClass = isDelayed ? 'text-red-600 font-bold' : '';
                 const transformedStatus = transformOCStatus(oc.status);
 
-                let rowClass = 'border-b hover:bg-indigo-50 even:bg-slate-50';
+                let rowClass = 'border-b hover:bg-indigo-50';
                 if (itemId) rowClass += ' cursor-pointer oc-item-row';
-                if (oc.status && oc.status.toLowerCase().includes('en proceso de autorización')) {
+                
+                // Lógica de color mejorada: Prioridad al estado y consistencia con lo mostrado
+                if (transformedStatus === 'Pendiente') {
                     rowClass += ' bg-yellow-100 hover:bg-yellow-200';
-                }
-                if (oc.status && oc.status.toLowerCase().includes('rechazado')) {
+                } else if (transformedStatus === 'Rechazada') {
                     rowClass += ' bg-red-100 hover:bg-red-200 text-red-900';
+                } else {
+                    rowClass += ' even:bg-slate-50'; // Solo aplicar alternancia si no tiene color de estado
                 }
 
                 tableHTML += `<tr class="${rowClass}" ${itemId ? `data-item-id="${itemId}"` : ''}>
@@ -6602,8 +7370,11 @@ let ingresosSearchTerm = '';
                 const todayBtn = e.target.closest('#calendar-today-btn');
                 const weekRow = e.target.closest('.calendar-week-row');
                 const kpiCard = e.target.closest('.ingresos-kpi-card');
-                const itemRow = e.target.closest('.incoming-item-row');
+                const itemRow = e.target.closest('.incoming-item-row'); // Fila en Vista Semanal
+                const groupTableRow = e.target.closest('.ingresos-table-row'); // Fila en Vista por Grupo
+                const itemHeaderLink = e.target.closest('.ingresos-item-header-link'); // Cabecera en Vista por Insumo
                 const exportBtn = e.target.closest('#export-incoming-items-btn');
+                const modeBtn = e.target.closest('.ingresos-mode-btn'); 
 
                 if (prevBtn) {
                     calendarCurrentDate.setUTCMonth(calendarCurrentDate.getUTCMonth() - 1);
@@ -6613,35 +7384,42 @@ let ingresosSearchTerm = '';
                     renderMonthlyCalendar(calendarCurrentDate);
                 } else if (todayBtn) {
                     goToCurrentWeek();
+                } else if (modeBtn) { 
+                    ingresosViewMode = modeBtn.dataset.mode;
+                    renderIngresosContent();
                 } else if (weekRow) {
-                    // Recalculate start date from weekId to be safe
+                    // ... (lógica existente de calendario)
+                    ingresosViewMode = 'weekly';
                     const weekId = weekRow.dataset.weekId;
                     const year = parseInt(weekId.substring(0, 4), 10);
                     const weekNum = parseInt(weekId.substring(5), 10);
-                    
                     const firstDayOfYear = new Date(Date.UTC(year, 0, 1));
                     const daysOffset = (weekNum - 1) * 7;
                     let weekStartDate = new Date(firstDayOfYear.getTime() + daysOffset * 86400000);
-                    
-                    const dayOfWeek = (weekStartDate.getUTCDay() + 6) % 7; // Monday = 0
+                    const dayOfWeek = (weekStartDate.getUTCDay() + 6) % 7; 
                     weekStartDate.setUTCDate(weekStartDate.getUTCDate() - dayOfWeek);
-
                     const weekEndDate = new Date(weekStartDate);
                     weekEndDate.setUTCDate(weekStartDate.getUTCDate() + 6);
-
                     document.querySelectorAll('.calendar-week-row.selected-week').forEach(row => row.classList.remove('selected-week'));
                     weekRow.classList.add('selected-week');
-                    
+                    currentIngresosWeek = { start: weekStartDate, end: weekEndDate };
                     ingresosSelectedGroup = 'all';
                     ingresosSearchTerm = '';
-                    renderIncomingItemsForWeek(weekStartDate, weekEndDate);
+                    renderIngresosContent(); 
                 } else if (kpiCard) {
                     const groupName = kpiCard.dataset.groupName;
                     ingresosSelectedGroup = (ingresosSelectedGroup === groupName) ? 'all' : groupName;
-                    // Re-render details only, not the whole header
                     renderIncomingItemsForWeek(currentIngresosWeek.start, currentIngresosWeek.end, true);
                 } else if (itemRow && itemRow.dataset.itemId) {
                     selectedConsumptionItemId = itemRow.dataset.itemId;
+                    comparisonItemId = null;
+                    switchMainView('consumos');
+                } else if (groupTableRow && groupTableRow.dataset.itemId) { // Nuevo click en tabla por grupo
+                    selectedConsumptionItemId = groupTableRow.dataset.itemId;
+                    comparisonItemId = null;
+                    switchMainView('consumos');
+                } else if (itemHeaderLink && itemHeaderLink.dataset.itemId) { // Nuevo click en cabecera por insumo
+                    selectedConsumptionItemId = itemHeaderLink.dataset.itemId;
                     comparisonItemId = null;
                     switchMainView('consumos');
                 } else if (exportBtn) {
