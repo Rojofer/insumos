@@ -233,13 +233,47 @@
             -ms-overflow-style: none;  /* for IE and Edge */
             scrollbar-width: none;  /* for Firefox */
         }
-        .calendar { background-color: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); }
-        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; text-align: center; }
-        .calendar-day-name { font-weight: 600; font-size: 0.75rem; color: #64748b; padding-bottom: 0.5rem; }
-        .calendar-day { display: flex; justify-content: center; align-items: center; height: 2.5rem; width: 2.5rem; margin: auto; border-radius: 50%; font-size: 0.875rem; color: #334155; }
+        /* CALENDARIO ACTUALIZADO - DISEÑO COMPACTO */
+        .calendar { 
+            background-color: white; 
+            border-radius: 0.5rem; 
+            padding: 0.75rem; /* Reducido de 1.5rem */
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); 
+            border: 1px solid #f1f5f9;
+        }
+        .calendar-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 0.5rem; /* Reducido */
+        }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.25rem; text-align: center; }
+        .calendar-day-name { 
+            font-weight: 700; 
+            font-size: 0.65rem; /* Más pequeño */
+            color: #94a3b8; 
+            padding-bottom: 0.25rem; 
+            text-transform: uppercase;
+        }
+        .calendar-day { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 2rem; /* Reducido de 2.5rem */
+            width: 2rem; /* Reducido de 2.5rem */
+            margin: auto; 
+            border-radius: 50%; 
+            font-size: 0.8rem; /* Fuente ajustada */
+            color: #334155; 
+            transition: all 0.2s;
+        }
         .calendar-day.other-month { color: #cbd5e1; }
-        .calendar-day.today { background-color: #6366f1; color: white; font-weight: 700; }
+        .calendar-day.today { 
+            background-color: #6366f1; 
+            color: white; 
+            font-weight: 700; 
+            box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+        }
         #incoming-items-list {
             max-height: 0;
             overflow: hidden;
@@ -252,24 +286,38 @@
         #incoming-items-chevron.is-open {
             transform: rotate(180deg);
         }
-        .calendar-week-row { cursor: pointer; }
-        .calendar-week-row:hover .calendar-day:not(.other-month) { background-color: #eef2ff; }
+        .calendar-week-row { cursor: pointer; transition: background-color 0.15s; border-radius: 4px; }
+        .calendar-week-row:hover .calendar-day:not(.other-month):not(.today):not(.selected-week .calendar-day) { 
+            background-color: #f1f5f9; 
+            color: #4f46e5;
+        }
         .calendar-day.has-income { position: relative; }
         .calendar-day.has-income::after {
-            content: ''; position: absolute; bottom: 4px; left: 50%;
-            transform: translateX(-50%); width: 5px; height: 5px;
-            border-radius: 50%; background-color: #16a34a;
+            content: ''; position: absolute; bottom: 3px; left: 50%;
+            transform: translateX(-50%); width: 4px; height: 4px;
+            border-radius: 50%; background-color: #10b981; /* Green-500 */
         }
         .calendar-week-row.selected-week .calendar-day:not(.other-month) {
-            background-color: #6366f1; color: white; font-weight: bold;
+            background-color: #e0e7ff; /* Indigo-100 para la selección */
+            color: #3730a3; /* Indigo-900 */
+            font-weight: 600;
         }
         .calendar-week-row.selected-week .calendar-day.today {
-            background-color: #4338ca;
+            background-color: #4338ca; /* Indigo-700 para hoy seleccionado */
+            color: white;
         }
-        .calendar-week-row.selected-week .calendar-day.has-income::after { background-color: white; }
+        /* Ajuste visual: el indicador se vuelve del color del texto en selección */
+        .calendar-week-row.selected-week .calendar-day.has-income::after { background-color: #4f46e5; }
+        .calendar-week-row.selected-week .calendar-day.today.has-income::after { background-color: white; }
+
         .week-number-cell {
-            font-size: 0.75rem; color: #94a3b8; font-weight: 500;
-            vertical-align: middle; text-align: center;
+            font-size: 0.65rem; 
+            color: #cbd5e1; 
+            font-weight: 500;
+            vertical-align: middle; 
+            text-align: center;
+            padding-right: 4px;
+            border-right: 1px solid #f1f5f9;
         }
         .tooltip-container {
             position: relative;
@@ -1225,10 +1273,21 @@
         let ingresosSelectedGroup = 'all';
         let ingresosSearchTerm = '';
         let currentIngresosWeek = { start: null, end: null };
-        let ingresosViewMode = 'weekly'; // 'weekly', 'byItem', 'byGroup'
+        let ingresosViewMode = 'weekly'; // 'weekly', 'byItem', 'byGroup', 'byProvider'
         let ingresosTargetItemCode = null; // Para almacenar el insumo seleccionado en la vista "Por Insumo"
         let ingresosTargetGroup = null; // Para almacenar el grupo seleccionado en la vista "Por Grupo"
+        let ingresosTargetProvider = null; // Para almacenar el proveedor seleccionado
+        let ingresosProviderProductSearchTerm = ''; // Nuevo: término de búsqueda secundario
+        let ingresosProviderViewType = 'list'; // Nuevo: 'list' (detalle) o 'table' (agrupado)
+        let ingresosGroupProductSearchTerm = ''; // Nuevo: término de búsqueda secundario para Grupos
+        let ingresosGroupViewType = 'list'; // Nuevo: 'list' (detalle) o 'table' (agrupado) para Grupos
+        let ingresosCalendarHidden = false; // Nuevo: Estado de visibilidad del calendario
         
+        // --- VARIABLES DE ESTADO PARA SIMULACIÓN ---
+        let currentSimulationItemId = null;
+        let simulationOverrideStock = null;
+        let simulationOverrideConsumption = null;
+
         // --- VARIABLES DE FIREBASE Y USUARIO ---
         let app, db, auth, userId, appId;
         let inventoryCollectionRef, permissionsCollectionRef, metadataDocRef, reviewHistoryCollectionRef, solpedsCollectionRef, ocsCollectionRef, appConfigDocRef;
@@ -1570,6 +1629,24 @@
             return groupName.replace(/\s*\([^)]*\)/g, '').trim();
         }
 
+        // Nueva función para extraer solo el apellido del Grupo de Compras
+        function extractPurchasingGroupSurname(groupName) {
+            if (!groupName || typeof groupName !== 'string') return '';
+            
+            // 1. Eliminar contenido entre paréntesis (ej. "(G08)")
+            let clean = groupName.replace(/\s*\([^)]*\)/g, '').trim();
+            
+            // 2. Manejar casos con guión como "DESVINCULADO - RUSSO" tomando lo que sigue al guión
+            if (clean.includes('-')) {
+                const parts = clean.split('-');
+                clean = parts[parts.length - 1].trim();
+            }
+            
+            // 3. Tomar la última palabra como apellido
+            const words = clean.split(/\s+/);
+            return words[words.length - 1] || '';
+        }
+
         function extractGroupCodeAbbr(groupName) {
             if (!groupName || typeof groupName !== 'string') return '';
             const match = groupName.match(/\(([^)]+)\)/);
@@ -1577,6 +1654,13 @@
                 return match[1].trim();
             }
             return groupName.trim();
+        }
+
+        // Nueva función global para limpiar visualmente el nombre del proveedor en cualquier vista
+        function cleanProviderDisplay(name) {
+            if (!name || typeof name !== 'string') return '';
+            // Elimina paréntesis y su contenido, y quita espacios extra
+            return name.replace(/\s*\([^)]*\)/g, '').trim();
         }
 
         // --- LÓGICA DE AUTENTICACIÓN Y UI INICIAL ---
@@ -1716,22 +1800,21 @@
 
             let calendarHTML = `
                 <div class="calendar">
-                    <div class="calendar-header">
-                        <button id="calendar-prev-month" class="p-2 rounded-full hover:bg-slate-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                    <div class="calendar-header px-1">
+                        <button id="calendar-prev-month" class="p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                         </button>
                         <div class="text-center">
-                            <h3 class="text-xl font-bold text-slate-800">${monthNameCapitalized}</h3>
-                            <p class="text-sm font-semibold text-indigo-600">${year}</p>
+                            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide">${monthNameCapitalized} <span class="text-indigo-500">${year}</span></h3>
                         </div>
-                        <button id="calendar-next-month" class="p-2 rounded-full hover:bg-slate-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                        <button id="calendar-next-month" class="p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                         </button>
                     </div>
-                    <table class="w-full mt-4">
+                    <table class="w-full mt-2 border-collapse">
                         <thead>
                             <tr class="text-center">
-                                <th class="week-number-cell"></th> <!-- Header for week numbers -->
+                                <th class="week-number-cell pb-2">Sem</th> <!-- Header for week numbers -->
                                 <th class="calendar-day-name">L</th>
                                 <th class="calendar-day-name">M</th>
                                 <th class="calendar-day-name">M</th>
@@ -1769,7 +1852,7 @@
                     if (weekRowOpen) calendarHTML += `</tr>`;
                     const weekId = getWeekId(currentDate);
                     const weekNum = parseInt(weekId.split('-')[1], 10);
-                    calendarHTML += `<tr class="calendar-week-row" data-week-id="${weekId}">
+                    calendarHTML += `<tr class="calendar-week-row hover:bg-slate-50 rounded-lg" data-week-id="${weekId}">
                                      <td class="week-number-cell">${weekNum}</td>`;
                     weekRowOpen = true;
                 }
@@ -1793,9 +1876,9 @@
             calendarHTML += `</tbody></table></div>`;
             
             calendarHTML += `
-                <div class="text-center mt-4">
-                    <button id="calendar-today-btn" class="btn-main-style !h-8 !text-xs !bg-indigo-500 !text-white hover:!bg-indigo-600">
-                        Ir a la semana actual
+                <div class="text-center mt-3">
+                    <button id="calendar-today-btn" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline transition-colors">
+                        Ir a semana actual
                     </button>
                 </div>
             `;
@@ -1816,18 +1899,41 @@
             
             if (!headerContainer || !detailsContainer) return;
 
+            // Resetear términos de búsqueda secundarios al cambiar de modo
+            ingresosProviderProductSearchTerm = '';
+            ingresosGroupProductSearchTerm = '';
+
+            // Iconos para el botón de toggle
+            const iconExpand = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>`;
+            const iconCollapse = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/></svg>`;
+
             // Renderizar el selector de modo (Pestañas)
             headerContainer.innerHTML = `
                 <div class="flex flex-col gap-4">
-                    <div class="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-lg w-fit self-start">
-                        <button class="px-4 py-1.5 text-sm rounded-md transition-colors ingresos-mode-btn ${ingresosViewMode === 'weekly' ? 'bg-white shadow-sm text-indigo-700 font-semibold' : 'text-slate-500 hover:text-slate-700'}" data-mode="weekly">
-                            Vista Semanal
-                        </button>
-                        <button class="px-4 py-1.5 text-sm rounded-md transition-colors ingresos-mode-btn ${ingresosViewMode === 'byItem' ? 'bg-white shadow-sm text-indigo-700 font-semibold' : 'text-slate-500 hover:text-slate-700'}" data-mode="byItem">
-                            Buscar por Insumo
-                        </button>
-                        <button class="px-4 py-1.5 text-sm rounded-md transition-colors ingresos-mode-btn ${ingresosViewMode === 'byGroup' ? 'bg-white shadow-sm text-indigo-700 font-semibold' : 'text-slate-500 hover:text-slate-700'}" data-mode="byGroup">
-                            Buscar por Grupo
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-lg w-fit">
+                                <button class="px-4 py-1.5 text-sm rounded-md transition-colors ingresos-mode-btn ${ingresosViewMode === 'weekly' ? 'bg-white shadow-sm text-indigo-700 font-semibold' : 'text-slate-500 hover:text-slate-700'}" data-mode="weekly">
+                                    Vista Semanal
+                                </button>
+                                <button class="px-4 py-1.5 text-sm rounded-md transition-colors ingresos-mode-btn ${ingresosViewMode === 'byItem' ? 'bg-white shadow-sm text-indigo-700 font-semibold' : 'text-slate-500 hover:text-slate-700'}" data-mode="byItem">
+                                    Buscar por Insumo
+                                </button>
+                                <button class="px-4 py-1.5 text-sm rounded-md transition-colors ingresos-mode-btn ${ingresosViewMode === 'byGroup' ? 'bg-white shadow-sm text-indigo-700 font-semibold' : 'text-slate-500 hover:text-slate-700'}" data-mode="byGroup">
+                                    Buscar por Grupo
+                                </button>
+                                <button class="px-4 py-1.5 text-sm rounded-md transition-colors ingresos-mode-btn ${ingresosViewMode === 'byProvider' ? 'bg-white shadow-sm text-indigo-700 font-semibold' : 'text-slate-500 hover:text-slate-700'}" data-mode="byProvider">
+                                    Buscar por Proveedor
+                                </button>
+                            </div>
+                            <button id="ingresos-reset-filters-btn" class="btn-main-style !h-9 !px-3 !bg-white hover:!bg-slate-50 !text-slate-600 border-slate-300" title="Limpiar todos los filtros">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                            </button>
+                        </div>
+                        
+                        <button id="ingresos-toggle-calendar-btn" class="btn-main-style !h-9 !px-3 !bg-white hover:!bg-indigo-50 !text-slate-600 border-slate-300 ml-auto" title="${ingresosCalendarHidden ? 'Mostrar Calendario' : 'Pantalla Completa'}">
+                            ${ingresosCalendarHidden ? iconCollapse : iconExpand}
+                            <span class="ml-2 text-xs font-semibold hidden sm:inline">${ingresosCalendarHidden ? 'Ver Calendario' : 'Expandir'}</span>
                         </button>
                     </div>
                     <div id="ingresos-sub-header"></div>
@@ -1840,10 +1946,53 @@
             } else if (ingresosViewMode === 'byItem') {
                 kpiContainer.classList.add('hidden');
                 renderIngresosByItemUI();
-            } else {
+            } else if (ingresosViewMode === 'byGroup') {
                 kpiContainer.classList.add('hidden');
                 renderIngresosByGroupUI();
+            } else if (ingresosViewMode === 'byProvider') {
+                kpiContainer.classList.add('hidden');
+                renderIngresosByProviderUI();
             }
+        }
+
+        function handleResetIngresosFilters() {
+            // Resetear todas las variables de estado de ingresos
+            ingresosSelectedGroup = 'all';
+            ingresosSearchTerm = '';
+            ingresosTargetItemCode = null;
+            ingresosTargetGroup = null;
+            ingresosTargetProvider = null;
+            ingresosProviderProductSearchTerm = '';
+            
+            // Volver a la vista semanal y a la semana actual
+            ingresosViewMode = 'weekly';
+            calendarCurrentDate = new Date(); // Resetear calendario a hoy
+            
+            // Recalcular semana actual para currentIngresosWeek
+            const todayRaw = new Date();
+            const today = new Date(Date.UTC(todayRaw.getFullYear(), todayRaw.getMonth(), todayRaw.getDate()));
+            const startOfWeek = new Date(today);
+            const dayOfWeek = (startOfWeek.getUTCDay() + 6) % 7; 
+            startOfWeek.setUTCDate(startOfWeek.getUTCDate() - dayOfWeek);
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setUTCDate(endOfWeek.getUTCDate() + 6);
+            currentIngresosWeek = { start: startOfWeek, end: endOfWeek };
+
+            // Renderizar todo de nuevo
+            renderMonthlyCalendar(calendarCurrentDate);
+            
+            // Seleccionar visualmente la fila de la semana actual en el calendario
+            setTimeout(() => {
+                const weekId = getWeekId(startOfWeek);
+                const selectedWeekRow = document.querySelector(`.calendar-week-row[data-week-id="${weekId}"]`);
+                if (selectedWeekRow) {
+                    document.querySelectorAll('.calendar-week-row.selected-week').forEach(row => row.classList.remove('selected-week'));
+                    selectedWeekRow.classList.add('selected-week');
+                }
+            }, 50);
+
+            renderIngresosContent();
+            showToast('Filtros restablecidos.', 'success');
         }
 
         function renderIngresosByGroupUI() {
@@ -1915,18 +2064,536 @@
             }
         }
 
-        function renderIngresosByGroupList() {
+        function renderIngresosByProviderUI() {
+            const subHeader = document.getElementById('ingresos-sub-header');
             const detailsContainer = document.getElementById('ingresos-details-container');
             
-            // Filtrar OCs que pertenezcan a insumos de este grupo
-            // Usamos 'items' para mapear código -> grupo de forma segura
+            // 1. Renderizar Buscador de Proveedor en el Sub-Header
+            subHeader.innerHTML = `
+                <div class="relative w-full max-w-xl">
+                    <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" id="ingresos-provider-search-input" placeholder="Escribe el nombre del proveedor..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg h-10 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" autocomplete="off">
+                    <div id="ingresos-provider-search-results" class="absolute top-full left-0 right-0 bg-white border mt-1 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto hidden"></div>
+                </div>
+            `;
+
+            const searchInput = document.getElementById('ingresos-provider-search-input');
+            const resultsContainer = document.getElementById('ingresos-provider-search-results');
+            
+            // Obtener lista única de proveedores LIMPIOS desde las OCs
+            const uniqueProviders = [...new Set(ocs.map(oc => cleanProviderDisplay(oc.proveedor)).filter(Boolean))].sort();
+
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                if (term.length < 1) {
+                     resultsContainer.classList.add('hidden');
+                     return;
+                }
+                
+                const matches = uniqueProviders.filter(p => p.toLowerCase().includes(term));
+
+                if (matches.length > 0) {
+                    resultsContainer.innerHTML = matches.map(provider => `
+                        <div class="p-3 hover:bg-slate-50 cursor-pointer border-b last:border-0 ingresos-provider-result-item" data-provider="${provider}">
+                            <p class="font-semibold text-sm text-slate-800">${provider}</p>
+                        </div>
+                    `).join('');
+                    resultsContainer.classList.remove('hidden');
+                } else {
+                    resultsContainer.innerHTML = `<div class="p-3 text-sm text-slate-500">No se encontraron proveedores.</div>`;
+                    resultsContainer.classList.remove('hidden');
+                }
+            });
+            
+            searchInput.addEventListener('focus', () => {
+                if(searchInput.value === '') searchInput.dispatchEvent(new Event('input'));
+            });
+
+            // Listener para selección
+            resultsContainer.addEventListener('click', (e) => {
+                const providerEl = e.target.closest('.ingresos-provider-result-item');
+                if (providerEl) {
+                    ingresosTargetProvider = providerEl.dataset.provider;
+                    searchInput.value = ingresosTargetProvider;
+                    resultsContainer.classList.add('hidden');
+                    renderIngresosByProviderList(); // Configura la vista inicial
+                }
+            });
+
+            // 2. Renderizar Lista inicial
+            if (!ingresosTargetProvider) {
+                detailsContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-64 text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="mb-4"><path d="M19 21V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5m-4 0h4"/></svg>
+                        <p>Selecciona un proveedor para ver su historial de entregas.</p>
+                    </div>
+                `;
+            } else {
+                searchInput.value = ingresosTargetProvider;
+                renderIngresosByProviderList();
+            }
+        }
+
+        // Nueva función: Configura la estructura (Header + Input filtro con Sugerencias) y llama a actualizar la tabla
+        function renderIngresosByProviderList() {
+            const detailsContainer = document.getElementById('ingresos-details-container');
+            ingresosProviderProductSearchTerm = ''; // Resetear filtro secundario
+            ingresosProviderViewType = 'list'; // Resetear a vista de lista por defecto
+
+            detailsContainer.innerHTML = `
+                <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-4 transition-all">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-indigo-800">Proveedor: ${ingresosTargetProvider}</h3>
+                            <p id="provider-oc-count" class="text-sm text-indigo-600">Cargando...</p>
+                        </div>
+                        <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
+                             <div class="relative flex-grow">
+                                <svg class="w-4 h-4 text-indigo-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <input type="text" id="ingresos-provider-product-search" placeholder="Filtrar..." class="w-full sm:w-56 p-2 pl-9 bg-white border border-indigo-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-indigo-300" autocomplete="off">
+                                <div id="ingresos-provider-product-suggestions" class="absolute top-full left-0 right-0 bg-white border mt-1 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto hidden"></div>
+                            </div>
+                            <button id="ingresos-provider-toggle-view-btn" class="btn-main-style !h-[38px] !px-3 !bg-white hover:!bg-indigo-100 !text-indigo-700 border-indigo-200 flex items-center gap-2 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                                <span class="text-sm font-semibold">Tabla Resumen</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="ingresos-provider-table-container"></div>
+            `;
+
+            const searchInput = document.getElementById('ingresos-provider-product-search');
+            const suggestionsContainer = document.getElementById('ingresos-provider-product-suggestions');
+            const toggleBtn = document.getElementById('ingresos-provider-toggle-view-btn');
+
+            // Listener para el botón de alternar vista
+            toggleBtn.addEventListener('click', () => {
+                if (ingresosProviderViewType === 'list') {
+                    ingresosProviderViewType = 'table';
+                    toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg><span class="text-sm font-semibold">Ver Detalle</span>`;
+                    toggleBtn.classList.add('!bg-indigo-600', '!text-white', '!border-indigo-600');
+                    toggleBtn.classList.remove('!bg-white', '!text-indigo-700', 'border-indigo-200');
+                } else {
+                    ingresosProviderViewType = 'list';
+                    toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg><span class="text-sm font-semibold">Tabla Resumen</span>`;
+                    toggleBtn.classList.remove('!bg-indigo-600', '!text-white', '!border-indigo-600');
+                    toggleBtn.classList.add('!bg-white', '!text-indigo-700', 'border-indigo-200');
+                }
+                updateIngresosProviderView();
+            });
+
+            // Listener para el filtrado en tiempo real y sugerencias
+            searchInput.addEventListener('input', (e) => {
+                ingresosProviderProductSearchTerm = e.target.value.toLowerCase();
+                updateIngresosProviderView();
+
+                const term = ingresosProviderProductSearchTerm;
+                if (term.length < 1) {
+                    suggestionsContainer.classList.add('hidden');
+                    return;
+                }
+
+                // Obtener OCs válidas para este proveedor
+                const providerOCs = ocs.filter(oc => cleanProviderDisplay(oc.proveedor) === ingresosTargetProvider);
+                
+                // Extraer items/códigos/ocs únicos que coincidan
+                const matches = new Set();
+                
+                providerOCs.forEach(oc => {
+                    const item = items.find(i => i.code === oc.codigo);
+                    const itemName = item ? item.name : oc.denominacion;
+                    const code = oc.codigo;
+                    const ocNum = oc.ordenDeCompra;
+
+                    if (itemName && itemName.toLowerCase().includes(term)) matches.add(itemName);
+                    if (code && code.toLowerCase().includes(term)) matches.add(code);
+                    if (ocNum && ocNum.toLowerCase().includes(term)) matches.add(ocNum);
+                });
+
+                const sortedMatches = Array.from(matches).sort().slice(0, 8); // Limitar a 8 sugerencias
+
+                if (sortedMatches.length > 0) {
+                    suggestionsContainer.innerHTML = sortedMatches.map(match => `
+                        <div class="p-2 hover:bg-indigo-50 cursor-pointer text-sm text-slate-700 suggestion-item border-b last:border-0 border-slate-100">
+                            ${match}
+                        </div>
+                    `).join('');
+                    suggestionsContainer.classList.remove('hidden');
+                } else {
+                    suggestionsContainer.classList.add('hidden');
+                }
+            });
+
+            // Ocultar sugerencias al perder el foco (con retraso para permitir clic)
+            searchInput.addEventListener('blur', () => {
+                setTimeout(() => suggestionsContainer.classList.add('hidden'), 200);
+            });
+
+            // Manejar clic en sugerencia
+            suggestionsContainer.addEventListener('click', (e) => {
+                const item = e.target.closest('.suggestion-item');
+                if (item) {
+                    searchInput.value = item.textContent.trim();
+                    ingresosProviderProductSearchTerm = searchInput.value.toLowerCase();
+                    updateIngresosProviderView();
+                    suggestionsContainer.classList.add('hidden');
+                }
+            });
+
+            updateIngresosProviderView();
+        }
+
+        // Nueva función despachadora para decidir qué vista mostrar
+        function updateIngresosProviderView() {
+            if (ingresosProviderViewType === 'list') {
+                updateIngresosByProviderTable();
+            } else {
+                updateIngresosByProviderAggregatedTable();
+            }
+        }
+
+        // Nueva función: Renderiza la tabla agrupada (Tabla Dinámica)
+        function updateIngresosByProviderAggregatedTable() {
+            const container = document.getElementById('ingresos-provider-table-container');
+            const countLabel = document.getElementById('provider-oc-count');
+
+            // 1. Filtrar
+            let providerOCs = ocs.filter(oc => cleanProviderDisplay(oc.proveedor) === ingresosTargetProvider);
+            
+            if (ingresosProviderProductSearchTerm) {
+                const words = ingresosProviderProductSearchTerm.split(' ').filter(Boolean);
+                providerOCs = providerOCs.filter(oc => {
+                    const item = items.find(i => i.code === oc.codigo);
+                    const itemName = item ? item.name : oc.denominacion;
+                    const text = `${oc.codigo} ${itemName}`.toLowerCase();
+                    return words.every(w => text.includes(w));
+                });
+            }
+
+            // 2. Agrupar por código de insumo
+            const aggregatedData = {};
+            providerOCs.forEach(oc => {
+                const code = oc.codigo;
+                if (!aggregatedData[code]) {
+                    const item = items.find(i => i.code === code);
+                    aggregatedData[code] = {
+                        code: code,
+                        name: item ? item.name.replace(new RegExp(`^${code}\\s*`), '') : oc.denominacion,
+                        itemId: item ? item.id : null,
+                        totalQuantity: 0,
+                        ocCount: 0
+                    };
+                }
+                aggregatedData[code].totalQuantity += oc.cantEntregaSiguiente;
+                aggregatedData[code].ocCount++;
+            });
+
+            const aggregatedList = Object.values(aggregatedData).sort((a, b) => b.totalQuantity - a.totalQuantity);
+
+            // Actualizar etiqueta
+            if (countLabel) countLabel.textContent = `${aggregatedList.length} insumos distintos (Agrupados)`;
+
+            let html = '';
+            if (aggregatedList.length === 0) {
+                html = `<div class="text-center py-10 bg-slate-50 rounded-lg border border-dashed border-slate-300">
+                            <p class="text-slate-500">No hay datos para mostrar.</p>
+                         </div>`;
+            } else {
+                html = `<div class="overflow-hidden rounded-lg border border-slate-200 shadow-sm">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-indigo-50">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-indigo-800 uppercase tracking-wider">Código</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-indigo-800 uppercase tracking-wider">Material</th>
+                                <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-indigo-800 uppercase tracking-wider">Cant. O/C</th>
+                                <th scope="col" class="px-4 py-3 text-right text-xs font-bold text-indigo-800 uppercase tracking-wider">Total Unidades</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-slate-200">`;
+                
+                aggregatedList.forEach(item => {
+                    html += `
+                        <tr class="hover:bg-slate-50 cursor-pointer ingresos-provider-table-row transition-colors" data-item-id="${item.itemId || ''}">
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-500 font-mono">
+                                ${item.code}
+                            </td>
+                            <td class="px-4 py-3 text-sm text-slate-800 font-semibold">
+                                ${item.name}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-center text-sm text-slate-600">
+                                <span class="inline-flex items-center justify-center bg-slate-100 text-slate-600 rounded-full px-2 py-0.5 text-xs font-bold border border-slate-200">
+                                    ${item.ocCount}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-bold text-indigo-700 text-lg">
+                                ${formatNumber(item.totalQuantity)}
+                            </td>
+                        </tr>
+                    `;
+                });
+                html += `</tbody></table></div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        // Nueva función: Solo actualiza la tabla de datos (Lista Detallada)
+        function updateIngresosByProviderTable() {
+            const container = document.getElementById('ingresos-provider-table-container');
+            const countLabel = document.getElementById('provider-oc-count');
+            
+            // 1. Filtrar por proveedor
+            let providerOCs = ocs.filter(oc => cleanProviderDisplay(oc.proveedor) === ingresosTargetProvider);
+            
+            // 2. Filtrar por término secundario (producto, código, OC)
+            if (ingresosProviderProductSearchTerm) {
+                const words = ingresosProviderProductSearchTerm.split(' ').filter(Boolean);
+                providerOCs = providerOCs.filter(oc => {
+                    const item = items.find(i => i.code === oc.codigo);
+                    const itemName = item ? item.name : oc.denominacion;
+                    // Búsqueda amplia
+                    const text = `${oc.codigo} ${itemName} ${oc.ordenDeCompra} ${oc.posicion}`.toLowerCase();
+                    return words.every(w => text.includes(w));
+                });
+            }
+
+            // Actualizar etiqueta de conteo
+            if (countLabel) countLabel.textContent = `${providerOCs.length} órdenes registradas`;
+
+            // Ordenar
+            providerOCs.sort((a, b) => {
+                const dateA = parseDateString(a.proxFechaEntrega) || new Date(0);
+                const dateB = parseDateString(b.proxFechaEntrega) || new Date(0);
+                return dateA - dateB;
+            });
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            let html = '';
+
+            if (providerOCs.length === 0) {
+                html = `<div class="text-center py-10 bg-slate-50 rounded-lg border border-dashed border-slate-300">
+                            <p class="text-slate-500">No se encontraron órdenes${ingresosProviderProductSearchTerm ? ' con ese filtro' : ''}.</p>
+                         </div>`;
+            } else {
+                html = `<div class="overflow-hidden rounded-lg border border-slate-200">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Material</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">O/C</th>
+                                <th scope="col" class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Cant.</th>
+                                <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-slate-200">`;
+                
+                providerOCs.forEach(oc => {
+                    const date = parseDateString(oc.proxFechaEntrega);
+                    const isPast = date && date < today;
+                    const status = transformOCStatus(oc.status);
+                    const item = items.find(i => i.code === oc.codigo);
+                    const itemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
+                    
+                    let statusClass = 'bg-slate-100 text-slate-800';
+                    if (status === 'Pendiente') statusClass = 'bg-yellow-100 text-yellow-800';
+                    else if (status === 'Aprobada') statusClass = 'bg-green-100 text-green-800';
+                    else if (status === 'Rechazada') statusClass = 'bg-red-100 text-red-800';
+
+                    let rowClass = isPast && status !== 'Rechazada' ? 'bg-red-50' : 'hover:bg-slate-50';
+                    rowClass += ' cursor-pointer ingresos-provider-table-row transition-colors';
+                    
+                    const dateClass = isPast ? 'text-red-600 font-bold' : 'text-slate-900 font-medium';
+
+                    html += `
+                        <tr class="${rowClass}" data-item-id="${item ? item.id : ''}">
+                            <td class="px-4 py-3 whitespace-nowrap text-sm ${dateClass}">
+                                ${formatDate(oc.proxFechaEntrega)}
+                            </td>
+                            <td class="px-4 py-3 text-sm text-slate-700">
+                                <div class="font-medium truncate max-w-xs" title="${itemName}">${itemName}</div>
+                                <div class="text-xs text-slate-400">${oc.codigo}</div>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">
+                                ${oc.ordenDeCompra}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-bold text-slate-700">
+                                ${formatNumber(oc.cantEntregaSiguiente)}
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-center text-sm">
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                    ${status}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `</tbody></table></div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderIngresosByGroupList() {
+            const detailsContainer = document.getElementById('ingresos-details-container');
+            ingresosGroupProductSearchTerm = '';
+            ingresosGroupViewType = 'list';
+
+            detailsContainer.innerHTML = `
+                <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-4 transition-all">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-indigo-800">Grupo: ${ingresosTargetGroup}</h3>
+                            <p id="group-oc-count" class="text-sm text-indigo-600">Cargando...</p>
+                        </div>
+                        <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
+                             <div class="relative flex-grow">
+                                <svg class="w-4 h-4 text-indigo-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <input type="text" id="ingresos-group-product-search" placeholder="Filtrar..." class="w-full sm:w-56 p-2 pl-9 bg-white border border-indigo-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-indigo-300" autocomplete="off">
+                            </div>
+                            <button id="ingresos-group-toggle-view-btn" class="btn-main-style !h-[38px] !px-3 !bg-white hover:!bg-indigo-100 !text-indigo-700 border-indigo-200 flex items-center gap-2 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                                <span class="text-sm font-semibold">Tabla Resumen</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="ingresos-group-table-container"></div>
+            `;
+
+            const searchInput = document.getElementById('ingresos-group-product-search');
+            const toggleBtn = document.getElementById('ingresos-group-toggle-view-btn');
+
+            toggleBtn.addEventListener('click', () => {
+                if (ingresosGroupViewType === 'list') {
+                    ingresosGroupViewType = 'table';
+                    toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg><span class="text-sm font-semibold">Ver Detalle</span>`;
+                    toggleBtn.classList.add('!bg-indigo-600', '!text-white', '!border-indigo-600');
+                    toggleBtn.classList.remove('!bg-white', '!text-indigo-700', 'border-indigo-200');
+                } else {
+                    ingresosGroupViewType = 'list';
+                    toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg><span class="text-sm font-semibold">Tabla Resumen</span>`;
+                    toggleBtn.classList.remove('!bg-indigo-600', '!text-white', '!border-indigo-600');
+                    toggleBtn.classList.add('!bg-white', '!text-indigo-700', 'border-indigo-200');
+                }
+                updateIngresosGroupView();
+            });
+
+            searchInput.addEventListener('input', (e) => {
+                ingresosGroupProductSearchTerm = e.target.value.toLowerCase();
+                updateIngresosGroupView();
+            });
+
+            updateIngresosGroupView();
+        }
+
+        function updateIngresosGroupView() {
+            if (ingresosGroupViewType === 'list') {
+                updateIngresosByGroupTable();
+            } else {
+                updateIngresosByGroupAggregatedTable();
+            }
+        }
+
+        function updateIngresosByGroupAggregatedTable() {
+            const container = document.getElementById('ingresos-group-table-container');
+            const countLabel = document.getElementById('group-oc-count');
+
             const groupItemCodes = new Set(items.filter(i => i.group === ingresosTargetGroup).map(i => i.code));
+            let groupOCs = ocs.filter(oc => groupItemCodes.has(oc.codigo));
+
+            if (ingresosGroupProductSearchTerm) {
+                const words = ingresosGroupProductSearchTerm.split(' ').filter(Boolean);
+                groupOCs = groupOCs.filter(oc => {
+                    const item = items.find(i => i.code === oc.codigo);
+                    const itemName = item ? item.name : oc.denominacion;
+                    const text = `${oc.codigo} ${itemName}`.toLowerCase();
+                    return words.every(w => text.includes(w));
+                });
+            }
+
+            const aggregatedData = {};
+            groupOCs.forEach(oc => {
+                const code = oc.codigo;
+                // Obtenemos el proveedor limpio para usarlo como parte de la clave de agrupación
+                const providerName = cleanProviderDisplay(oc.proveedor) || 'Sin Proveedor';
+                
+                // La clave única ahora es Código + Proveedor
+                const key = `${code}_${providerName}`;
+
+                if (!aggregatedData[key]) {
+                    const item = items.find(i => i.code === code);
+                    aggregatedData[key] = {
+                        code: code,
+                        name: item ? item.name.replace(new RegExp(`^${code}\\s*`), '') : oc.denominacion,
+                        itemId: item ? item.id : null,
+                        provider: providerName, // Guardamos el proveedor individual
+                        totalQuantity: 0,
+                        ocCount: 0
+                    };
+                }
+                aggregatedData[key].totalQuantity += oc.cantEntregaSiguiente;
+                aggregatedData[key].ocCount++;
+            });
+
+            const aggregatedList = Object.values(aggregatedData).sort((a, b) => b.totalQuantity - a.totalQuantity);
+
+            if (countLabel) countLabel.textContent = `${aggregatedList.length} registros agrupados`;
+
+            let html = '';
+            if (aggregatedList.length === 0) {
+                html = `<div class="text-center py-10 bg-slate-50 rounded-lg border border-dashed border-slate-300"><p class="text-slate-500">No hay datos para mostrar.</p></div>`;
+            } else {
+                html = `<div class="overflow-hidden rounded-lg border border-slate-200 shadow-sm">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-indigo-50">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-indigo-800 uppercase tracking-wider">Código</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-indigo-800 uppercase tracking-wider">Material</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-indigo-800 uppercase tracking-wider">Proveedor</th>
+                                <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-indigo-800 uppercase tracking-wider">Cant. O/C</th>
+                                <th scope="col" class="px-4 py-3 text-right text-xs font-bold text-indigo-800 uppercase tracking-wider">Total Unidades</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-slate-200">`;
+                
+                aggregatedList.forEach(item => {
+                    html += `
+                        <tr class="hover:bg-slate-50 cursor-pointer ingresos-table-row transition-colors" data-item-id="${item.itemId || ''}">
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-500 font-mono">${item.code}</td>
+                            <td class="px-4 py-3 text-sm text-slate-800 font-semibold">${item.name}</td>
+                            <td class="px-4 py-3 text-sm text-slate-600 truncate max-w-xs" title="${item.provider}">${item.provider}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-center text-sm text-slate-600"><span class="inline-flex items-center justify-center bg-slate-100 text-slate-600 rounded-full px-2 py-0.5 text-xs font-bold border border-slate-200">${item.ocCount}</span></td>
+                            <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-bold text-indigo-700 text-lg">${formatNumber(item.totalQuantity)}</td>
+                        </tr>`;
+                });
+                html += `</tbody></table></div>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function updateIngresosByGroupTable() {
+            const container = document.getElementById('ingresos-group-table-container');
+            const countLabel = document.getElementById('group-oc-count');
             
-            const groupOCs = ocs.filter(oc => groupItemCodes.has(oc.codigo));
+            const groupItemCodes = new Set(items.filter(i => i.group === ingresosTargetGroup).map(i => i.code));
+            let groupOCs = ocs.filter(oc => groupItemCodes.has(oc.codigo));
             
-            // Ordenar por fecha (más reciente primero, o futura primero?)
-            // Generalmente para cronograma: futuras primero (ascendente), pero mezcladas con pasadas puede ser confuso.
-            // Vamos a ordenar ascendente por fecha.
+            if (ingresosGroupProductSearchTerm) {
+                const words = ingresosGroupProductSearchTerm.split(' ').filter(Boolean);
+                groupOCs = groupOCs.filter(oc => {
+                    const item = items.find(i => i.code === oc.codigo);
+                    const itemName = item ? item.name : oc.denominacion;
+                    const text = `${oc.codigo} ${itemName} ${oc.ordenDeCompra} ${oc.posicion}`.toLowerCase();
+                    return words.every(w => text.includes(w));
+                });
+            }
+
+            if (countLabel) countLabel.textContent = `${groupOCs.length} órdenes registradas`;
+
             groupOCs.sort((a, b) => {
                 const dateA = parseDateString(a.proxFechaEntrega) || new Date(0);
                 const dateB = parseDateString(b.proxFechaEntrega) || new Date(0);
@@ -1936,19 +2603,14 @@
             const today = new Date();
             today.setHours(0,0,0,0);
 
-            let html = `
-                <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-4">
-                    <h3 class="text-lg font-bold text-indigo-800">Grupo: ${ingresosTargetGroup}</h3>
-                    <p class="text-sm text-indigo-600">${groupOCs.length} órdenes registradas</p>
-                </div>
-            `;
+            let html = '';
 
             if (groupOCs.length === 0) {
-                html += `<div class="text-center py-10 bg-slate-50 rounded-lg border border-dashed border-slate-300">
+                html = `<div class="text-center py-10 bg-slate-50 rounded-lg border border-dashed border-slate-300">
                             <p class="text-slate-500">No hay ingresos registrados para este grupo.</p>
                          </div>`;
             } else {
-                html += `<div class="overflow-hidden rounded-lg border border-slate-200">
+                html = `<div class="overflow-hidden rounded-lg border border-slate-200">
                     <table class="min-w-full divide-y divide-slate-200">
                         <thead class="bg-slate-50">
                             <tr>
@@ -1973,7 +2635,6 @@
                     else if (status === 'Aprobada') statusClass = 'bg-green-100 text-green-800';
                     else if (status === 'Rechazada') statusClass = 'bg-red-100 text-red-800';
 
-                    // Clases para el hover y cursor pointer, añadiendo clase identificadora 'ingresos-table-row'
                     let rowClass = isPast && status !== 'Rechazada' ? 'bg-red-50' : 'hover:bg-slate-50';
                     rowClass += ' cursor-pointer ingresos-table-row transition-colors';
                     
@@ -2006,7 +2667,7 @@
                 html += `</tbody></table></div>`;
             }
 
-            detailsContainer.innerHTML = html;
+            container.innerHTML = html;
         }
 
         function renderIngresosByItemUI() {
@@ -2212,7 +2873,7 @@
                             ${groupFilterHTML}
                             <div class="relative flex-grow">
                                 <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                <input type="text" id="ingresos-search-input" placeholder="Buscar en la semana..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off" value="${ingresosSearchTerm}">
+                                <input type="text" id="ingresos-search-input" placeholder="Buscar por OC, material, proveedor..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off" value="${ingresosSearchTerm}">
                             </div>
                             <button id="export-incoming-items-btn" class="btn-main-style !w-9 !h-9 !p-0 flex-shrink-0" title="Exportar semana">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -2238,7 +2899,7 @@
                 filteredOCs = filteredOCs.filter(oc => {
                     const item = items.find(i => i.code === oc.codigo);
                     const cleanItemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
-                    const text = `${oc.codigo} ${cleanItemName} ${oc.ordenDeCompra} ${oc.posicion} ${oc.status}`.toLowerCase();
+                    const text = `${oc.codigo} ${cleanItemName} ${oc.ordenDeCompra} ${oc.posicion} ${oc.status} ${oc.proveedor || ''}`.toLowerCase();
                     return searchWords.every(word => text.includes(word));
                 });
             }
@@ -2870,6 +3531,7 @@
             }));
             return { solpedsData };
         }
+
         function processOCSheet(workbook) {
             const sheetName = workbook.SheetNames.find(name => name.toLowerCase().includes('oc'));
             if (!sheetName) {
@@ -2878,6 +3540,14 @@
             }
             const worksheet = workbook.Sheets[sheetName];
             const jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false });
+            
+            // Función auxiliar para limpiar el nombre del proveedor
+            const cleanProviderName = (name) => {
+                if (!name || typeof name !== 'string') return '';
+                // Elimina cualquier cosa entre paréntesis y los espacios anteriores
+                return name.replace(/\s*\([^)]*\)/g, '').trim();
+            };
+
             const ocsData = jsonData.map(row => ({
                 solped: row['Solped'] || '',
                 ordenDeCompra: row['Orden de compra'] || '',
@@ -2888,7 +3558,8 @@
                 denominacion: row['Denominación de material'] || '',
                 grupoDeArticulos: row['Grupo de artículos'] || '',
                 grupoDeCompras: row['Grupo de compras'] || '',
-                status: row['Status de la orden'] || ''
+                status: row['Status de la orden'] || '',
+                proveedor: cleanProviderName(row['Proveedor'] || '') // Aplicamos la limpieza aquí
             }));
             return { ocsData };
         }
@@ -3655,7 +4326,8 @@
 
             const groupData = {};
             delayed.forEach(s => {
-                const groupName = s.grupoDeCompras || 'Sin Grupo';
+                // Usar la nueva función para agrupar solo por apellido
+                const groupName = extractPurchasingGroupSurname(s.grupoDeCompras) || 'Sin Grupo';
                 groupData[groupName] = (groupData[groupName] || 0) + 1;
             });
             
@@ -3713,7 +4385,8 @@
 
             const groupData = {};
             delayed.forEach(oc => {
-                const groupName = extractGroupCode(oc.grupoDeCompras || 'Sin Grupo');
+                // Usar la nueva función para agrupar solo por apellido
+                const groupName = extractPurchasingGroupSurname(oc.grupoDeCompras) || 'Sin Grupo';
                 groupData[groupName] = (groupData[groupName] || 0) + 1;
             });
             
@@ -4874,9 +5547,6 @@
         }
 
         function renderSimulationPanel() {
-            simulatedIncomes = []; // Resetear ingresos simulados al cambiar de producto
-            simulatedIncomeCounter = 1;
-            simulationShowAllWeeks = false; // Resetear vista de semanas
             const panel = document.getElementById('consumo-panel-comparison');
             if (!panel) return;
             const primaryItem = items.find(i => i.id === selectedConsumptionItemId);
@@ -4884,6 +5554,22 @@
                 panel.innerHTML = '<p class="p-6 text-center text-slate-500">Seleccione un producto principal para iniciar la simulación.</p>';
                 return;
             }
+
+            // --- LÓGICA DE PERSISTENCIA DEL ESTADO DE SIMULACIÓN ---
+            // Si cambiamos de insumo, reseteamos todo. Si es el mismo, mantenemos los valores.
+            if (currentSimulationItemId !== selectedConsumptionItemId) {
+                simulatedIncomes = []; 
+                simulatedIncomeCounter = 1;
+                simulationShowAllWeeks = false;
+                simulationOverrideStock = null;
+                simulationOverrideConsumption = null;
+                currentSimulationItemId = selectedConsumptionItemId;
+            }
+
+            // Usar valores guardados o los del item original
+            const displayStock = simulationOverrideStock !== null ? simulationOverrideStock : Math.round(primaryItem.stock);
+            const displayConsumption = simulationOverrideConsumption !== null ? simulationOverrideConsumption : Math.round(primaryItem.monthlyConsumption);
+            // -------------------------------------------------------
 
             panel.innerHTML = `
             <div class="p-4 h-full flex flex-col">
@@ -4913,7 +5599,7 @@
                                     <label for="sim-stock" class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">Stock Actual</label>
                                     <div class="relative flex items-center">
                                         <button data-target="sim-stock" data-step="-100" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">-</button>
-                                        <input id="sim-stock" type="text" inputmode="numeric" value="${formatNumber(Math.round(primaryItem.stock))}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                        <input id="sim-stock" type="text" inputmode="numeric" value="${formatNumber(displayStock)}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                                         <button data-target="sim-stock" data-step="100" class="sim-adjust-btn absolute right-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">+</button>
                                     </div>
                                 </div>
@@ -4921,7 +5607,7 @@
                                      <label for="sim-consumption" class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">CONS.MENS</label>
                                     <div class="relative flex items-center">
                                         <button data-target="sim-consumption" data-step="-50" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">-</button>
-                                        <input id="sim-consumption" type="text" inputmode="numeric" value="${formatNumber(Math.round(primaryItem.monthlyConsumption))}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                        <input id="sim-consumption" type="text" inputmode="numeric" value="${formatNumber(displayConsumption)}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                                         <button data-target="sim-consumption" data-step="50" class="sim-adjust-btn absolute right-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">+</button>
                                     </div>
                                 </div>
@@ -4990,6 +5676,12 @@
             
             const simulationInputHandler = (e) => {
                 handleNumericInputFormatting(e);
+                // Guardar estado en variables globales
+                if (e.target.id === 'sim-stock') {
+                    simulationOverrideStock = parseInt(e.target.value.replace(/\./g, '')) || 0;
+                } else if (e.target.id === 'sim-consumption') {
+                    simulationOverrideConsumption = parseInt(e.target.value.replace(/\./g, '')) || 0;
+                }
                 runAndRenderSimulation();
                 updateSimulationCoverageIndicator();
             };
@@ -5026,7 +5718,16 @@
             const step = parseInt(btn.dataset.step, 10);
             if (targetInput) {
                 const currentValue = parseInt(targetInput.value.replace(/\./g, ''), 10) || 0;
-                targetInput.value = formatNumber(Math.max(0, currentValue + step));
+                const newValue = Math.max(0, currentValue + step);
+                targetInput.value = formatNumber(newValue);
+                
+                // Guardar estado en variables globales
+                if (targetInput.id === 'sim-stock') {
+                    simulationOverrideStock = newValue;
+                } else if (targetInput.id === 'sim-consumption') {
+                    simulationOverrideConsumption = newValue;
+                }
+
                 runAndRenderSimulation();
                 updateSimulationCoverageIndicator();
             }
@@ -5299,7 +6000,8 @@
 
             const showMoreBtn = document.getElementById('show-all-sim-weeks-btn');
             if (showMoreBtn) {
-                showMoreBtn.addEventListener('click', () => {
+                showMoreBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevenir propagación por si acaso
                     simulationShowAllWeeks = true;
                     runAndRenderSimulation();
                 });
@@ -5774,6 +6476,7 @@
                 if (itemId) rowClass += ' cursor-pointer solped-item-row';
                 const dateClass = isDelayed ? 'font-bold' : '';
 
+                // APLICADO AQUI: extractPurchasingGroupSurname
                 tableHTML += `<tr class="border-b ${rowClass}" ${itemId ? `data-item-id="${itemId}"` : ''}>
                     <td class="px-4 py-3 text-center font-bold">${daysActive}</td>
                     <td class="px-4 py-3">${s.creadoPor}</td>
@@ -5784,7 +6487,7 @@
                     <td class="px-4 py-3">${s.cod}</td>
                     <td class="px-4 py-3">${s.descripcion}</td>
                     <td class="px-4 py-3 text-right">${formatNumber(s.cantidad)}</td>
-                    <td class="px-4 py-3">${s.grupoDeCompras || ''}</td>
+                    <td class="px-4 py-3 font-semibold text-indigo-600">${extractPurchasingGroupSurname(s.grupoDeCompras)}</td>
                     <td class="px-4 py-3 ${dateClass}">${formatDate(s.fechaLiberacion)}</td>
                 </tr>`;
             });
@@ -5913,7 +6616,7 @@
                 const searchWords = searchTerm.toLowerCase().split(' ').filter(Boolean);
                 filteredOCs = filteredOCs.filter(oc => {
                     const searchableText = [
-                        oc.solped, oc.ordenDeCompra, oc.codigo, oc.denominacion, oc.grupoDeArticulos, oc.grupoDeCompras, oc.status
+                        oc.solped, oc.ordenDeCompra, oc.codigo, oc.denominacion, oc.grupoDeArticulos, oc.grupoDeCompras, oc.status, oc.proveedor
                     ].join(' ').toLowerCase();
                     return searchWords.every(word => searchableText.includes(word));
                 });
@@ -5980,12 +6683,13 @@
                 return;
             }
             
-            const sortIconSVG = `<svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+            const sortIconSVG = `<svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
             const headers = [
                 { key: 'diasParaEntrega', label: 'DÍAS ENTREGA', noSort: true, class: 'text-center' },
                 { key: 'solped', label: 'SOLPED' }, 
                 { key: 'ordenDeCompra', label: 'O/C' },
                 { key: 'posicion', label: 'POS.' }, 
+                { key: 'proveedor', label: 'PROVEEDOR', width: 'w-48' },
                 { key: 'proxFechaEntrega', label: 'PRÓX. ENTREGA' },
                 { key: 'semanaEntrega', label: 'SEMANA', noSort: true, class: 'text-center' },
                 { key: 'grupoDeArticulos', label: 'GRUPO ARTÍCULOS' },
@@ -6000,7 +6704,7 @@
             headers.forEach(h => {
                 const isSortingKey = !h.noSort && ocsSortConfig.key === h.key;
                 const headerClasses = isSortingKey ? 'bg-indigo-500 text-white' : '';
-                const thClass = `px-4 py-3 ${h.class && !h.noSort ? 'text-left' : h.class || ''} ${headerClasses}`;
+                const thClass = `px-4 py-3 ${h.class && !h.noSort ? 'text-left' : h.class || ''} ${headerClasses} ${h.width || ''}`;
 
                 if (h.noSort) {
                     tableHTML += `<th scope="col" class="${thClass}">${h.label}</th>`;
@@ -6047,18 +6751,20 @@
                     rowClass += ' even:bg-slate-50'; // Solo aplicar alternancia si no tiene color de estado
                 }
 
+                // APLICADO AQUI: extractPurchasingGroupSurname
                 tableHTML += `<tr class="${rowClass}" ${itemId ? `data-item-id="${itemId}"` : ''}>
                     <td class="px-4 py-3 text-center font-bold ${daysClass}">${daysToDelivery}</td>
                     <td class="px-4 py-3">${oc.solped}</td>
                     <td class="px-4 py-3 font-medium">${oc.ordenDeCompra}</td>
                     <td class="px-4 py-3">${oc.posicion}</td>
+                    <td class="px-4 py-3 truncate max-w-xs" title="${cleanProviderDisplay(oc.proveedor)}">${cleanProviderDisplay(oc.proveedor) || '-'}</td>
                     <td class="px-4 py-3 ${dateClass}">${formatDate(oc.proxFechaEntrega)}</td>
                     <td class="px-4 py-3 text-center">${weekNumber}</td>
                     <td class="px-4 py-3">${extractGroupCodeAbbr(oc.grupoDeArticulos)}</td>
                     <td class="px-4 py-3">${oc.codigo}</td>
                     <td class="px-4 py-3">${oc.denominacion}</td>
                     <td class="px-4 py-3 text-right font-bold">${formatNumber(oc.cantEntregaSiguiente)}</td>
-                    <td class="px-4 py-3">${extractGroupCode(oc.grupoDeCompras)}</td>
+                    <td class="px-4 py-3 font-semibold text-indigo-600">${extractPurchasingGroupSurname(oc.grupoDeCompras)}</td>
                     <td class="px-4 py-3">${transformedStatus}</td>
                 </tr>`;
             });
@@ -6395,7 +7101,7 @@
                 'Creado Por': s.creadoPor,
                 'Status': s.status,
                 'Fecha Liberación': formatDate(s.fechaLiberacion),
-                'Grupo Compras': s.grupoDeCompras,
+                'Grupo Compras': extractPurchasingGroupSurname(s.grupoDeCompras), // APLICADO AQUI
                 'Grupo Artículos': s.grupoDeArticulos
             }));
             
@@ -6414,7 +7120,7 @@
                 const searchWords = searchTerm.toLowerCase().split(' ').filter(Boolean);
                 filteredOCs = filteredOCs.filter(oc => {
                     const searchableText = [
-                        oc.solped, oc.ordenDeCompra, oc.codigo, oc.denominacion, oc.grupoDeArticulos, oc.grupoDeCompras, oc.status
+                        oc.solped, oc.ordenDeCompra, oc.codigo, oc.denominacion, oc.grupoDeArticulos, oc.grupoDeCompras, oc.status, oc.proveedor
                     ].join(' ').toLowerCase();
                     return searchWords.every(word => searchableText.includes(word));
                 });
@@ -6451,12 +7157,13 @@
                 'Solped': oc.solped,
                 'Orden de Compra': oc.ordenDeCompra,
                 'Posición': oc.posicion,
+                'Proveedor': cleanProviderDisplay(oc.proveedor),
                 'Próxima Entrega': formatDate(oc.proxFechaEntrega),
                 'Cantidad Entrega': oc.cantEntregaSiguiente,
                 'Código': oc.codigo,
                 'Denominación': oc.denominacion,
                 'Grupo Artículos': oc.grupoDeArticulos,
-                'Grupo Compras': oc.grupoDeCompras,
+                'Grupo Compras': extractPurchasingGroupSurname(oc.grupoDeCompras), // APLICADO AQUI
                 'Status': transformOCStatus(oc.status)
             }));
             
@@ -7372,9 +8079,11 @@
                 const kpiCard = e.target.closest('.ingresos-kpi-card');
                 const itemRow = e.target.closest('.incoming-item-row'); // Fila en Vista Semanal
                 const groupTableRow = e.target.closest('.ingresos-table-row'); // Fila en Vista por Grupo
+                const providerTableRow = e.target.closest('.ingresos-provider-table-row'); // Fila en Vista por Proveedor
                 const itemHeaderLink = e.target.closest('.ingresos-item-header-link'); // Cabecera en Vista por Insumo
                 const exportBtn = e.target.closest('#export-incoming-items-btn');
                 const modeBtn = e.target.closest('.ingresos-mode-btn'); 
+                const resetBtn = e.target.closest('#ingresos-reset-filters-btn'); // Nuevo botón
 
                 if (prevBtn) {
                     calendarCurrentDate.setUTCMonth(calendarCurrentDate.getUTCMonth() - 1);
@@ -7384,6 +8093,8 @@
                     renderMonthlyCalendar(calendarCurrentDate);
                 } else if (todayBtn) {
                     goToCurrentWeek();
+                } else if (resetBtn) { // Manejador para el botón de reset
+                    handleResetIngresosFilters();
                 } else if (modeBtn) { 
                     ingresosViewMode = modeBtn.dataset.mode;
                     renderIngresosContent();
@@ -7416,6 +8127,10 @@
                     switchMainView('consumos');
                 } else if (groupTableRow && groupTableRow.dataset.itemId) { // Nuevo click en tabla por grupo
                     selectedConsumptionItemId = groupTableRow.dataset.itemId;
+                    comparisonItemId = null;
+                    switchMainView('consumos');
+                } else if (providerTableRow && providerTableRow.dataset.itemId) { // Nuevo click en tabla por proveedor
+                    selectedConsumptionItemId = providerTableRow.dataset.itemId;
                     comparisonItemId = null;
                     switchMainView('consumos');
                 } else if (itemHeaderLink && itemHeaderLink.dataset.itemId) { // Nuevo click en cabecera por insumo
@@ -7838,7 +8553,7 @@
             }).slice(0, 5);
 
             const ocsResults = ocs.filter(oc => {
-                const ocText = `${oc.ordenDeCompra} ${oc.solped} ${oc.codigo} ${oc.denominacion}`.toLowerCase();
+                const ocText = `${oc.ordenDeCompra} ${oc.solped} ${oc.codigo} ${oc.denominacion} ${oc.proveedor || ''}`.toLowerCase();
                 return searchWords.every(word => ocText.includes(word));
             }).map(oc => ({
                 ...oc,
@@ -7922,7 +8637,8 @@
                                 <div>
                                     <p class="font-medium ${delayedClass} uppercase">O/C: ${oc.ordenDeCompra} ${delayedIndicator}</p>
                                     <p class="text-sm text-slate-500 uppercase">${oc.denominacion}</p>
-                                    <p class="text-xs text-slate-400 mt-1 uppercase">PRÓX. ENTREGA: ${formatDate(oc.proxFechaEntrega) || 'N/A'}</p>
+                                    <!-- Usamos cleanProviderDisplay aquí también para la búsqueda global -->
+                                    <p class="text-xs text-slate-400 mt-1 uppercase">PROV: ${cleanProviderDisplay(oc.proveedor) || 'N/A'} | PRÓX. ENTREGA: ${formatDate(oc.proxFechaEntrega) || 'N/A'}</p>
                                 </div>
                                 <div class="text-right ml-4 flex-shrink-0">
                                     <p class="font-bold text-lg ${qtyClass}">${formatNumber(oc.cantEntregaSiguiente)}</p>
