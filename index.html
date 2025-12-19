@@ -2616,6 +2616,7 @@
                             <tr>
                                 <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha</th>
                                 <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Material</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Proveedor</th>
                                 <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">O/C</th>
                                 <th scope="col" class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Cant.</th>
                                 <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
@@ -2629,6 +2630,7 @@
                     const status = transformOCStatus(oc.status);
                     const item = items.find(i => i.code === oc.codigo);
                     const itemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
+                    const providerName = cleanProviderDisplay(oc.proveedor) || '-';
                     
                     let statusClass = 'bg-slate-100 text-slate-800';
                     if (status === 'Pendiente') statusClass = 'bg-yellow-100 text-yellow-800';
@@ -2648,6 +2650,9 @@
                             <td class="px-4 py-3 text-sm text-slate-700">
                                 <div class="font-medium truncate max-w-xs" title="${itemName}">${itemName}</div>
                                 <div class="text-xs text-slate-400">${oc.codigo}</div>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600 truncate max-w-xs" title="${providerName}">
+                                ${providerName}
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">
                                 ${oc.ordenDeCompra}
