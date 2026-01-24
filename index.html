@@ -639,7 +639,8 @@
                 <div class="flex flex-col h-[calc(100vh-56px)]">
                     <div id="consumos-header-bar" class="bg-indigo-500 p-4 z-10 sticky top-14 shadow-md">
                         <div class="flex flex-col lg:flex-row items-center gap-4">
-                            <div id="primary-search-wrapper" class="w-full lg:w-1/2">
+                            <!-- CAMBIO AQUI: 55% para el panel izquierdo -->
+                            <div id="primary-search-wrapper" class="w-full lg:w-[55%]">
                                 <div class="flex items-center gap-2 w-full">
                                     <div id="consumo-group-filter-container"></div>
                                     <button id="consumo-favorites-filter-btn" data-type="primary" class="favorite-btn flex-shrink-0">
@@ -659,7 +660,8 @@
                                 </div>
                             </div>
                             <div class="h-px lg:h-6 w-full lg:w-px border-t lg:border-t-0 lg:border-l border-white/40 my-2 lg:my-0 lg:mx-2"></div>
-                            <div id="comparison-search-wrapper" class="w-full lg:w-1/2">
+                            <!-- CAMBIO AQUI: 45% para el panel derecho -->
+                            <div id="comparison-search-wrapper" class="w-full lg:w-[45%]">
                                 <div class="flex items-center gap-2 w-full">
                                     <div id="consumo-comparison-group-filter-container"></div>
                                     <button id="consumo-comparison-favorites-filter-btn" data-type="comparison" class="favorite-btn flex-shrink-0">
@@ -755,21 +757,37 @@
                 <div class="bg-indigo-500 p-4 border-b border-indigo-600">
                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                         <div class="flex items-center gap-4 w-full sm:w-auto">
-                            <h2 class="text-xl md:text-2xl font-bold text-white">STOCK INMOVILIZADO</h2>
-                             <span id="immobilized-counter" class="text-sm font-medium text-indigo-200 hidden sm:inline-block"></span>
+                            <!-- NUEVO: Selector de Reportes -->
+                            <div class="relative group">
+                                <button id="report-selector-btn" class="flex items-center gap-2 text-xl md:text-2xl font-bold text-white hover:text-indigo-100 transition-colors">
+                                    <span id="current-report-title">STOCK INMOVILIZADO</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                </button>
+                                <div id="report-selector-dropdown" class="hidden absolute top-full left-0 mt-2 w-72 bg-white rounded-lg shadow-xl z-50 border border-slate-200 overflow-hidden transform origin-top-left transition-all">
+                                    <button class="w-full text-left px-4 py-3 hover:bg-slate-50 text-slate-700 font-semibold border-b border-slate-100 report-option" data-report="immobilized">
+                                        Stock Inmovilizado
+                                        <p class="text-xs text-slate-400 font-normal">Sin movimiento > 6 meses</p>
+                                    </button>
+                                    <button class="w-full text-left px-4 py-3 hover:bg-slate-50 text-slate-700 font-semibold report-option" data-report="group-consumption">
+                                        Consumo Mensual por Grupo
+                                        <p class="text-xs text-slate-400 font-normal">Suma de consumos históricos</p>
+                                    </button>
+                                </div>
+                            </div>
+                             <span id="report-counter" class="text-sm font-medium text-indigo-200 hidden sm:inline-block"></span>
                             <div class="relative flex-grow">
                                <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                               <input type="text" id="immobilized-search-input" placeholder="Buscar..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off">
+                               <input type="text" id="report-search-input" placeholder="Buscar..." class="w-full p-2 pl-10 bg-white border border-slate-300 rounded-lg h-9" autocomplete="off">
                            </div>
                         </div>
-                        <button id="export-immobilized-btn" class="btn-main-style hover:bg-indigo-50 hover:text-indigo-700 flex-shrink-0">
+                        <button id="export-report-btn" class="btn-main-style hover:bg-indigo-50 hover:text-indigo-700 flex-shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         </button>
                     </div>
                 </div>
                 
-                <div id="immobilized-report-content">
-                    <div id="immobilized-stock-table-container" class="max-h-[calc(100vh-145px)] overflow-auto"></div>
+                <div id="report-content-container" class="max-h-[calc(100vh-145px)] overflow-auto bg-slate-50">
+                    <!-- Contenido dinámico del reporte -->
                 </div>
             </div>
 
@@ -813,7 +831,8 @@
 
             <div id="ingresos-view" class="hidden">
                 <div class="flex flex-col lg:flex-row h-[calc(100vh-56px)] bg-white">
-                    <div class="w-full lg:w-1/3 p-6 border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col">
+                    <!-- Agregado 'hidden' por defecto al panel izquierdo -->
+                    <div id="ingresos-left-panel" class="hidden w-full lg:w-1/3 p-6 border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col transition-all duration-300 ease-in-out">
                         <div id="ingresos-calendar-container">
                             <!-- El calendario mensual se renderizará aquí -->
                         </div>
@@ -821,7 +840,8 @@
                             <!-- KPIs will be rendered here -->
                         </div>
                     </div>
-                    <div class="w-full lg:w-2/3 flex flex-col bg-slate-50">
+                    <!-- Cambiado lg:w-2/3 a lg:w-full por defecto en el panel derecho -->
+                    <div id="ingresos-right-panel" class="w-full lg:w-full flex flex-col bg-slate-50 transition-all duration-300 ease-in-out">
                         <div id="ingresos-header-container" class="p-4 border-b border-slate-200">
                             <!-- Header will be rendered here -->
                         </div>
@@ -1233,6 +1253,13 @@
         let ocsSortConfig = { key: 'proxFechaEntrega', direction: 'asc' };
         let indiceSortConfig = { key: 'group', direction: 'asc' };
         let immobilizedSortConfig = { key: 'monthsWithoutConsumption', direction: 'desc' };
+        // NUEVA LÍNEA: Configuración de ordenamiento para el nuevo reporte
+        let groupConsumptionSortConfig = { key: 'group', direction: 'asc' };
+        // NUEVA LÍNEA: Estado del reporte actual
+        let currentReportType = 'group-consumption'; // 'immobilized' o 'group-consumption'
+        let reportGroupShowStock = false; // Estado visibilidad Stock Total
+        let reportGroupShowAvg = false;   // Estado visibilidad Promedio Grupal
+        let reportGroupShowItemCount = false; // Estado visibilidad Conteo de Items
         let allUserPermissions = new Map();
         let currentView = 'dashboard';
         let isAuthReady = false;
@@ -1243,6 +1270,7 @@
         let simulatedIncomeCounter = 1;
         let editingSimulatedIncomeWeekId = null;
         let simulationShowAllWeeks = false;
+        let simulateSolpedsEnabled = false; // NUEVA VARIABLE DE ESTADO
         let consumoSelectedGroup = 'all';
         let consumoShowOnlyFavorites = false;
         let consumoComparisonSelectedGroup = 'all';
@@ -1281,7 +1309,7 @@
         let ingresosProviderViewType = 'list'; // Nuevo: 'list' (detalle) o 'table' (agrupado)
         let ingresosGroupProductSearchTerm = ''; // Nuevo: término de búsqueda secundario para Grupos
         let ingresosGroupViewType = 'list'; // Nuevo: 'list' (detalle) o 'table' (agrupado) para Grupos
-        let ingresosCalendarHidden = false; // Nuevo: Estado de visibilidad del calendario
+        let ingresosCalendarHidden = true; // Nuevo: Estado de visibilidad del calendario (Ahora TRUE por defecto)
         
         // --- VARIABLES DE ESTADO PARA SIMULACIÓN ---
         let currentSimulationItemId = null;
@@ -1904,8 +1932,8 @@
             ingresosGroupProductSearchTerm = '';
 
             // Iconos para el botón de toggle
-            const iconExpand = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>`;
-            const iconCollapse = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/></svg>`;
+            const iconExpand = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>`;
+            const iconCollapse = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>`;
 
             // Renderizar el selector de modo (Pestañas)
             headerContainer.innerHTML = `
@@ -1953,6 +1981,25 @@
                 kpiContainer.classList.add('hidden');
                 renderIngresosByProviderUI();
             }
+        }
+
+        function handleToggleIngresosCalendar() {
+            ingresosCalendarHidden = !ingresosCalendarHidden;
+            const leftPanel = document.getElementById('ingresos-left-panel');
+            const rightPanel = document.getElementById('ingresos-right-panel');
+            
+            if (ingresosCalendarHidden) {
+                leftPanel.classList.add('hidden');
+                rightPanel.classList.remove('lg:w-2/3');
+                rightPanel.classList.add('lg:w-full');
+            } else {
+                leftPanel.classList.remove('hidden');
+                rightPanel.classList.remove('lg:w-full');
+                rightPanel.classList.add('lg:w-2/3');
+            }
+            
+            // Re-render header to update button icon/text
+            renderIngresosContent();
         }
 
         function handleResetIngresosFilters() {
@@ -2140,24 +2187,91 @@
             ingresosProviderProductSearchTerm = ''; // Resetear filtro secundario
             ingresosProviderViewType = 'list'; // Resetear a vista de lista por defecto
 
+            // --- CÁLCULO DE ESTADÍSTICAS DEL PROVEEDOR ---
+            const providerOCs = ocs.filter(oc => cleanProviderDisplay(oc.proveedor) === ingresosTargetProvider);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            let countVencidas = 0;
+            let countAprobadas = 0;
+            let countPendientes = 0;
+
+            providerOCs.forEach(oc => {
+                const date = parseDateString(oc.proxFechaEntrega);
+                const status = transformOCStatus(oc.status);
+                
+                // Ignoramos las rechazadas para estos contadores
+                if (status === 'Rechazada') return;
+
+                if (date && date < today) {
+                    countVencidas++;
+                } else {
+                    // Fecha futura o hoy (Pendientes de ingreso)
+                    if (status === 'Aprobada') {
+                        countAprobadas++;
+                    } else if (status === 'Pendiente') {
+                        countPendientes++;
+                    }
+                }
+            });
+            // ---------------------------------------------
+
             detailsContainer.innerHTML = `
-                <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-4 transition-all">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div>
-                            <h3 class="text-lg font-bold text-indigo-800">Proveedor: ${ingresosTargetProvider}</h3>
-                            <p id="provider-oc-count" class="text-sm text-indigo-600">Cargando...</p>
-                        </div>
-                        <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
-                             <div class="relative flex-grow">
-                                <svg class="w-4 h-4 text-indigo-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                <input type="text" id="ingresos-provider-product-search" placeholder="Filtrar..." class="w-full sm:w-56 p-2 pl-9 bg-white border border-indigo-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-indigo-300" autocomplete="off">
-                                <div id="ingresos-provider-product-suggestions" class="absolute top-full left-0 right-0 bg-white border mt-1 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto hidden"></div>
+                <div class="bg-white border border-slate-200 rounded-lg p-3 mb-4 transition-all shadow-sm">
+                    <div class="flex flex-col 2xl:flex-row justify-between items-start 2xl:items-center gap-4">
+                        
+                        <!-- Bloque Izquierdo: Título + Buscador + Botones -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full 2xl:w-auto">
+                            <div class="flex-shrink-0">
+                                <h3 class="text-xl font-bold text-indigo-700 leading-tight">${ingresosTargetProvider}</h3>
+                                <p class="text-xs text-slate-400">Proveedor</p>
                             </div>
-                            <button id="ingresos-provider-toggle-view-btn" class="btn-main-style !h-[38px] !px-3 !bg-white hover:!bg-indigo-100 !text-indigo-700 border-indigo-200 flex items-center gap-2 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-                                <span class="text-sm font-semibold">Tabla Resumen</span>
-                            </button>
+
+                            <div class="h-8 border-l border-slate-200 hidden sm:block"></div>
+
+                            <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <div class="relative flex-grow sm:w-64">
+                                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                    <input type="text" id="ingresos-provider-product-search" placeholder="Filtrar productos..." class="w-full p-1.5 pl-9 bg-slate-50 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" autocomplete="off">
+                                    <div id="ingresos-provider-product-suggestions" class="absolute top-full left-0 right-0 bg-white border mt-1 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto hidden"></div>
+                                </div>
+                                
+                                <!-- BOTÓN EXPORTAR PROVEEDOR -->
+                                <button id="export-ingresos-provider-btn" class="btn-main-style !h-[34px] !w-[34px] !p-0 !bg-white hover:!bg-slate-50 !text-slate-400 hover:!text-indigo-600 border-slate-200 flex items-center justify-center transition-colors flex-shrink-0" title="Exportar a Excel">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                </button>
+
+                                <button id="ingresos-provider-toggle-view-btn" class="btn-main-style !h-[34px] !px-3 !bg-white hover:!bg-slate-50 !text-slate-700 border-slate-200 flex items-center gap-2 transition-colors flex-shrink-0" title="Cambiar Vista">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                                    <span class="text-sm font-semibold">Tabla</span>
+                                </button>
+
+                                <button id="ingresos-provider-close-btn" class="btn-main-style !h-[34px] !w-[34px] !p-0 !bg-white hover:!bg-red-50 !text-slate-400 hover:!text-red-500 border-slate-200 flex items-center justify-center transition-colors flex-shrink-0" title="Cerrar filtro de proveedor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </div>
                         </div>
+                        
+                        <!-- Bloque Derecho: Métricas -->
+                        <div class="flex items-center gap-6 text-right self-start sm:self-end 2xl:self-center flex-shrink-0 pt-2 2xl:pt-0 border-t 2xl:border-t-0 border-slate-100 w-full 2xl:w-auto justify-end">
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase">Total</p>
+                                <p id="provider-oc-count" class="text-xl font-bold text-slate-800">...</p>
+                            </div>
+                            <div class="border-l pl-6 border-slate-200">
+                                <p class="text-xs font-bold text-slate-400 uppercase">Vencidas</p>
+                                <p class="text-xl font-bold text-red-600">${countVencidas}</p>
+                            </div>
+                            <div class="border-l pl-6 border-slate-200">
+                                <p class="text-xs font-bold text-slate-400 uppercase">Aprobadas</p>
+                                <p class="text-xl font-bold text-green-600">${countAprobadas}</p>
+                            </div>
+                            <div class="border-l pl-6 border-slate-200">
+                                <p class="text-xs font-bold text-slate-400 uppercase">Pendientes</p>
+                                <p class="text-xl font-bold text-yellow-600">${countPendientes}</p>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
                 <div id="ingresos-provider-table-container"></div>
@@ -2166,19 +2280,25 @@
             const searchInput = document.getElementById('ingresos-provider-product-search');
             const suggestionsContainer = document.getElementById('ingresos-provider-product-suggestions');
             const toggleBtn = document.getElementById('ingresos-provider-toggle-view-btn');
+            const closeBtn = document.getElementById('ingresos-provider-close-btn');
+
+            // Listener para el botón de cerrar/resetear
+            closeBtn.addEventListener('click', () => {
+                handleResetIngresosFilters(); // Usamos la función global de reset para volver al inicio
+            });
 
             // Listener para el botón de alternar vista
             toggleBtn.addEventListener('click', () => {
                 if (ingresosProviderViewType === 'list') {
                     ingresosProviderViewType = 'table';
-                    toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg><span class="text-sm font-semibold">Ver Detalle</span>`;
+                    toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg><span class="text-sm font-semibold">Detalle</span>`;
                     toggleBtn.classList.add('!bg-indigo-600', '!text-white', '!border-indigo-600');
-                    toggleBtn.classList.remove('!bg-white', '!text-indigo-700', 'border-indigo-200');
+                    toggleBtn.classList.remove('!bg-white', '!text-slate-700', 'border-slate-200');
                 } else {
                     ingresosProviderViewType = 'list';
-                    toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg><span class="text-sm font-semibold">Tabla Resumen</span>`;
+                    toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg><span class="text-sm font-semibold">Tabla</span>`;
                     toggleBtn.classList.remove('!bg-indigo-600', '!text-white', '!border-indigo-600');
-                    toggleBtn.classList.add('!bg-white', '!text-indigo-700', 'border-indigo-200');
+                    toggleBtn.classList.add('!bg-white', '!text-slate-700', 'border-slate-200');
                 }
                 updateIngresosProviderView();
             });
@@ -2291,8 +2411,8 @@
 
             const aggregatedList = Object.values(aggregatedData).sort((a, b) => b.totalQuantity - a.totalQuantity);
 
-            // Actualizar etiqueta
-            if (countLabel) countLabel.textContent = `${aggregatedList.length} insumos distintos (Agrupados)`;
+            // Actualizar etiqueta - AHORA SOLO EL NÚMERO
+            if (countLabel) countLabel.textContent = aggregatedList.length;
 
             let html = '';
             if (aggregatedList.length === 0) {
@@ -2357,15 +2477,50 @@
                 });
             }
 
-            // Actualizar etiqueta de conteo
-            if (countLabel) countLabel.textContent = `${providerOCs.length} órdenes registradas`;
+            // Actualizar etiqueta de conteo - AHORA SOLO EL NÚMERO
+            if (countLabel) countLabel.textContent = providerOCs.length;
 
-            // Ordenar
+            // Ordenar por fecha
             providerOCs.sort((a, b) => {
                 const dateA = parseDateString(a.proxFechaEntrega) || new Date(0);
                 const dateB = parseDateString(b.proxFechaEntrega) || new Date(0);
                 return dateA - dateB;
             });
+
+            // --- LÓGICA DE AGRUPACIÓN POR MES ---
+            const groupedByMonth = {};
+            const monthKeys = []; // Para mantener el orden cronológico
+
+            providerOCs.forEach(oc => {
+                const date = parseDateString(oc.proxFechaEntrega);
+                let key = 'Sin Fecha';
+                let label = 'Sin Fecha Programada';
+                let order = 999999;
+
+                if (date) {
+                    key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    // Formato nombre de mes (ej. "Septiembre 2025")
+                    const monthName = date.toLocaleString('es-AR', { month: 'long', timeZone: 'UTC' });
+                    label = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${date.getFullYear()}`;
+                    order = parseInt(key.replace('-', ''), 10);
+                }
+
+                if (!groupedByMonth[key]) {
+                    groupedByMonth[key] = { label, total: 0, items: [], order };
+                    monthKeys.push(key);
+                }
+                
+                groupedByMonth[key].items.push(oc);
+                groupedByMonth[key].total += oc.cantEntregaSiguiente;
+            });
+
+            // Ordenar las claves de mes (por si acaso el sort inicial no fuera suficiente para grupos mixtos)
+            const sortedKeys = [...new Set(monthKeys)].sort((a, b) => {
+                const orderA = groupedByMonth[a].order;
+                const orderB = groupedByMonth[b].order;
+                return orderA - orderB;
+            });
+            // ------------------------------------
 
             const today = new Date();
             today.setHours(0,0,0,0);
@@ -2381,54 +2536,83 @@
                     <table class="min-w-full divide-y divide-slate-200">
                         <thead class="bg-slate-50">
                             <tr>
-                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-28">Fecha</th>
+                                <th scope="col" class="px-2 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-16">Sem.</th>
                                 <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Material</th>
-                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">O/C</th>
-                                <th scope="col" class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Cant.</th>
-                                <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-24">O/C</th>
+                                <th scope="col" class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider w-24">Cant.</th>
+                                <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-28">Status</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-slate-200">`;
                 
-                providerOCs.forEach(oc => {
-                    const date = parseDateString(oc.proxFechaEntrega);
-                    const isPast = date && date < today;
-                    const status = transformOCStatus(oc.status);
-                    const item = items.find(i => i.code === oc.codigo);
-                    const itemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
+                sortedKeys.forEach(key => {
+                    const group = groupedByMonth[key];
                     
-                    let statusClass = 'bg-slate-100 text-slate-800';
-                    if (status === 'Pendiente') statusClass = 'bg-yellow-100 text-yellow-800';
-                    else if (status === 'Aprobada') statusClass = 'bg-green-100 text-green-800';
-                    else if (status === 'Rechazada') statusClass = 'bg-red-100 text-red-800';
-
-                    let rowClass = isPast && status !== 'Rechazada' ? 'bg-red-50' : 'hover:bg-slate-50';
-                    rowClass += ' cursor-pointer ingresos-provider-table-row transition-colors';
-                    
-                    const dateClass = isPast ? 'text-red-600 font-bold' : 'text-slate-900 font-medium';
-
+                    // Fila Separadora de Mes
                     html += `
-                        <tr class="${rowClass}" data-item-id="${item ? item.id : ''}">
-                            <td class="px-4 py-3 whitespace-nowrap text-sm ${dateClass}">
-                                ${formatDate(oc.proxFechaEntrega)}
-                            </td>
-                            <td class="px-4 py-3 text-sm text-slate-700">
-                                <div class="font-medium truncate max-w-xs" title="${itemName}">${itemName}</div>
-                                <div class="text-xs text-slate-400">${oc.codigo}</div>
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">
-                                ${oc.ordenDeCompra}
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-bold text-slate-700">
-                                ${formatNumber(oc.cantEntregaSiguiente)}
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-center text-sm">
-                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
-                                    ${status}
-                                </span>
+                        <tr class="bg-slate-100 border-y border-slate-200">
+                            <td colspan="6" class="px-4 py-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold text-slate-700 text-xs uppercase tracking-wide flex items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        ${group.label}
+                                    </span>
+                                    <span class="text-xs font-semibold text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-300">Total: ${formatNumber(group.total)}</span>
+                                </div>
                             </td>
                         </tr>
                     `;
+
+                    group.items.forEach(oc => {
+                        const date = parseDateString(oc.proxFechaEntrega);
+                        const isPast = date && date < today;
+                        const status = transformOCStatus(oc.status);
+                        const item = items.find(i => i.code === oc.codigo);
+                        const itemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
+                        
+                        // Calcular número de semana
+                        let weekNumber = '-';
+                        if (date) {
+                            weekNumber = getWeekId(date).split('-')[1].replace(/^0+/, '');
+                        }
+
+                        let statusClass = 'bg-slate-100 text-slate-800';
+                        if (status === 'Pendiente') statusClass = 'bg-yellow-100 text-yellow-800';
+                        else if (status === 'Aprobada') statusClass = 'bg-green-100 text-green-800';
+                        else if (status === 'Rechazada') statusClass = 'bg-red-100 text-red-800';
+
+                        let rowClass = 'border-b hover:bg-indigo-50';
+                        if (item) rowClass += ' cursor-pointer ingresos-provider-table-row transition-colors';
+                        
+                        const dateClass = isPast ? 'text-red-600 font-bold' : 'text-slate-900 font-medium';
+
+                        html += `
+                            <tr class="${rowClass}" data-item-id="${item ? item.id : ''}">
+                                <td class="px-4 py-3 whitespace-nowrap text-sm ${dateClass}">
+                                    ${formatDate(oc.proxFechaEntrega)}
+                                </td>
+                                <td class="px-2 py-3 whitespace-nowrap text-center text-sm font-semibold text-slate-500">
+                                    ${weekNumber}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-slate-700">
+                                    <div class="font-medium truncate max-w-xs" title="${itemName}">${itemName}</div>
+                                    <div class="text-xs text-slate-400">${oc.codigo}</div>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">
+                                    ${oc.ordenDeCompra}
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-bold text-slate-700">
+                                    ${formatNumber(oc.cantEntregaSiguiente)}
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-center text-sm">
+                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                        ${status}
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    });
                 });
 
                 html += `</tbody></table></div>`;
@@ -2442,22 +2626,128 @@
             ingresosGroupProductSearchTerm = '';
             ingresosGroupViewType = 'list';
 
+            // --- CÁLCULO DE ESTADÍSTICAS DEL GRUPO ---
+            const groupItemCodes = new Set(items.filter(i => i.group === ingresosTargetGroup).map(i => i.code));
+            let groupOCs = ocs.filter(oc => groupItemCodes.has(oc.codigo));
+            
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            let countVencidas = 0;
+            let countAprobadas = 0;
+            let countPendientes = 0;
+            
+            // Variables para KPI de Proveedores
+            const providerStats = {};
+            let totalGroupQuantity = 0;
+
+            groupOCs.forEach(oc => {
+                const date = parseDateString(oc.proxFechaEntrega);
+                const status = transformOCStatus(oc.status);
+                const provider = cleanProviderDisplay(oc.proveedor) || 'Sin Proveedor';
+                
+                if (status === 'Rechazada') return;
+
+                if (date && date < today) {
+                    countVencidas++;
+                } else {
+                    if (status === 'Aprobada') {
+                        countAprobadas++;
+                    } else if (status === 'Pendiente') {
+                        countPendientes++;
+                    }
+                }
+
+                if (!providerStats[provider]) providerStats[provider] = 0;
+                providerStats[provider] += oc.cantEntregaSiguiente;
+                totalGroupQuantity += oc.cantEntregaSiguiente;
+            });
+            
+            // Generar HTML para el detalle de porcentajes (Integrado en el header)
+            const sortedProviders = Object.entries(providerStats).sort((a, b) => b[1] - a[1]);
+            let providerBreakdownHTML = '';
+            
+            if (totalGroupQuantity > 0) {
+                // MODIFICADO: Mostrar todos los proveedores (sin "Otros") y sin barras gráficas
+                providerBreakdownHTML = '<div class="flex flex-col gap-1 w-52 text-xs max-h-24 overflow-y-auto pr-2 custom-scrollbar">';
+                
+                sortedProviders.forEach(([name, qty]) => {
+                    const percentage = ((qty / totalGroupQuantity) * 100).toFixed(0);
+                    providerBreakdownHTML += `
+                        <div class="flex items-center justify-between gap-2 border-b border-slate-50 last:border-0 pb-0.5">
+                            <span class="truncate text-slate-500 font-medium" title="${name}">${name}</span>
+                            <span class="font-bold text-indigo-600 text-right">${percentage}%</span>
+                        </div>`;
+                });
+                
+                providerBreakdownHTML += '</div>';
+            } else {
+                providerBreakdownHTML = '<span class="text-xs text-slate-400">Sin datos</span>';
+            }
+            // ------------------------------------------
+
             detailsContainer.innerHTML = `
-                <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-4 transition-all">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div>
-                            <h3 class="text-lg font-bold text-indigo-800">Grupo: ${ingresosTargetGroup}</h3>
-                            <p id="group-oc-count" class="text-sm text-indigo-600">Cargando...</p>
-                        </div>
-                        <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
-                             <div class="relative flex-grow">
-                                <svg class="w-4 h-4 text-indigo-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                <input type="text" id="ingresos-group-product-search" placeholder="Filtrar..." class="w-full sm:w-56 p-2 pl-9 bg-white border border-indigo-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-indigo-300" autocomplete="off">
+                <div class="bg-white border border-slate-200 rounded-lg p-3 mb-4 transition-all shadow-sm">
+                    <div class="flex flex-col 2xl:flex-row justify-between items-start 2xl:items-center gap-4">
+                        
+                        <!-- Bloque Izquierdo: Título + Buscador + Botones -->
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full 2xl:w-auto flex-grow">
+                            <div class="flex-shrink-0">
+                                <h3 class="text-xl font-bold text-indigo-700 leading-tight">${ingresosTargetGroup}</h3>
+                                <p class="text-xs text-slate-400">Grupo de Artículos</p>
                             </div>
-                            <button id="ingresos-group-toggle-view-btn" class="btn-main-style !h-[38px] !px-3 !bg-white hover:!bg-indigo-100 !text-indigo-700 border-indigo-200 flex items-center gap-2 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-                                <span class="text-sm font-semibold">Tabla Resumen</span>
-                            </button>
+                            
+                            <div class="h-8 border-l border-slate-200 hidden sm:block"></div>
+
+                            <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <div class="relative flex-grow sm:w-64">
+                                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="http://www.w3.org/2000/svg" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                    <input type="text" id="ingresos-group-product-search" placeholder="Filtrar productos..." class="w-full p-1.5 pl-9 bg-slate-50 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" autocomplete="off" value="${ingresosGroupProductSearchTerm}">
+                                </div>
+                                <!-- BOTÓN EXPORTAR GRUPO -->
+                                <button id="export-ingresos-group-btn" class="btn-main-style !h-[34px] !w-[34px] !p-0 !bg-white hover:!bg-slate-50 !text-slate-400 hover:!text-indigo-600 border-slate-200 flex items-center justify-center transition-colors flex-shrink-0" title="Exportar a Excel">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                </button>
+
+                                <button id="ingresos-group-toggle-view-btn" class="btn-main-style !h-[34px] !px-3 !bg-white hover:!bg-slate-50 !text-slate-700 border-slate-200 flex items-center gap-2 transition-colors flex-shrink-0" title="Cambiar Vista">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                                    <span class="text-sm font-semibold">Tabla</span>
+                                </button>
+                                <button id="ingresos-group-close-btn" class="btn-main-style !h-[34px] !w-[34px] !p-0 !bg-white hover:!bg-red-50 !text-slate-400 hover:!text-red-500 border-slate-200 flex items-center justify-center transition-colors flex-shrink-0" title="Cerrar filtro">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Bloque Derecho: Métricas -->
+                        <div class="flex flex-wrap items-center gap-6 text-right self-start sm:self-end 2xl:self-center flex-shrink-0 pt-4 2xl:pt-0 border-t 2xl:border-t-0 border-slate-100 w-full 2xl:w-auto justify-end">
+                            
+                            <div class="flex items-center gap-6">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-400 uppercase">Total</p>
+                                    <p id="group-oc-count" class="text-xl font-bold text-slate-800">...</p>
+                                </div>
+                                <div class="border-l pl-6 border-slate-200">
+                                    <p class="text-xs font-bold text-slate-400 uppercase">Vencidas</p>
+                                    <p class="text-xl font-bold text-red-600">${countVencidas}</p>
+                                </div>
+                                <div class="border-l pl-6 border-slate-200">
+                                    <p class="text-xs font-bold text-slate-400 uppercase">Aprobadas</p>
+                                    <p class="text-xl font-bold text-green-600">${countAprobadas}</p>
+                                </div>
+                                <div class="border-l pl-6 border-slate-200">
+                                    <p class="text-xs font-bold text-slate-400 uppercase">Pendientes</p>
+                                    <p class="text-xl font-bold text-yellow-600">${countPendientes}</p>
+                                </div>
+                            </div>
+
+                            <!-- Separador y Detalle de Proveedores -->
+                            <div class="hidden 2xl:block h-12 border-l border-slate-200 mx-2"></div>
+                            
+                            <div class="w-full 2xl:w-auto border-t 2xl:border-t-0 border-slate-100 pt-3 2xl:pt-0">
+                                <p class="text-xs font-bold text-slate-400 uppercase mb-1 text-left 2xl:text-right">Participación Proveedores</p>
+                                ${providerBreakdownHTML}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2466,18 +2756,23 @@
 
             const searchInput = document.getElementById('ingresos-group-product-search');
             const toggleBtn = document.getElementById('ingresos-group-toggle-view-btn');
+            const closeBtn = document.getElementById('ingresos-group-close-btn');
+
+            closeBtn.addEventListener('click', () => {
+                handleResetIngresosFilters();
+            });
 
             toggleBtn.addEventListener('click', () => {
                 if (ingresosGroupViewType === 'list') {
                     ingresosGroupViewType = 'table';
-                    toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg><span class="text-sm font-semibold">Ver Detalle</span>`;
+                    toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg><span class="text-sm font-semibold">Detalle</span>`;
                     toggleBtn.classList.add('!bg-indigo-600', '!text-white', '!border-indigo-600');
-                    toggleBtn.classList.remove('!bg-white', '!text-indigo-700', 'border-indigo-200');
+                    toggleBtn.classList.remove('!bg-white', '!text-slate-700', 'border-slate-200');
                 } else {
                     ingresosGroupViewType = 'list';
-                    toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg><span class="text-sm font-semibold">Tabla Resumen</span>`;
+                    toggleBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg><span class="text-sm font-semibold">Tabla</span>`;
                     toggleBtn.classList.remove('!bg-indigo-600', '!text-white', '!border-indigo-600');
-                    toggleBtn.classList.add('!bg-white', '!text-indigo-700', 'border-indigo-200');
+                    toggleBtn.classList.add('!bg-white', '!text-slate-700', 'border-slate-200');
                 }
                 updateIngresosGroupView();
             });
@@ -2541,7 +2836,8 @@
 
             const aggregatedList = Object.values(aggregatedData).sort((a, b) => b.totalQuantity - a.totalQuantity);
 
-            if (countLabel) countLabel.textContent = `${aggregatedList.length} registros agrupados`;
+            // Actualizar etiqueta - AHORA SOLO EL NÚMERO
+            if (countLabel) countLabel.textContent = aggregatedList.length;
 
             let html = '';
             if (aggregatedList.length === 0) {
@@ -2592,13 +2888,47 @@
                 });
             }
 
-            if (countLabel) countLabel.textContent = `${groupOCs.length} órdenes registradas`;
+            // Actualizar etiqueta - AHORA SOLO EL NÚMERO
+            if (countLabel) countLabel.textContent = groupOCs.length;
 
             groupOCs.sort((a, b) => {
                 const dateA = parseDateString(a.proxFechaEntrega) || new Date(0);
                 const dateB = parseDateString(b.proxFechaEntrega) || new Date(0);
                 return dateA - dateB;
             });
+
+            // --- LÓGICA DE AGRUPACIÓN POR MES ---
+            const groupedByMonth = {};
+            const monthKeys = []; 
+
+            groupOCs.forEach(oc => {
+                const date = parseDateString(oc.proxFechaEntrega);
+                let key = 'Sin Fecha';
+                let label = 'Sin Fecha Programada';
+                let order = 999999;
+
+                if (date) {
+                    key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    const monthName = date.toLocaleString('es-AR', { month: 'long', timeZone: 'UTC' });
+                    label = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${date.getFullYear()}`;
+                    order = parseInt(key.replace('-', ''), 10);
+                }
+
+                if (!groupedByMonth[key]) {
+                    groupedByMonth[key] = { label, total: 0, items: [], order };
+                    monthKeys.push(key);
+                }
+                
+                groupedByMonth[key].items.push(oc);
+                groupedByMonth[key].total += oc.cantEntregaSiguiente;
+            });
+
+            const sortedKeys = [...new Set(monthKeys)].sort((a, b) => {
+                const orderA = groupedByMonth[a].order;
+                const orderB = groupedByMonth[b].order;
+                return orderA - orderB;
+            });
+            // ------------------------------------
 
             const today = new Date();
             today.setHours(0,0,0,0);
@@ -2614,59 +2944,87 @@
                     <table class="min-w-full divide-y divide-slate-200">
                         <thead class="bg-slate-50">
                             <tr>
-                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-28">Fecha</th>
+                                <th scope="col" class="px-2 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-16">Sem.</th>
                                 <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Material</th>
                                 <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Proveedor</th>
-                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">O/C</th>
-                                <th scope="col" class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Cant.</th>
-                                <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-24">O/C</th>
+                                <th scope="col" class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider w-24">Cant.</th>
+                                <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-28">Status</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-slate-200">`;
                 
-                groupOCs.forEach(oc => {
-                    const date = parseDateString(oc.proxFechaEntrega);
-                    const isPast = date && date < today;
-                    const status = transformOCStatus(oc.status);
-                    const item = items.find(i => i.code === oc.codigo);
-                    const itemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
-                    const providerName = cleanProviderDisplay(oc.proveedor) || '-';
-                    
-                    let statusClass = 'bg-slate-100 text-slate-800';
-                    if (status === 'Pendiente') statusClass = 'bg-yellow-100 text-yellow-800';
-                    else if (status === 'Aprobada') statusClass = 'bg-green-100 text-green-800';
-                    else if (status === 'Rechazada') statusClass = 'bg-red-100 text-red-800';
+                sortedKeys.forEach(key => {
+                    const group = groupedByMonth[key];
 
-                    let rowClass = isPast && status !== 'Rechazada' ? 'bg-red-50' : 'hover:bg-slate-50';
-                    rowClass += ' cursor-pointer ingresos-table-row transition-colors';
-                    
-                    const dateClass = isPast ? 'text-red-600 font-bold' : 'text-slate-900 font-medium';
-
+                    // Fila Separadora de Mes
                     html += `
-                        <tr class="${rowClass}" data-item-id="${item ? item.id : ''}">
-                            <td class="px-4 py-3 whitespace-nowrap text-sm ${dateClass}">
-                                ${formatDate(oc.proxFechaEntrega)}
-                            </td>
-                            <td class="px-4 py-3 text-sm text-slate-700">
-                                <div class="font-medium truncate max-w-xs" title="${itemName}">${itemName}</div>
-                                <div class="text-xs text-slate-400">${oc.codigo}</div>
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600 truncate max-w-xs" title="${providerName}">
-                                ${providerName}
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">
-                                ${oc.ordenDeCompra}
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-bold text-slate-700">
-                                ${formatNumber(oc.cantEntregaSiguiente)}
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-center text-sm">
-                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
-                                    ${status}
-                                </span>
+                        <tr class="bg-slate-100 border-y border-slate-200">
+                            <td colspan="7" class="px-4 py-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold text-slate-700 text-xs uppercase tracking-wide flex items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        ${group.label}
+                                    </span>
+                                    <span class="text-xs font-semibold text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-300">Total: ${formatNumber(group.total)}</span>
+                                </div>
                             </td>
                         </tr>
                     `;
+
+                    group.items.forEach(oc => {
+                        const date = parseDateString(oc.proxFechaEntrega);
+                        const isPast = date && date < today;
+                        const status = transformOCStatus(oc.status);
+                        const item = items.find(i => i.code === oc.codigo);
+                        const itemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
+                        const providerName = cleanProviderDisplay(oc.proveedor) || '-';
+                        
+                        let weekNumber = '-';
+                        if (date) {
+                            weekNumber = getWeekId(date).split('-')[1].replace(/^0+/, '');
+                        }
+
+                        let statusClass = 'bg-slate-100 text-slate-800';
+                        if (status === 'Pendiente') statusClass = 'bg-yellow-100 text-yellow-800';
+                        else if (status === 'Aprobada') statusClass = 'bg-green-100 text-green-800';
+                        else if (status === 'Rechazada') statusClass = 'bg-red-100 text-red-800';
+
+                        let rowClass = 'border-b hover:bg-indigo-50';
+                        if (item) rowClass += ' cursor-pointer ingresos-table-row transition-colors';
+                        
+                        const dateClass = isPast ? 'text-red-600 font-bold' : 'text-slate-900 font-medium';
+
+                        html += `
+                            <tr class="${rowClass}" data-item-id="${item ? item.id : ''}">
+                                <td class="px-4 py-3 whitespace-nowrap text-sm ${dateClass}">
+                                    ${formatDate(oc.proxFechaEntrega)}
+                                </td>
+                                <td class="px-2 py-3 whitespace-nowrap text-center text-sm font-semibold text-slate-500">
+                                    ${weekNumber}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-slate-700">
+                                    <div class="font-medium truncate max-w-xs" title="${itemName}">${itemName}</div>
+                                    <div class="text-xs text-slate-400">${oc.codigo}</div>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600 truncate max-w-xs" title="${providerName}">
+                                    ${providerName}
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">
+                                    ${oc.ordenDeCompra}
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-bold text-slate-700">
+                                    ${formatNumber(oc.cantEntregaSiguiente)}
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-center text-sm">
+                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                        ${status}
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    });
                 });
 
                 html += `</tbody></table></div>`;
@@ -2700,9 +3058,13 @@
                         return;
                     }
                     
-                    const matches = items.filter(item => 
-                        item.name.toLowerCase().includes(term) || item.code.toLowerCase().includes(term)
-                    ).slice(0, 10); // Limitar resultados
+                    // MODIFICADO: Búsqueda flexible por palabras
+                    const searchWords = term.split(' ').filter(Boolean);
+
+                    const matches = items.filter(item => {
+                        const itemText = `${item.name} ${item.code}`.toLowerCase();
+                        return searchWords.every(word => itemText.includes(word));
+                    }).slice(0, 10); // Limitar resultados
 
                     if (matches.length > 0) {
                         resultsContainer.innerHTML = matches.map(item => `
@@ -2745,12 +3107,25 @@
 
         function renderIngresosByItemList() {
             const detailsContainer = document.getElementById('ingresos-details-container');
-            const item = items.find(i => i.code === ingresosTargetItemCode);
+            // MODIFICADO: Usamos getProcessedItems() para obtener los campos calculados como coverageDays
+            const item = getProcessedItems().find(i => i.code === ingresosTargetItemCode);
             
             if (!item) {
                 detailsContainer.innerHTML = `<p class="text-center text-red-500 p-4">Error: Insumo no encontrado.</p>`;
                 return;
             }
+
+            // Calcular estilos de cobertura
+            const { red, yellow } = appSettings.coverageThresholds;
+            let coverageClass = 'text-slate-800';
+            if (item.coverageDays !== Infinity) {
+                if (item.coverageDays < red) coverageClass = 'text-red-600 font-bold';
+                else if (item.coverageDays <= yellow) coverageClass = 'text-yellow-600 font-bold';
+                else coverageClass = 'text-green-600 font-bold';
+            } else {
+                 coverageClass = 'text-green-600 font-bold';
+            }
+            const coverageText = item.coverageDays === Infinity ? '∞' : Math.round(item.coverageDays);
 
             // Buscar todas las O/C para este insumo
             const itemOCs = ocs.filter(oc => oc.codigo === ingresosTargetItemCode);
@@ -2762,20 +3137,63 @@
                 return dateA - dateB;
             });
 
+            // --- LÓGICA DE AGRUPACIÓN POR MES (Para Insumos) ---
+            const groupedByMonth = {};
+            const monthKeys = [];
+
+            itemOCs.forEach(oc => {
+                const date = parseDateString(oc.proxFechaEntrega);
+                let key = 'Sin Fecha';
+                let label = 'Sin Fecha Programada';
+                let order = 999999;
+
+                if (date) {
+                    key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    const monthName = date.toLocaleString('es-AR', { month: 'long', timeZone: 'UTC' });
+                    label = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${date.getFullYear()}`;
+                    order = parseInt(key.replace('-', ''), 10);
+                }
+
+                if (!groupedByMonth[key]) {
+                    groupedByMonth[key] = { label, total: 0, items: [], order };
+                    monthKeys.push(key);
+                }
+                
+                groupedByMonth[key].items.push(oc);
+                groupedByMonth[key].total += oc.cantEntregaSiguiente;
+            });
+
+            const sortedKeys = [...new Set(monthKeys)].sort((a, b) => {
+                const orderA = groupedByMonth[a].order;
+                const orderB = groupedByMonth[b].order;
+                return orderA - orderB;
+            });
+            // ----------------------------------------------------
+
             const today = new Date();
             today.setHours(0,0,0,0);
 
             // Cabecera clicable
             let html = `
                 <div class="bg-white rounded-lg border border-slate-200 p-4 mb-4 shadow-sm cursor-pointer hover:bg-slate-50 transition-colors ingresos-item-header-link" data-item-id="${item.id}" title="Click para ver Análisis">
-                    <div class="flex justify-between items-start">
+                    <div class="flex flex-col sm:flex-row justify-between items-start gap-4">
                         <div>
                             <h3 class="text-lg font-bold text-indigo-700">${item.name}</h3>
                             <p class="text-sm text-slate-500">Código: ${item.code} | Grupo: ${item.group}</p>
                         </div>
-                        <div class="text-right">
-                            <p class="text-xs font-bold text-slate-400 uppercase">Stock Actual</p>
-                            <p class="text-xl font-bold text-slate-800">${formatNumber(item.stock)}</p>
+                        <div class="flex items-center gap-6 text-right self-end sm:self-auto">
+                            <div>
+                                <p class="text-xs font-bold text-slate-400 uppercase">Cobertura</p>
+                                <p class="text-xl ${coverageClass}">${coverageText} <span class="text-xs text-slate-400 font-normal">días</span></p>
+                            </div>
+                            <div class="border-l pl-6 border-slate-200">
+                                <p class="text-xs font-bold text-slate-400 uppercase">Cons. Promedio</p>
+                                <p class="text-xl font-bold text-slate-800">${formatNumber(item.monthlyConsumption)}</p>
+                            </div>
+                            <div class="border-l pl-6 border-slate-200">
+                                <p class="text-xs font-bold text-slate-400 uppercase">Stock Actual</p>
+                                <p class="text-xl font-bold text-slate-800">${formatNumber(item.stock)}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2790,52 +3208,80 @@
                     <table class="min-w-full divide-y divide-slate-200">
                         <thead class="bg-slate-50">
                             <tr>
-                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha Entrega</th>
-                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">O/C</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-28">Fecha Entrega</th>
+                                <th scope="col" class="px-2 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-16">Sem.</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-24">O/C</th>
                                 <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Proveedor</th>
-                                <th scope="col" class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Cantidad</th>
-                                <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider w-24">Cantidad</th>
+                                <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-28">Status</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-slate-200">`;
                 
-                itemOCs.forEach(oc => {
-                    const date = parseDateString(oc.proxFechaEntrega);
-                    const isPast = date && date < today;
-                    const status = transformOCStatus(oc.status);
-                    const providerName = cleanProviderDisplay(oc.proveedor) || '-';
-                    
-                    let statusClass = 'bg-slate-100 text-slate-800';
-                    if (status === 'Pendiente') statusClass = 'bg-yellow-100 text-yellow-800';
-                    else if (status === 'Aprobada') statusClass = 'bg-green-100 text-green-800';
-                    else if (status === 'Rechazada') statusClass = 'bg-red-100 text-red-800';
+                sortedKeys.forEach(key => {
+                    const group = groupedByMonth[key];
 
-                    const rowClass = isPast && status !== 'Rechazada' ? 'bg-red-50' : 'hover:bg-slate-50';
-                    const dateClass = isPast ? 'text-red-600 font-bold' : 'text-slate-900 font-medium';
-
+                    // Fila Separadora de Mes
                     html += `
-                        <tr class="${rowClass}">
-                            <td class="px-4 py-3 whitespace-nowrap text-sm ${dateClass}">
-                                ${formatDate(oc.proxFechaEntrega)}
-                                ${isPast ? '<span class="ml-1 text-xs text-red-500 font-normal">(Pasada)</span>' : ''}
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">
-                                <span class="font-medium">${oc.ordenDeCompra}</span>
-                                <span class="text-xs text-slate-400 ml-1">Pos: ${oc.posicion}</span>
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600 truncate max-w-xs" title="${providerName}">
-                                ${providerName}
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-bold text-slate-700">
-                                ${formatNumber(oc.cantEntregaSiguiente)}
-                            </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-center text-sm">
-                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
-                                    ${status}
-                                </span>
+                        <tr class="bg-slate-100 border-y border-slate-200">
+                            <td colspan="6" class="px-4 py-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold text-slate-700 text-xs uppercase tracking-wide flex items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        ${group.label}
+                                    </span>
+                                    <span class="text-xs font-semibold text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-300">Total: ${formatNumber(group.total)}</span>
+                                </div>
                             </td>
                         </tr>
                     `;
+
+                    group.items.forEach(oc => {
+                        const date = parseDateString(oc.proxFechaEntrega);
+                        const isPast = date && date < today;
+                        const status = transformOCStatus(oc.status);
+                        const providerName = cleanProviderDisplay(oc.proveedor) || '-';
+                        
+                        let weekNumber = '-';
+                        if (date) {
+                            weekNumber = getWeekId(date).split('-')[1].replace(/^0+/, '');
+                        }
+
+                        let statusClass = 'bg-slate-100 text-slate-800';
+                        if (status === 'Pendiente') statusClass = 'bg-yellow-100 text-yellow-800';
+                        else if (status === 'Aprobada') statusClass = 'bg-green-100 text-green-800';
+                        else if (status === 'Rechazada') statusClass = 'bg-red-100 text-red-800';
+
+                        const rowClass = isPast && status !== 'Rechazada' ? 'bg-red-50' : 'hover:bg-slate-50';
+                        const dateClass = isPast ? 'text-red-600 font-bold' : 'text-slate-900 font-medium';
+
+                        html += `
+                            <tr class="${rowClass}">
+                                <td class="px-4 py-3 whitespace-nowrap text-sm ${dateClass}">
+                                    ${formatDate(oc.proxFechaEntrega)}
+                                    ${isPast ? '<span class="ml-1 text-xs text-red-500 font-normal">(Pasada)</span>' : ''}
+                                </td>
+                                <td class="px-2 py-3 whitespace-nowrap text-center text-sm font-semibold text-slate-500">
+                                    ${weekNumber}
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">
+                                    <span class="font-medium">${oc.ordenDeCompra}</span>
+                                    <span class="text-xs text-slate-400 ml-1">Pos: ${oc.posicion}</span>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600 truncate max-w-xs" title="${providerName}">
+                                    ${providerName}
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-right font-bold text-slate-700">
+                                    ${formatNumber(oc.cantEntregaSiguiente)}
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-center text-sm">
+                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                        ${status}
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    });
                 });
 
                 html += `</tbody></table></div>`;
@@ -3340,77 +3786,118 @@
         function handleOpenPreloadModal() { document.getElementById('preload-modal').classList.remove('hidden'); document.getElementById('preload-feedback').textContent = ''; document.getElementById('preload-file-input').value = ''; }
         function handleClosePreloadModal() { document.getElementById('preload-modal').classList.add('hidden'); }
         function handleFileInputChange() { const fileInput = document.getElementById('preload-file-input'); const feedbackEl = document.getElementById('preload-feedback'); if (fileInput.files.length > 0) { feedbackEl.textContent = `Archivo: ${fileInput.files[0].name}`; } else { feedbackEl.textContent = ''; } }
+        
+        // Función auxiliar para procesar lotes grandes en fragmentos seguros
+        async function processBatchesInChunks(db, operations) {
+            const CHUNK_SIZE = 450; // Mantenemos un margen de seguridad bajo el límite de 500 de Firestore
+            const totalOperations = operations.length;
+            const processButtonText = document.getElementById('process-preload-text');
+            
+            for (let i = 0; i < totalOperations; i += CHUNK_SIZE) {
+                const chunk = operations.slice(i, i + CHUNK_SIZE);
+                const batch = writeBatch(db);
+                
+                chunk.forEach(op => {
+                    if (op.type === 'delete') batch.delete(op.ref);
+                    else if (op.type === 'set') batch.set(op.ref, op.data, op.options);
+                    else if (op.type === 'update') batch.update(op.ref, op.data);
+                });
+
+                // Actualizar UI para mostrar progreso
+                if (processButtonText) {
+                    const progress = Math.min(100, Math.round(((i + chunk.length) / totalOperations) * 100));
+                    processButtonText.textContent = `Procesando... ${progress}%`;
+                }
+
+                await batch.commit();
+            }
+        }
+
         async function handleProcessPreloadData() {
             const processButton = document.getElementById('process-preload-data'), buttonText = document.getElementById('process-preload-text'), loader = document.getElementById('process-preload-loader'), fileInput = document.getElementById('preload-file-input');
             if (fileInput.files.length === 0) { showToast('Selecciona un archivo.', 'error'); return; }
-            processButton.disabled = true; buttonText.classList.add('hidden'); loader.classList.remove('hidden');
             
-            const persistentDataMap = new Map();
-            const currentInventorySnapshot = await getDocs(inventoryCollectionRef);
-            currentInventorySnapshot.forEach(doc => {
-                const data = doc.data();
-                const hasNotes = data.description_notes && data.description_notes.trim() !== '';
-                if (data.isFavorite || hasNotes) {
-                    persistentDataMap.set(data.code, { 
-                        isFavorite: data.isFavorite || false, 
-                        description_notes: data.description_notes || '' 
-                    });
-                }
-            });
-
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-            reader.onload = async function(event) {
-                try {
-                    const workbook = XLSX.read(new Uint8Array(event.target.result), { type: 'array', cellDates: true });
-                    
-                    const { inventoryItems: newItemsFromExcel } = processInventorySheet(workbook);
-                    const { historyMap, monthLabels } = processHistorySheet(workbook);
-                    const { solpedsData } = processSolpedsSheet(workbook);
-                    const { ocsData } = processOCSheet(workbook);
-
-                    newItemsFromExcel.forEach(item => {
-                        item.consumos = historyMap.get(item.code) || [];
-                        if (persistentDataMap.has(item.code)) {
-                            const persistentData = persistentDataMap.get(item.code);
-                            item.isFavorite = persistentData.isFavorite;
-                            item.description_notes = persistentData.description_notes;
-                        }
-                    });
-
-                    const batch = writeBatch(db);
-                    
-                    currentInventorySnapshot.forEach(doc => batch.delete(doc.ref));
-                    newItemsFromExcel.forEach(item => batch.set(doc(inventoryCollectionRef), item));
-
-                    const oldSolpedsSnapshot = await getDocs(solpedsCollectionRef);
-                    oldSolpedsSnapshot.forEach(doc => batch.delete(doc.ref));
-                    solpedsData.forEach(item => batch.set(doc(solpedsCollectionRef), item));
-
-                    const oldOCsSnapshot = await getDocs(ocsCollectionRef);
-                    oldOCsSnapshot.forEach(doc => batch.delete(doc.ref));
-                    ocsData.forEach(item => batch.set(doc(ocsCollectionRef), item));
-
-                    batch.set(metadataDocRef, { filename: file.name, lastUpdated: new Date().toISOString() });
-
-                    if (monthLabels && monthLabels.length > 0) {
-                        const newSettings = { ...appSettings, consumptionMonthLabels: monthLabels };
-                        batch.set(appConfigDocRef, { settings: newSettings }, { merge: true });
+            processButton.disabled = true; 
+            // Guardamos el texto original para restaurarlo después
+            const originalButtonText = "Procesar y Sincronizar Datos";
+            buttonText.textContent = "Leyendo archivo...";
+            loader.classList.remove('hidden');
+            
+            try {
+                // 1. Obtener datos actuales para preservar favoritos/notas
+                const persistentDataMap = new Map();
+                const currentInventorySnapshot = await getDocs(inventoryCollectionRef);
+                currentInventorySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const hasNotes = data.description_notes && data.description_notes.trim() !== '';
+                    if (data.isFavorite || hasNotes) {
+                        persistentDataMap.set(data.code, { 
+                            isFavorite: data.isFavorite || false, 
+                            description_notes: data.description_notes || '' 
+                        });
                     }
+                });
 
-                    await batch.commit();
-                    showToast(`Sincronización completa.`, 'success');
-                    setTimeout(handleClosePreloadModal, 2500);
-                } catch (e) { 
-                    console.error("Error procesando archivo:", e); 
-                    showToast('Error al procesar el archivo.', 'error');
-                } finally { 
-                    processButton.disabled = false; 
-                    buttonText.classList.remove('hidden'); 
-                    loader.classList.add('hidden'); 
+                // 2. Leer y procesar Excel
+                const file = fileInput.files[0];
+                const arrayBuffer = await file.arrayBuffer(); // Usamos await para lectura más limpia
+                const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array', cellDates: true });
+                
+                const { inventoryItems: newItemsFromExcel } = processInventorySheet(workbook);
+                const { historyMap, monthLabels } = processHistorySheet(workbook);
+                const { solpedsData } = processSolpedsSheet(workbook);
+                const { ocsData } = processOCSheet(workbook);
+
+                // 3. Cruzar datos nuevos con caché de favoritos/notas
+                newItemsFromExcel.forEach(item => {
+                    item.consumos = historyMap.get(item.code) || [];
+                    if (persistentDataMap.has(item.code)) {
+                        const persistentData = persistentDataMap.get(item.code);
+                        item.isFavorite = persistentData.isFavorite;
+                        item.description_notes = persistentData.description_notes;
+                    }
+                });
+
+                // 4. PREPARAR OPERACIONES (En lugar de ejecutarlas directamente)
+                buttonText.textContent = "Preparando base de datos...";
+                let operations = [];
+
+                // 4a. Operaciones de Borrado (Limpiar colecciones viejas)
+                // Obtenemos snapshots de las otras colecciones para borrarlas también
+                const oldSolpedsSnapshot = await getDocs(solpedsCollectionRef);
+                const oldOCsSnapshot = await getDocs(ocsCollectionRef);
+
+                currentInventorySnapshot.forEach(doc => operations.push({ type: 'delete', ref: doc.ref }));
+                oldSolpedsSnapshot.forEach(doc => operations.push({ type: 'delete', ref: doc.ref }));
+                oldOCsSnapshot.forEach(doc => operations.push({ type: 'delete', ref: doc.ref }));
+
+                // 4b. Operaciones de Escritura (Nuevos datos)
+                newItemsFromExcel.forEach(item => operations.push({ type: 'set', ref: doc(inventoryCollectionRef), data: item }));
+                solpedsData.forEach(item => operations.push({ type: 'set', ref: doc(solpedsCollectionRef), data: item }));
+                ocsData.forEach(item => operations.push({ type: 'set', ref: doc(ocsCollectionRef), data: item }));
+
+                // 4c. Metadatos y Configuración
+                operations.push({ type: 'set', ref: metadataDocRef, data: { filename: file.name, lastUpdated: new Date().toISOString() } });
+
+                if (monthLabels && monthLabels.length > 0) {
+                    const newSettings = { ...appSettings, consumptionMonthLabels: monthLabels };
+                    operations.push({ type: 'set', ref: appConfigDocRef, data: { settings: newSettings }, options: { merge: true } });
                 }
-            };
-            reader.readAsArrayBuffer(file);
+
+                // 5. EJECUTAR OPERACIONES EN LOTES SEGUROS
+                await processBatchesInChunks(db, operations);
+
+                showToast(`Sincronización completa.`, 'success');
+                setTimeout(handleClosePreloadModal, 2500);
+
+            } catch (e) { 
+                console.error("Error procesando archivo:", e); 
+                showToast('Error al procesar el archivo. Ver consola.', 'error');
+            } finally { 
+                processButton.disabled = false; 
+                buttonText.textContent = "Procesar y Sincronizar Datos"; // Restaurar texto original
+                loader.classList.add('hidden'); 
+            }
         }
         
         
@@ -4996,10 +5483,10 @@
         
         function renderConsumosContent() {
             const contentArea = document.getElementById('consumo-content-area');
+            // CAMBIO AQUI: lg:w-[55%] y lg:w-[45%]
             contentArea.innerHTML = `
-                <div id="consumo-panel-primary" class="w-full lg:w-1/2 bg-white lg:overflow-y-auto"></div>
-                <div class="w-full lg:w-px h-px lg:h-full bg-slate-300"></div>
-                <div id="consumo-panel-comparison" class="w-full lg:w-1/2 bg-white lg:overflow-y-auto"></div>
+                <div id="consumo-panel-primary" class="w-full lg:w-[55%] bg-white lg:overflow-y-auto border-r border-slate-200"></div>
+                <div id="consumo-panel-comparison" class="w-full lg:w-[45%] bg-white lg:overflow-y-auto"></div>
             `;
             renderSingleConsumoPanel(selectedConsumptionItemId, 'primary');
             renderSingleConsumoPanel(comparisonItemId, 'comparison');
@@ -5573,6 +6060,7 @@
                 simulationShowAllWeeks = false;
                 simulationOverrideStock = null;
                 simulationOverrideConsumption = null;
+                simulateSolpedsEnabled = false; // Resetear el estado del botón de Solpeds
                 currentSimulationItemId = selectedConsumptionItemId;
             }
 
@@ -5581,15 +6069,25 @@
             const displayConsumption = simulationOverrideConsumption !== null ? simulationOverrideConsumption : Math.round(primaryItem.monthlyConsumption);
             // -------------------------------------------------------
 
+            const solpedsBtnClass = simulateSolpedsEnabled 
+                ? '!bg-orange-100 !text-orange-700 !border-orange-300' 
+                : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50';
+
             panel.innerHTML = `
             <div class="p-4 h-full flex flex-col">
                 <div class="flex-shrink-0">
-                    <div class="flex justify-between items-center gap-2 pb-2 border-b">
+                    <div class="flex justify-between items-center gap-2 pb-2 border-b border-slate-100">
                         <div class="flex items-center gap-2 min-w-0">
                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-500 flex-shrink-0"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
                             <h3 class="text-lg font-bold text-slate-800 truncate">Simulación: <span class="text-[#6366f1]">${primaryItem.name.toUpperCase()}</span></h3>
                         </div>
                         <div class="flex items-center gap-2">
+                            <!-- NUEVO BOTÓN PARA SOLPEDS -->
+                            <button id="toggle-sim-solpeds-btn" title="${simulateSolpedsEnabled ? 'Ocultar Solpeds' : 'Simular Solpeds'}" class="btn-main-style !h-9 !px-3 !text-xs flex items-center gap-2 transition-colors ${solpedsBtnClass}">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                                <span class="hidden sm:inline">Solpeds</span>
+                            </button>
+                            
                             <button id="toggle-sim-controls-btn" title="Ocultar/Mostrar Controles" class="btn-main-style !w-9 !h-9 !p-0 flex-shrink-0">
                                 <svg id="toggle-sim-chevron" class="w-6 h-6 transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" /></svg>
                             </button>
@@ -5601,53 +6099,59 @@
                 </div>
 
                 <div id="simulation-controls-container" class="transition-all duration-300 ease-in-out">
-                    <div class="flex flex-col md:flex-row items-start gap-4 mt-4 flex-shrink-0">
-                        <!-- Controles de Stock y Consumo -->
-                        <div class="w-full md:flex-1">
-                             <div class="flex gap-2">
-                                 <div class="flex-1">
-                                    <label for="sim-stock" class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">Stock Actual</label>
+                    
+                    <div class="flex flex-col gap-3 mt-3 flex-shrink-0">
+                        
+                        <!-- BLOQUE 1: Variables Principales (Stock y Consumo) -->
+                        <div class="w-full bg-slate-50 p-3 rounded-xl border border-slate-200">
+                             <div class="grid grid-cols-3 gap-2 sm:gap-3">
+                                 <!-- Stock -->
+                                 <div>
+                                    <label for="sim-stock" class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block mb-1 text-center truncate">Stock Actual</label>
                                     <div class="relative flex items-center">
-                                        <button data-target="sim-stock" data-step="-100" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">-</button>
-                                        <input id="sim-stock" type="text" inputmode="numeric" value="${formatNumber(displayStock)}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                        <button data-target="sim-stock" data-step="100" class="sim-adjust-btn absolute right-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">+</button>
+                                        <button data-target="sim-stock" data-step="-100" class="sim-adjust-btn absolute left-0 top-0 bottom-0 w-5 sm:w-6 flex items-center justify-center text-slate-400 hover:text-indigo-600 font-bold hover:bg-slate-200 rounded-l-lg transition-colors">-</button>
+                                        <input id="sim-stock" type="text" inputmode="numeric" value="${formatNumber(displayStock)}" class="w-full h-9 pl-5 pr-5 sm:pl-6 sm:pr-6 bg-white border border-slate-300 rounded-lg text-center font-bold text-slate-700 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                                        <button data-target="sim-stock" data-step="100" class="sim-adjust-btn absolute right-0 top-0 bottom-0 w-5 sm:w-6 flex items-center justify-center text-slate-400 hover:text-indigo-600 font-bold hover:bg-slate-200 rounded-r-lg transition-colors">+</button>
                                     </div>
                                 </div>
-                                <div class="flex-1">
-                                     <label for="sim-consumption" class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">CONS.MENS</label>
+                                
+                                <!-- Consumo -->
+                                <div>
+                                     <label for="sim-consumption" class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block mb-1 text-center truncate">Cons. Mensual</label>
                                     <div class="relative flex items-center">
-                                        <button data-target="sim-consumption" data-step="-50" class="sim-adjust-btn absolute left-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">-</button>
-                                        <input id="sim-consumption" type="text" inputmode="numeric" value="${formatNumber(displayConsumption)}" class="w-full h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                        <button data-target="sim-consumption" data-step="50" class="sim-adjust-btn absolute right-2 p-1 text-slate-500 hover:text-indigo-600 font-bold">+</button>
+                                        <button data-target="sim-consumption" data-step="-50" class="sim-adjust-btn absolute left-0 top-0 bottom-0 w-5 sm:w-6 flex items-center justify-center text-slate-400 hover:text-indigo-600 font-bold hover:bg-slate-200 rounded-l-lg transition-colors">-</button>
+                                        <input id="sim-consumption" type="text" inputmode="numeric" value="${formatNumber(displayConsumption)}" class="w-full h-9 pl-5 pr-5 sm:pl-6 sm:pr-6 bg-white border border-slate-300 rounded-lg text-center font-bold text-slate-700 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                                        <button data-target="sim-consumption" data-step="50" class="sim-adjust-btn absolute right-0 top-0 bottom-0 w-5 sm:w-6 flex items-center justify-center text-slate-400 hover:text-indigo-600 font-bold hover:bg-slate-200 rounded-r-lg transition-colors">+</button>
                                     </div>
                                 </div>
-                                <div class="w-24">
-                                    <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">COB.DIAS</label>
-                                    <div id="sim-coverage-indicator" class="w-full h-10 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-center">
-                                        <span class="font-bold text-lg text-slate-700">-</span>
+
+                                <!-- Cobertura -->
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block mb-1 text-center truncate">Cobertura</label>
+                                    <div id="sim-coverage-indicator" class="w-full h-9 bg-white border border-slate-300 rounded-lg flex items-center justify-center shadow-sm">
+                                        <span class="font-bold text-base text-slate-700">-</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="w-px bg-slate-200 self-stretch mx-2"></div>
-    
-                        <!-- Simular Ingreso -->
-                        <div class="flex-1">
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 text-center">Simular Ingreso Manual</p>
-                            <div class="flex gap-2 items-center">
-                                <input id="sim-income-name" type="text" placeholder="Nombre (Opcional)" class="w-1/3 h-10 bg-white border border-slate-300 rounded-md shadow-sm px-3 text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                <input id="sim-income-qty" type="text" inputmode="numeric" placeholder="Cantidad" class="w-1/3 h-10 bg-white border border-slate-300 rounded-md shadow-sm text-center font-bold focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                <div class="w-1/3 flex gap-2">
-                                    <select id="sim-income-week" class="flex-grow h-10 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold">
-                                        <!-- Options will be populated dynamically -->
+                        <!-- BLOQUE 2: Ingreso Manual -->
+                        <div class="w-full bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2">Simular Ingreso Manual</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <input id="sim-income-name" type="text" placeholder="Nombre (Opcional)" class="w-full h-9 bg-white border border-slate-300 rounded-lg px-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                                <input id="sim-income-qty" type="text" inputmode="numeric" placeholder="Cant." class="w-full h-9 bg-white border border-slate-300 rounded-lg px-1 text-center font-bold text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                                <div class="flex gap-2 w-full">
+                                    <select id="sim-income-week" class="w-full h-9 bg-white border border-slate-300 rounded-lg px-1 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 min-w-0">
+                                        <!-- Options injected via JS -->
                                     </select>
-                                    <button id="add-sim-income-btn" class="btn-main-style !h-10 !w-10 !p-0 !bg-indigo-600 !text-white hover:!bg-indigo-700 flex-shrink-0">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                    <button id="add-sim-income-btn" class="h-9 w-9 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center justify-center transition-colors shadow-sm flex-shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                                     </button>
                                 </div>
                             </div>
                         </div>
+
                     </div>
     
                     <div id="simulation-info-container" class="flex-shrink-0 overflow-y-auto no-scrollbar py-2" style="max-height: 140px;">
@@ -5662,13 +6166,14 @@
             </div>
             `;
 
+            // ... (weekSelect logic remains the same) ...
             const weekSelect = panel.querySelector('#sim-income-week');
             if (weekSelect) {
                 const todayRaw = new Date();
                 const today = new Date(Date.UTC(todayRaw.getFullYear(), todayRaw.getMonth(), todayRaw.getDate()));
 
                 const startOfCurrentWeek = new Date(today);
-                const dayOfWeek = (startOfCurrentWeek.getUTCDay() + 6) % 7; // Monday = 0
+                const dayOfWeek = (startOfCurrentWeek.getUTCDay() + 6) % 7; 
                 startOfCurrentWeek.setUTCDate(startOfCurrentWeek.getUTCDate() - dayOfWeek);
 
                 let optionsHTML = '';
@@ -5679,14 +6184,13 @@
                     const weekNumber = parseInt(weekId.split('-')[1], 10);
                     const day = String(weekStartDate.getUTCDate()).padStart(2, '0');
                     const month = String(weekStartDate.getUTCMonth() + 1).padStart(2, '0');
-                    optionsHTML += `<option value="${weekId}">${weekNumber} (${day}/${month})</option>`;
+                    optionsHTML += `<option value="${weekId}">${weekNumber} - ${day}/${month}</option>`;
                 }
                 weekSelect.innerHTML = optionsHTML;
             }
             
             const simulationInputHandler = (e) => {
                 handleNumericInputFormatting(e);
-                // Guardar estado en variables globales
                 if (e.target.id === 'sim-stock') {
                     simulationOverrideStock = parseInt(e.target.value.replace(/\./g, '')) || 0;
                 } else if (e.target.id === 'sim-consumption') {
@@ -5703,22 +6207,28 @@
             document.getElementById('add-sim-income-btn').addEventListener('click', handleAddSimulatedIncome);
             document.getElementById('export-simulation-btn')?.addEventListener('click', handleExportSimulation);
             
+            // Nuevo Listener para el botón de Solpeds
+            document.getElementById('toggle-sim-solpeds-btn')?.addEventListener('click', () => {
+                simulateSolpedsEnabled = !simulateSolpedsEnabled;
+                renderSimulationPanel(); // Re-renderizar para actualizar el estado visual del botón y recalcular
+            });
+            
             document.getElementById('toggle-sim-controls-btn')?.addEventListener('click', () => {
                 const controlsContainer = document.getElementById('simulation-controls-container');
                 const chevron = document.getElementById('toggle-sim-chevron');
-                const headerBar = document.getElementById('consumos-header-bar'); // Get the blue bar
+                const headerBar = document.getElementById('consumos-header-bar'); 
 
                 const isHiding = !controlsContainer.classList.contains('hidden');
                 
                 controlsContainer.classList.toggle('hidden', isHiding);
-                chevron.classList.toggle('rotate-180', isHiding); // rotate-180 when hidden (arrow points down)
+                chevron.classList.toggle('rotate-180', isHiding); 
                 
                 if (headerBar) {
                     headerBar.classList.toggle('hidden', isHiding);
                 }
             });
 
-            runAndRenderSimulation(); // Run initial simulation
+            runAndRenderSimulation(); 
             updateSimulationCoverageIndicator();
         }
 
@@ -5731,7 +6241,6 @@
                 const newValue = Math.max(0, currentValue + step);
                 targetInput.value = formatNumber(newValue);
                 
-                // Guardar estado en variables globales
                 if (targetInput.id === 'sim-stock') {
                     simulationOverrideStock = newValue;
                 } else if (targetInput.id === 'sim-consumption') {
@@ -5764,10 +6273,14 @@
             const today = new Date(Date.UTC(todayRaw.getFullYear(), todayRaw.getMonth(), todayRaw.getDate()));
 
             const startOfSimulationWeek = new Date(today);
-            const dayOfWeek = (startOfSimulationWeek.getUTCDay() + 6) % 7; // Monday = 0
+            const dayOfWeek = (startOfSimulationWeek.getUTCDay() + 6) % 7; 
             startOfSimulationWeek.setUTCDate(startOfSimulationWeek.getUTCDate() - dayOfWeek);
 
             const itemOcs = ocs.filter(oc => oc.codigo === primaryItem.code);
+            // Filtrar Solpeds para este item
+            const itemSolpeds = solpeds.filter(s => String(s.cod).trim() === String(primaryItem.code).trim());
+            const itemLeadTime = primaryItem.leadTimeDays || 0;
+
             const results = [];
 
             for (let i = 0; i < simulationWeeks; i++) {
@@ -5779,6 +6292,7 @@
                 const incomingSources = [];
                 let incomingThisWeek = 0;
 
+                // 1. Procesar OCs
                 itemOcs.forEach(oc => {
                     const deliveryDate = parseDateString(oc.proxFechaEntrega);
                     if (deliveryDate) {
@@ -5799,6 +6313,7 @@
 
                 const weekId = getWeekId(weekStartDate);
                 
+                // 2. Procesar Ingresos Manuales
                 const simulatedIncomeForWeek = simulatedIncomes.find(inc => inc.weekId === weekId);
                 if (simulatedIncomeForWeek) {
                     const displayName = simulatedIncomeForWeek.name || `SIM-${simulatedIncomeForWeek.seqNumber}`;
@@ -5811,14 +6326,37 @@
                     incomingThisWeek += simulatedIncomeForWeek.quantity;
                 }
 
+                // 3. Procesar Solpeds (Si está activo)
+                if (simulateSolpedsEnabled) {
+                    itemSolpeds.forEach(s => {
+                        // Usar fecha de liberación como base
+                        const baseDate = parseDateString(s.fechaLiberacion);
+                        if (baseDate) {
+                            // Calcular fecha estimada de llegada: F.Liberación + LeadTime
+                            const estimatedArrival = new Date(baseDate);
+                            estimatedArrival.setUTCDate(estimatedArrival.getUTCDate() + itemLeadTime);
+                            
+                            // Si la fecha estimada cae en esta semana
+                            if (estimatedArrival >= weekStartDate && estimatedArrival <= weekEndDate) {
+                                incomingSources.push({
+                                    type: 'solped',
+                                    number: `Solped ${s.solicitud}`,
+                                    quantity: s.cantidad,
+                                    status: 'Simulada_Solped' 
+                                });
+                                incomingThisWeek += s.cantidad;
+                            }
+                        }
+                    });
+                }
+
                 let weeklyConsumptionToApply = simulatedWeeklyConsumption;
-                if (i === 0) { // Cálculo especial para la semana actual
+                if (i === 0) { 
                     const endOfCurrentWeek = new Date(weekStartDate);
                     endOfCurrentWeek.setUTCDate(endOfCurrentWeek.getUTCDate() + 6);
 
                     let remainingDays = 0;
                     if (today <= endOfCurrentWeek) {
-                         // +1 para incluir el día de hoy en la cuenta
                         remainingDays = daysBetween(today, endOfCurrentWeek) + 1;
                     }
                     
@@ -5834,7 +6372,7 @@
                 const month = String(weekStartDate.getUTCMonth() + 1).padStart(2, '0');
 
                 results.push({
-                    week: `${weekNumber} (${day}/${month})`,
+                    week: `${weekNumber} - ${day}/${month}`,
                     startStock: currentStock,
                     incoming: incomingThisWeek,
                     incomingSources: incomingSources,
@@ -5862,7 +6400,7 @@
             const today = new Date(Date.UTC(todayRaw.getFullYear(), todayRaw.getMonth(), todayRaw.getDate()));
 
             const startOfSimulationWeek = new Date(today);
-            const dayOfWeek = (startOfSimulationWeek.getUTCDay() + 6) % 7; // Monday = 0
+            const dayOfWeek = (startOfSimulationWeek.getUTCDay() + 6) % 7;
             startOfSimulationWeek.setUTCDate(startOfSimulationWeek.getUTCDate() - dayOfWeek);
 
             const allItemOcs = ocs.filter(oc => oc.codigo === primaryItem.code);
@@ -5898,7 +6436,7 @@
                     overdueHtml += `</ul></div>`;
                     overdueOcsContainer.innerHTML = overdueHtml;
                 } else {
-                    overdueOcsContainer.innerHTML = ''; // Clear if no overdue OCs
+                    overdueOcsContainer.innerHTML = ''; 
                 }
             }
 
@@ -5912,7 +6450,7 @@
             const weeksToRender = simulationShowAllWeeks ? results : results.slice(0, 12);
 
             let tableHTML = `
-            <div class="border rounded-lg overflow-hidden">
+            <div class="border rounded-lg overflow-hidden border-slate-200">
                 <table class="w-full text-sm text-left text-slate-500">
                     <thead class="text-xs text-slate-700 uppercase bg-slate-100 sticky top-0">
                         <tr>
@@ -5929,42 +6467,42 @@
             weeksToRender.forEach(res => {
                 const { red, yellow } = appSettings.coverageThresholds;
                 let coverageClass = '';
-                let rowBgClass = 'bg-white even:bg-slate-50'; // Fondo por defecto
+                let rowBgClass = 'bg-white even:bg-slate-50'; 
 
                  if (res.coverage !== Infinity) {
-                    if (res.coverage === 0) { // Condición específica para cobertura CERO
-                        coverageClass = 'text-red-700 font-bold'; // Texto rojo oscuro para contraste
-                        rowBgClass = 'bg-red-100'; // Fondo rojo tenue para la fila
+                    if (res.coverage === 0) { 
+                        coverageClass = 'text-red-700 font-bold'; 
+                        rowBgClass = 'bg-red-50'; 
                     } else if (res.coverage < red) {
                         coverageClass = 'text-red-600 font-bold';
                     } else if (res.coverage <= yellow) {
-                        coverageClass = 'text-yellow-500 font-bold'; // Tono de naranja más claro
+                        coverageClass = 'text-yellow-600 font-bold'; 
                     }
                 }
                 
                 let tooltipContent = '';
-                let incomeCellClass = 'text-slate-500'; // Gris por defecto si no hay ingresos
+                let incomeCellClass = 'text-slate-400'; 
 
                 if (res.incomingSources.length > 0) {
-                    // Determinar el color principal de la celda
                     if (res.incomingSources.some(s => s.status === 'Simulacion')) {
                         incomeCellClass = 'text-indigo-600 font-bold';
+                    } else if (res.incomingSources.some(s => s.status === 'Simulada_Solped')) { // Color Naranja para Solpeds
+                        incomeCellClass = 'text-orange-600 font-bold';
                     } else if (res.incomingSources.some(s => s.status === 'Pendiente')) {
                         incomeCellClass = 'text-yellow-600 font-bold';
                     } else if (res.incomingSources.some(s => s.status === 'Aprobada')) {
                         incomeCellClass = 'text-green-600 font-bold';
                     }
 
-                    // Construir el contenido del tooltip con colores individuales
                     tooltipContent = res.incomingSources.map(source => {
                         let statusClass = '';
                         switch(source.status) {
                             case 'Aprobada': statusClass = 'text-green-600'; break;
                             case 'Pendiente': statusClass = 'text-yellow-600'; break;
                             case 'Simulacion': statusClass = 'text-indigo-600'; break;
+                            case 'Simulada_Solped': statusClass = 'text-orange-600'; break;
                             default: statusClass = 'text-slate-700';
                         }
-                        // Usamos flexbox para alinear el nombre a la izquierda y la cantidad a la derecha.
                         return `<div class="${statusClass} flex justify-between items-center gap-4">
                                     <span class="font-semibold truncate">${source.number}:</span>
                                     <span class="font-bold flex-shrink-0">${formatNumber(source.quantity)}</span>
@@ -6011,7 +6549,7 @@
             const showMoreBtn = document.getElementById('show-all-sim-weeks-btn');
             if (showMoreBtn) {
                 showMoreBtn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevenir propagación por si acaso
+                    e.stopPropagation(); 
                     simulationShowAllWeeks = true;
                     runAndRenderSimulation();
                 });
@@ -6472,7 +7010,7 @@
             tableHTML += `</tr></thead><tbody>`;
 
             filteredSolpeds.forEach(s => {
-                const itemId = itemsByCode.get(s.cod);
+                const itemId = itemsByCode.get(String(s.cod).trim()); // AGREGADO .trim() para seguridad
                 
                 const creationDate = parseDateString(s.fechaSolicitud);
                 let daysActive = '';
@@ -6727,7 +7265,7 @@
             tableHTML += `</tr></thead><tbody>`;
 
             filteredOCs.forEach(oc => {
-                const itemId = itemsByCode.get(oc.codigo);
+                const itemId = itemsByCode.get(String(oc.codigo).trim()); // AGREGADO .trim() para seguridad
                 const deliveryDate = parseDateString(oc.proxFechaEntrega);
                 let weekNumber = '';
                 if (deliveryDate) {
@@ -6786,13 +7324,206 @@
 
         // --- LÓGICA DE LA PESTAÑA REPORTES ---
         function renderReportesView() {
-            renderImmobilizedStockReport();
+            const titleEl = document.getElementById('current-report-title');
+            const searchInput = document.getElementById('report-search-input');
+            
+            // Actualizar referencias de elementos antiguos si existen
+            const oldCounter = document.getElementById('immobilized-counter');
+            const oldSearch = document.getElementById('immobilized-search-input');
+            if(oldCounter) oldCounter.id = 'report-counter';
+            if(oldSearch) oldSearch.id = 'report-search-input';
+
+            if (currentReportType === 'immobilized') {
+                if(titleEl) titleEl.textContent = 'STOCK INMOVILIZADO';
+                if(searchInput) searchInput.placeholder = "Buscar material o grupo...";
+                renderImmobilizedStockReport();
+            } else if (currentReportType === 'group-consumption') {
+                if(titleEl) titleEl.textContent = 'CONSUMO POR GRUPO';
+                if(searchInput) searchInput.placeholder = "Grupo A, Grupo B, ..."; // Placeholder actualizado
+                renderGroupConsumptionReport();
+            }
         }
 
+        // NUEVA FUNCIÓN: Renderiza el reporte de consumo agrupado con filtro múltiple
+        function renderGroupConsumptionReport() {
+            const container = document.getElementById('report-content-container') || document.getElementById('immobilized-stock-table-container');
+            const searchInput = document.getElementById('report-search-input');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            
+            // 1. Agrupar datos
+            const groupData = {};
+            getProcessedItems().forEach(item => {
+                const group = item.group || 'Sin Grupo';
+                if (!groupData[group]) {
+                    groupData[group] = { 
+                        group: group, 
+                        itemCount: 0, 
+                        totalStock: 0, 
+                        consumos: Array(12).fill(0),
+                        avgConsumption: 0
+                    };
+                }
+                groupData[group].itemCount++;
+                groupData[group].totalStock += item.stock || 0;
+                groupData[group].avgConsumption += item.monthlyConsumption || 0;
+                
+                if (item.consumos && Array.isArray(item.consumos)) {
+                    item.consumos.forEach((val, idx) => {
+                        if (idx < 12) groupData[group].consumos[idx] += val;
+                    });
+                }
+            });
+
+            let groups = Object.values(groupData);
+
+            // 2. Filtrar (Lógica de selección múltiple por comas)
+            if (searchTerm) {
+                // Dividimos por coma y limpiamos espacios
+                const searchTerms = searchTerm.split(',').map(term => term.trim()).filter(Boolean);
+                
+                if (searchTerms.length > 0) {
+                    groups = groups.filter(g => {
+                        const groupName = g.group.toLowerCase();
+                        // Muestra el grupo si coincide con CUALQUIERA de los términos
+                        return searchTerms.some(term => groupName.includes(term));
+                    });
+                }
+            }
+
+            const counterEl = document.getElementById('report-counter');
+            if (counterEl) counterEl.textContent = `(${groups.length} grupos)`;
+
+            // 3. Ordenar
+            groups.sort((a, b) => {
+                const key = groupConsumptionSortConfig.key;
+                const dir = groupConsumptionSortConfig.direction === 'asc' ? 1 : -1;
+                
+                if (key === 'group') return a.group.localeCompare(b.group) * dir;
+                if (key === 'itemCount') return (a.itemCount - b.itemCount) * dir;
+                if (key === 'totalStock') return (a.totalStock - b.totalStock) * dir;
+                if (key === 'avgConsumption') return (a.avgConsumption - b.avgConsumption) * dir;
+                if (key.startsWith('month_')) {
+                    const idx = parseInt(key.split('_')[1]);
+                    return (a.consumos[idx] - b.consumos[idx]) * dir;
+                }
+                return 0;
+            });
+
+            // 4. Renderizar Tabla
+            if (groups.length === 0) {
+                container.innerHTML = `<p class="text-center text-slate-500 py-10">No se encontraron grupos.</p>`;
+                return;
+            }
+
+            const sortIconSVG = `<svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+            
+            const selectedMonths = appSettings.consumptionMonths || Array(12).fill(true);
+            const defaultMonthNames = Array.from({length: 12}, (_, i) => `M${i+1}`);
+            const monthLabels = (appSettings.consumptionMonthLabels && appSettings.consumptionMonthLabels.length > 0) ? appSettings.consumptionMonthLabels : defaultMonthNames;
+
+            // Controles de visibilidad
+            let controlsHTML = `
+                <div class="flex justify-end items-center gap-4 px-4 py-2 bg-slate-50 border-b border-slate-200">
+                    <label class="flex items-center space-x-2 text-xs font-semibold text-slate-600 cursor-pointer select-none hover:text-indigo-600 transition-colors">
+                        <input type="checkbox" id="toggle-group-item-count" class="form-checkbox h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 transition duration-150 ease-in-out" ${reportGroupShowItemCount ? 'checked' : ''}>
+                        <span>Ver Items</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-xs font-semibold text-slate-600 cursor-pointer select-none hover:text-indigo-600 transition-colors">
+                        <input type="checkbox" id="toggle-group-stock" class="form-checkbox h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 transition duration-150 ease-in-out" ${reportGroupShowStock ? 'checked' : ''}>
+                        <span>Ver Stock Total</span>
+                    </label>
+                    <label class="flex items-center space-x-2 text-xs font-semibold text-slate-600 cursor-pointer select-none hover:text-indigo-600 transition-colors">
+                        <input type="checkbox" id="toggle-group-avg" class="form-checkbox h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 transition duration-150 ease-in-out" ${reportGroupShowAvg ? 'checked' : ''}>
+                        <span>Ver Promedio</span>
+                    </label>
+                </div>
+            `;
+
+            let tableHTML = controlsHTML + `<table class="w-full text-sm text-left text-slate-500">
+                <thead class="text-xs text-slate-700 uppercase bg-slate-100 sticky top-0 z-10 shadow-sm">
+                    <tr>
+                        <th class="px-4 py-3"><button class="table-sort-button" data-sort="group">GRUPO${groupConsumptionSortConfig.key === 'group' ? sortIconSVG : ''}</button></th>`;
+            
+            if (reportGroupShowItemCount) {
+                tableHTML += `<th class="px-4 py-3 text-right"><button class="table-sort-button justify-end" data-sort="itemCount">ITEMS${groupConsumptionSortConfig.key === 'itemCount' ? sortIconSVG : ''}</button></th>`;
+            }
+            if (reportGroupShowStock) {
+                tableHTML += `<th class="px-4 py-3 text-right"><button class="table-sort-button justify-end" data-sort="totalStock">STOCK TOTAL${groupConsumptionSortConfig.key === 'totalStock' ? sortIconSVG : ''}</button></th>`;
+            }
+            if (reportGroupShowAvg) {
+                tableHTML += `<th class="px-4 py-3 text-right bg-indigo-50"><button class="table-sort-button justify-end" data-sort="avgConsumption">PROM. GRUPAL${groupConsumptionSortConfig.key === 'avgConsumption' ? sortIconSVG : ''}</button></th>`;
+            }
+            
+            selectedMonths.forEach((isSelected, idx) => {
+                if (isSelected) {
+                    const isSorting = groupConsumptionSortConfig.key === `month_${idx}`;
+                    tableHTML += `<th class="px-2 py-3 text-right min-w-[60px]"><button class="table-sort-button justify-end" data-sort="month_${idx}">${monthLabels[idx]}${isSorting ? sortIconSVG : ''}</button></th>`;
+                }
+            });
+            tableHTML += `</tr></thead><tbody class="divide-y divide-slate-200 bg-white">`;
+
+            groups.forEach(g => {
+                // Calcular índices visibles
+                let visibleIndices = [];
+                selectedMonths.forEach((sel, i) => { if(sel) visibleIndices.push(i); });
+                
+                const lastVisibleIndex = visibleIndices.length > 0 ? visibleIndices[visibleIndices.length - 1] : -1;
+                
+                // 1. Max: Considerar TODAS las columnas visibles (incluyendo la última si es un récord)
+                const allVisibleValues = visibleIndices.map(i => g.consumos[i]);
+                const maxVal = allVisibleValues.length ? Math.max(...allVisibleValues) : 0;
+
+                // 2. Min: Excluir la última columna visible (para no marcar mínimos falsos por mes incompleto)
+                const indicesForMin = visibleIndices.slice(0, -1); 
+                const valuesForMin = indicesForMin.map(i => g.consumos[i]);
+                const minVal = valuesForMin.length ? Math.min(...valuesForMin) : 0;
+
+                tableHTML += `<tr class="hover:bg-slate-50 cursor-pointer group-consumption-row" data-group-name="${g.group}">
+                    <td class="px-4 py-2 font-medium text-slate-900">${g.group}</td>`;
+                
+                if (reportGroupShowItemCount) {
+                    tableHTML += `<td class="px-4 py-2 text-right font-bold text-slate-600">${g.itemCount}</td>`;
+                }
+                if (reportGroupShowStock) {
+                    tableHTML += `<td class="px-4 py-2 text-right font-bold text-slate-700">${formatNumber(g.totalStock)}</td>`;
+                }
+                if (reportGroupShowAvg) {
+                    tableHTML += `<td class="px-4 py-2 text-right font-bold text-indigo-700 bg-indigo-50/30">${formatNumber(Math.round(g.avgConsumption))}</td>`;
+                }
+                
+                selectedMonths.forEach((isSelected, idx) => {
+                    if (isSelected) {
+                        const val = g.consumos[idx];
+                        
+                        // Lógica de colores para Min/Max
+                        let cellClass = val > 0 ? 'text-slate-700' : 'text-slate-300';
+                        
+                        if (val > 0) {
+                            // Max: Se aplica a cualquier columna (incluida la última)
+                            if (val === maxVal) {
+                                cellClass = 'text-green-600 font-bold bg-green-50/50';
+                            } 
+                            // Min: Se aplica solo si NO es la última columna
+                            else if (idx !== lastVisibleIndex && val === minVal) {
+                                cellClass = 'text-red-600 font-bold bg-red-50/50';
+                            }
+                        }
+
+                        tableHTML += `<td class="px-2 py-2 text-right text-xs ${cellClass}">${val > 0 ? formatNumber(Math.round(val)) : '-'}</td>`;
+                    }
+                });
+                tableHTML += `</tr>`;
+            });
+
+            tableHTML += `</tbody></table>`;
+            container.innerHTML = tableHTML;
+        }
+
+        // LÓGICA MODIFICADA: renderImmobilizedStockReport usa los nuevos IDs
         function renderImmobilizedStockReport() {
-            const container = document.getElementById('immobilized-stock-table-container');
-            const searchInput = document.getElementById('immobilized-search-input');
-            const searchTerm = searchInput.value.toLowerCase();
+            const container = document.getElementById('report-content-container') || document.getElementById('immobilized-stock-table-container');
+            const searchInput = document.getElementById('report-search-input'); 
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
             const immobilizationMonths = appSettings.immobilizationMonths;
 
             let processedItems = getProcessedItems().map(item => {
@@ -6814,14 +7545,14 @@
             );
             
             if(searchTerm) {
-                const searchWords = searchTerm.toLowerCase().split(' ').filter(Boolean);
+                const searchWords = searchTerm.split(' ').filter(Boolean);
                 immobilizedItems = immobilizedItems.filter(item => {
                     const textToSearch = `${item.name} ${item.group}`.toLowerCase();
                     return searchWords.every(word => textToSearch.includes(word));
                 });
             }
 
-            const immobilizedCounterEl = document.getElementById('immobilized-counter');
+            const immobilizedCounterEl = document.getElementById('report-counter');
             if (immobilizedCounterEl) {
                 immobilizedCounterEl.textContent = `(${immobilizedItems.length} items encontrados)`;
             }
@@ -6887,135 +7618,109 @@
             
             tableHTML += `</tbody></table>`;
             container.innerHTML = tableHTML;
-
-        }
-        
-        function renderPeakConsumptionReport() {
-            const container = document.getElementById('peak-consumption-table-container');
-            const searchInput = document.getElementById('peak-consumption-search-input');
-            const searchTerm = searchInput.value.toLowerCase();
-
-            let peakItems = getProcessedItems().filter(item => {
-                if (!item.consumos || item.consumos.length < 12) return false;
-                
-                const previousMonthConsumption = item.consumos[10]; // M11
-                if (previousMonthConsumption <= 0) return false;
-
-                const peakInHistory = Math.max(...item.consumos);
-                
-                return previousMonthConsumption === peakInHistory;
-
-            }).map(item => ({
-                ...item,
-                peakConsumption: item.consumos[10],
-                currentConsumption: item.consumos[11]
-            }));
-
-            if(searchTerm) {
-                 peakItems = peakItems.filter(item => 
-                    item.name.toLowerCase().includes(searchTerm) ||
-                    item.group.toLowerCase().includes(searchTerm)
-                );
-            }
-
-            const counterEl = document.getElementById('peak-consumption-counter');
-            if (counterEl) {
-                counterEl.textContent = `(${peakItems.length} items encontrados)`;
-            }
-
-            peakItems.sort((a, b) => {
-                const key = peakConsumptionSortConfig.key;
-                const dir = peakConsumptionSortConfig.direction === 'asc' ? 1 : -1;
-                let valA = a[key] ?? 0;
-                let valB = b[key] ?? 0;
-                
-                if (valA < valB) return -1 * dir;
-                if (valA > valB) return 1 * dir;
-                return 0;
-            });
-            
-            if (peakItems.length === 0) {
-                container.innerHTML = `<p class="text-center text-slate-500 py-10">No se encontraron insumos con pico de consumo el mes anterior (M11).</p>`;
-                return;
-            }
-
-            const sortIconSVG = `<svg class="sort-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
-            const headers = [
-                { key: 'group', label: 'Grupo' },
-                { key: 'code', label: 'Código' },
-                { key: 'name', label: 'Material' },
-                { key: 'peakConsumption', label: 'Consumo Pico (Mes Anterior)', class: 'justify-end' },
-                { key: 'currentConsumption', label: 'Consumo Mes Actual', class: 'justify-end' }
-            ];
-            
-            let tableHTML = `<table class="w-full text-sm text-left text-slate-500"><thead class="text-xs text-slate-700 uppercase bg-slate-50 sticky top-0"><tr>`;
-            headers.forEach(h => {
-                const thClass = `px-4 py-2 ${h.class || ''}`;
-                tableHTML += `<th scope="col" class="${thClass}"><button class="table-sort-button ${h.class || ''}" data-sort="${h.key}">${h.label}</button></th>`;
-            });
-            tableHTML += `</tr></thead><tbody>`;
-            
-            peakItems.forEach(item => {
-                 tableHTML += `<tr class="border-b hover:bg-slate-100 even:bg-slate-50 cursor-pointer report-item-row" data-item-id="${item.id}">
-                    <td class="px-4 py-2">${item.group}</td>
-                    <td class="px-4 py-2">${item.code}</td>
-                    <td class="px-4 py-2 font-medium text-slate-900">${item.name.replace(new RegExp(`^${item.code}\\s*`), '')}</td>
-                    <td class="px-4 py-2 text-right font-bold text-green-600">${formatNumber(item.peakConsumption)}</td>
-                    <td class="px-4 py-2 text-right">${formatNumber(item.currentConsumption)}</td>
-                </tr>`;
-            });
-            
-            tableHTML += `</tbody></table>`;
-            container.innerHTML = tableHTML;
-
-            const activeButton = container.querySelector(`.table-sort-button[data-sort="${peakConsumptionSortConfig.key}"]`);
-            if (activeButton) {
-                activeButton.classList.add('active', peakConsumptionSortConfig.direction);
-                activeButton.innerHTML += sortIconSVG;
-            }
         }
         
         function handleExportImmobilized() {
-            const searchInput = document.getElementById('immobilized-search-input');
-            const searchTerm = searchInput.value.toLowerCase();
-            const immobilizationMonths = appSettings.immobilizationMonths;
-
-            let processedItems = getProcessedItems().map(item => {
-                let monthsWithoutConsumption = 0;
-                if (item.consumos) {
-                    for (let i = item.consumos.length - 1; i >= 0; i--) {
-                        if (item.consumos[i] === 0) {
-                            monthsWithoutConsumption++;
-                        } else {
-                            break;
-                        }
-                    }
-                }
-                return { ...item, monthsWithoutConsumption };
-            });
+            const searchInput = document.getElementById('report-search-input'); // ID actualizado
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
             
-            let immobilizedItems = processedItems.filter(item => item.stock > 0 && item.monthsWithoutConsumption >= immobilizationMonths);
-            if (searchTerm) {
-                immobilizedItems = immobilizedItems.filter(item => item.name.toLowerCase().includes(searchTerm) || item.group.toLowerCase().includes(searchTerm));
-            }
-            if (immobilizedItems.length === 0) { showToast('No hay datos para exportar.', 'info'); return; }
+            // Reutilizamos lógica de agrupación
+            const groupData = {};
+            getProcessedItems().forEach(item => {
+                const group = item.group || 'Sin Grupo';
+                if (!groupData[group]) {
+                    groupData[group] = { group: group, itemCount: 0, totalStock: 0, consumos: Array(12).fill(0), avgConsumption: 0 };
+                }
+                groupData[group].itemCount++;
+                groupData[group].totalStock += item.stock || 0;
+                groupData[group].avgConsumption += item.monthlyConsumption || 0;
+                if (item.consumos) item.consumos.forEach((val, idx) => { if (idx < 12) groupData[group].consumos[idx] += val; });
+            });
 
-            const formattedData = immobilizedItems.map(item => ({
-                'Grupo': item.group,
-                'Código': item.code,
-                'Material': item.name.replace(new RegExp(`^${item.code}\\s*`), ''),
-                'Stock Actual': item.stock,
-                'Meses sin Consumo': item.monthsWithoutConsumption
-            }));
-            const filename = `${getCurrentDateString()}_Reporte_Inmovilizado.xlsx`;
+            let groups = Object.values(groupData);
+            if (searchTerm) groups = groups.filter(g => g.group.toLowerCase().includes(searchTerm));
+
+            if (groups.length === 0) { showToast('No hay datos para exportar.', 'info'); return; }
+
+            // Preparar columnas dinámicas
+            const selectedMonths = appSettings.consumptionMonths || Array(12).fill(true);
+            const monthLabels = (appSettings.consumptionMonthLabels && appSettings.consumptionMonthLabels.length > 0) ? appSettings.consumptionMonthLabels : Array.from({length: 12}, (_, i) => `M${i+1}`);
+
+            const formattedData = groups.map(g => {
+                const row = {
+                    'Grupo': g.group,
+                    'Cantidad Items': g.itemCount,
+                    'Stock Total': g.totalStock,
+                    'Promedio Mensual Total': Math.round(g.avgConsumption)
+                };
+                selectedMonths.forEach((isSelected, idx) => {
+                    if (isSelected) row[`Consumo ${monthLabels[idx]}`] = g.consumos[idx];
+                });
+                return row;
+            });
+
+            const filename = `${getCurrentDateString()}_Reporte_Consumo_Grupos.xlsx`;
             exportToExcel(formattedData, filename);
         }
 
-        function handleExportIndice() {
-            const { red, yellow } = appSettings.coverageThresholds;
-            let filteredItems = getProcessedItems();
+        // NUEVA FUNCIÓN: Exportar Consumo por Grupo con soporte múltiple
+        function handleExportGroupConsumption() {
+            const searchInput = document.getElementById('report-search-input');
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            
+            const groupData = {};
+            getProcessedItems().forEach(item => {
+                const group = item.group || 'Sin Grupo';
+                if (!groupData[group]) {
+                    groupData[group] = { group: group, itemCount: 0, totalStock: 0, consumos: Array(12).fill(0), avgConsumption: 0 };
+                }
+                groupData[group].itemCount++;
+                groupData[group].totalStock += item.stock || 0;
+                groupData[group].avgConsumption += item.monthlyConsumption || 0;
+                if (item.consumos) item.consumos.forEach((val, idx) => { if (idx < 12) groupData[group].consumos[idx] += val; });
+            });
 
-            // Re-apply filters
+            let groups = Object.values(groupData);
+            
+            // Filtro múltiple
+            if (searchTerm) {
+                const searchTerms = searchTerm.split(',').map(term => term.trim()).filter(Boolean);
+                if (searchTerms.length > 0) {
+                    groups = groups.filter(g => {
+                        const groupName = g.group.toLowerCase();
+                        return searchTerms.some(term => groupName.includes(term));
+                    });
+                }
+            }
+
+            if (groups.length === 0) { showToast('No hay datos para exportar.', 'info'); return; }
+
+            const selectedMonths = appSettings.consumptionMonths || Array(12).fill(true);
+            const monthLabels = (appSettings.consumptionMonthLabels && appSettings.consumptionMonthLabels.length > 0) ? appSettings.consumptionMonthLabels : Array.from({length: 12}, (_, i) => `M${i+1}`);
+
+            const formattedData = groups.map(g => {
+                const row = {
+                    'Grupo': g.group,
+                    'Cantidad Items': g.itemCount,
+                    'Stock Total': g.totalStock,
+                    'Promedio Mensual Total': Math.round(g.avgConsumption)
+                };
+                selectedMonths.forEach((isSelected, idx) => {
+                    if (isSelected) row[`Consumo ${monthLabels[idx]}`] = g.consumos[idx];
+                });
+                return row;
+            });
+
+            const filename = `${getCurrentDateString()}_Reporte_Consumo_Grupos.xlsx`;
+            exportToExcel(formattedData, filename);
+        }
+
+        // --- FUNCIÓN AGREGADA PARA EXPORTAR INSUMOS ---
+        function handleExportIndice() {
+            let filteredItems = getProcessedItems();
+            const { red, yellow } = appSettings.coverageThresholds;
+
+            // Aplicar filtros actuales de la vista
             if (indiceCoverageFilter !== 'all') {
                 filteredItems = filteredItems.filter(item => {
                     const days = item.coverageDays;
@@ -7042,21 +7747,30 @@
             }
 
             if (filteredItems.length === 0) {
-                showToast('No hay datos para exportar.', 'info');
+                showToast('No hay datos para exportar con los filtros actuales.', 'info');
                 return;
             }
-            
-            const formattedData = filteredItems.map(item => ({
-                'Grupo': item.group,
-                'Código': item.code,
-                'Material': item.name.replace(new RegExp(`^${item.code}\\s*`), ''),
-                'Stock Actual': item.stock,
-                'Consumo Mensual': item.monthlyConsumption,
-                'Cobertura (Días)': item.coverageDays === Infinity ? '∞' : Math.round(item.coverageDays),
-                'Favorito': item.isFavorite ? 'Sí' : 'No',
-                'Notas': item.description_notes || ''
-            }));
-            
+
+            const formattedData = filteredItems.map(item => {
+                const hasOC = ocs.some(oc => String(oc.codigo).trim() === String(item.code).trim()) ? 'Sí' : 'No';
+                const hasSP = solpeds.some(s => String(s.cod).trim() === String(item.code).trim()) ? 'Sí' : 'No';
+                const coverage = item.coverageDays === Infinity ? 'Infinito' : Math.round(item.coverageDays);
+
+                return {
+                    'Grupo': item.group,
+                    'Código': item.code,
+                    'Material': item.name.replace(new RegExp(`^${item.code}\\s*`), ''),
+                    'Stock Actual': item.stock,
+                    'Consumo Mensual': item.monthlyConsumption,
+                    'Cobertura (Días)': coverage,
+                    'Tiene O/C': hasOC,
+                    'Tiene Solped': hasSP,
+                    'Notas': item.description_notes || '',
+                    'Es Favorito': item.isFavorite ? 'Sí' : 'No',
+                    'Última Modificación': item.lastModifiedAt ? formatDateTime(item.lastModifiedAt) : '-'
+                };
+            });
+
             const filename = `${getCurrentDateString()}_Reporte_Insumos.xlsx`;
             exportToExcel(formattedData, filename);
         }
@@ -7801,9 +8515,10 @@
                     renderSolpedsView();
                 }
             });
-            
+
+            // --- LISTENERS FALTANTES PARA OCS (AGREGADO) ---
             document.getElementById('ocs-search-input')?.addEventListener('input', renderOCsView);
-           document.getElementById('ocs-view')?.addEventListener('click', (e) => { 
+            document.getElementById('ocs-view')?.addEventListener('click', (e) => { 
                 const btn = e.target.closest('.table-sort-button'); 
                 const row = e.target.closest('.oc-item-row');
                 const yearBtn = e.target.closest('.ocs-year-btn');
@@ -7813,6 +8528,11 @@
                 else if (e.target.id === 'ocs-delayed-filter-btn') { showOnlyDelayedOCs = !showOnlyDelayedOCs; renderOCsView(); }
                 else if (e.target.closest('#export-ocs-btn')) { handleExportOCs(); }
                 else if (e.target.closest('#ocs-clear-filters-btn')) { handleClearOCsFilters(); }
+                else if (row && row.dataset.itemId) {
+                    selectedConsumptionItemId = row.dataset.itemId;
+                    comparisonItemId = null;
+                    switchMainView('consumos');
+                }
                 else if (yearBtn) {
                     ocsSelectedYear = yearBtn.dataset.year;
                     ocsSelectedMonths = [];
@@ -7821,11 +8541,6 @@
                 else if (monthBtn) {
                     e.stopPropagation();
                     document.getElementById('ocs-month-filter-panel').classList.toggle('hidden');
-                }
-                else if (row && row.dataset.itemId) {
-                    selectedConsumptionItemId = row.dataset.itemId;
-                    comparisonItemId = null;
-                    switchMainView('consumos');
                 }
             });
             document.getElementById('ocs-view')?.addEventListener('change', (e) => {
@@ -7843,32 +8558,100 @@
                     renderOCsView();
                 }
             });
-
+            // -----------------------------------------------
+            
+            // LISTENERS ACTUALIZADOS PARA REPORTES
             document.getElementById('reportes-view')?.addEventListener('input', (e) => { 
-                if (e.target.id === 'immobilized-search-input') renderImmobilizedStockReport();
+                if (e.target.id === 'report-search-input') {
+                    if (currentReportType === 'immobilized') renderImmobilizedStockReport();
+                    else if (currentReportType === 'group-consumption') renderGroupConsumptionReport();
+                }
             });
+            
             document.getElementById('reportes-view')?.addEventListener('click', (e) => { 
                 const sortBtn = e.target.closest('.table-sort-button');
                 const row = e.target.closest('.report-item-row');
+                const groupRow = e.target.closest('.group-consumption-row'); // NUEVO
                 
-                if(e.target.closest('#export-immobilized-btn')) {
-                    handleExportImmobilized();
+                // Manejo del selector de reportes
+                const selectorBtn = e.target.closest('#report-selector-btn');
+                const optionBtn = e.target.closest('.report-option');
+                const dropdown = document.getElementById('report-selector-dropdown');
+
+                if (selectorBtn) {
+                    dropdown.classList.toggle('hidden');
+                    return; // Stop here
+                }
+
+                if (optionBtn) {
+                    currentReportType = optionBtn.dataset.report;
+                    dropdown.classList.add('hidden');
+                    // Limpiar búsqueda al cambiar
+                    const searchInput = document.getElementById('report-search-input');
+                    if(searchInput) searchInput.value = '';
+                    renderReportesView();
+                    return;
+                }
+
+                // Cerrar dropdown si click fuera
+                if (!selectorBtn && !optionBtn && dropdown && !dropdown.classList.contains('hidden')) {
+                    dropdown.classList.add('hidden');
+                }
+                
+                // Exportación dinámica
+                if(e.target.closest('#export-report-btn')) {
+                    if (currentReportType === 'immobilized') handleExportImmobilized();
+                    else if (currentReportType === 'group-consumption') handleExportGroupConsumption();
                     return;
                 }
 
                 if (sortBtn) {
                     const key = sortBtn.dataset.sort;
-                    if (immobilizedSortConfig.key === key) {
-                        immobilizedSortConfig.direction = immobilizedSortConfig.direction === 'asc' ? 'desc' : 'asc';
+                    
+                    if (currentReportType === 'immobilized') {
+                        if (immobilizedSortConfig.key === key) {
+                            immobilizedSortConfig.direction = immobilizedSortConfig.direction === 'asc' ? 'desc' : 'asc';
+                        } else {
+                            immobilizedSortConfig.key = key;
+                            immobilizedSortConfig.direction = 'asc';
+                        }
+                        renderImmobilizedStockReport();
                     } else {
-                        immobilizedSortConfig.key = key;
-                        immobilizedSortConfig.direction = 'asc';
+                        // Sort para Consumo por Grupo
+                        if (groupConsumptionSortConfig.key === key) {
+                            groupConsumptionSortConfig.direction = groupConsumptionSortConfig.direction === 'asc' ? 'desc' : 'asc';
+                        } else {
+                            groupConsumptionSortConfig.key = key;
+                            // Por defecto descendente para números, ascendente para texto
+                            groupConsumptionSortConfig.direction = key === 'group' ? 'asc' : 'desc';
+                        }
+                        renderGroupConsumptionReport();
                     }
-                    renderImmobilizedStockReport();
                 } else if (row && row.dataset.itemId) {
                     selectedConsumptionItemId = row.dataset.itemId;
                     comparisonItemId = null;
                     switchMainView('consumos');
+                } else if (groupRow && groupRow.dataset.groupName) { // NUEVA LÓGICA DE NAVEGACIÓN
+                    const groupName = groupRow.dataset.groupName;
+                    indiceSelectedGroup = groupName;
+                    indiceSearchTerm = '';
+                    indiceFavoriteFilter = 'all';
+                    indiceCoverageFilter = 'all';
+                    switchMainView('indice');
+                }
+            });
+
+            // LISTENER PARA CAMBIOS EN TOGGLES
+            document.getElementById('reportes-view')?.addEventListener('change', (e) => {
+                if (e.target.id === 'toggle-group-stock') {
+                    reportGroupShowStock = e.target.checked;
+                    renderGroupConsumptionReport();
+                } else if (e.target.id === 'toggle-group-avg') {
+                    reportGroupShowAvg = e.target.checked;
+                    renderGroupConsumptionReport();
+                } else if (e.target.id === 'toggle-group-item-count') { // NUEVO
+                    reportGroupShowItemCount = e.target.checked;
+                    renderGroupConsumptionReport();
                 }
             });
 
@@ -8093,7 +8876,12 @@
                 const itemHeaderLink = e.target.closest('.ingresos-item-header-link'); // Cabecera en Vista por Insumo
                 const exportBtn = e.target.closest('#export-incoming-items-btn');
                 const modeBtn = e.target.closest('.ingresos-mode-btn'); 
-                const resetBtn = e.target.closest('#ingresos-reset-filters-btn'); // Nuevo botón
+                const resetBtn = e.target.closest('#ingresos-reset-filters-btn'); 
+                const toggleCalendarBtn = e.target.closest('#ingresos-toggle-calendar-btn'); // Botón de toggle
+                
+                // Nuevos botones de exportación
+                const exportGroupBtn = e.target.closest('#export-ingresos-group-btn');
+                const exportProviderBtn = e.target.closest('#export-ingresos-provider-btn');
 
                 if (prevBtn) {
                     calendarCurrentDate.setUTCMonth(calendarCurrentDate.getUTCMonth() - 1);
@@ -8103,13 +8891,21 @@
                     renderMonthlyCalendar(calendarCurrentDate);
                 } else if (todayBtn) {
                     goToCurrentWeek();
-                } else if (resetBtn) { // Manejador para el botón de reset
+                } else if (resetBtn) {
                     handleResetIngresosFilters();
+                } else if (toggleCalendarBtn) { // Handler del botón
+                    handleToggleIngresosCalendar();
                 } else if (modeBtn) { 
                     ingresosViewMode = modeBtn.dataset.mode;
                     renderIngresosContent();
+                } else if (exportBtn) {
+                    handleExportIncomingItems();
+                } else if (exportGroupBtn) {
+                    handleExportIngresosByGroup();
+                } else if (exportProviderBtn) {
+                    handleExportIngresosByProvider();
                 } else if (weekRow) {
-                    // ... (lógica existente de calendario)
+                    // ... (rest of calendar logic) ...
                     ingresosViewMode = 'weekly';
                     const weekId = weekRow.dataset.weekId;
                     const year = parseInt(weekId.substring(0, 4), 10);
@@ -8147,8 +8943,6 @@
                     selectedConsumptionItemId = itemHeaderLink.dataset.itemId;
                     comparisonItemId = null;
                     switchMainView('consumos');
-                } else if (exportBtn) {
-                    handleExportIncomingItems();
                 }
             });
 
@@ -8692,6 +9486,7 @@
         }
 
         function handleExportIncomingItems() {
+            // ... (existing code) ...
             const incomingOCs = ocs.filter(oc => {
                 const deliveryDate = parseDateString(oc.proxFechaEntrega);
                 return deliveryDate && deliveryDate >= currentIngresosWeek.start && deliveryDate <= currentIngresosWeek.end;
@@ -8721,6 +9516,83 @@
             const weekNumber = parseInt(weekId.split('-')[1], 10);
             const year = weekId.split('-')[0];
             const filename = `Ingresos_Semana_${weekNumber}_${year}_${getCurrentDateString()}.xlsx`;
+            exportToExcel(formattedData, filename);
+        }
+
+        function handleExportIngresosByGroup() {
+            const groupItemCodes = new Set(items.filter(i => i.group === ingresosTargetGroup).map(i => i.code));
+            let groupOCs = ocs.filter(oc => groupItemCodes.has(oc.codigo));
+
+            if (ingresosGroupProductSearchTerm) {
+                const words = ingresosGroupProductSearchTerm.split(' ').filter(Boolean);
+                groupOCs = groupOCs.filter(oc => {
+                    const item = items.find(i => i.code === oc.codigo);
+                    const itemName = item ? item.name : oc.denominacion;
+                    const text = `${oc.codigo} ${itemName} ${oc.ordenDeCompra} ${oc.posicion}`.toLowerCase();
+                    return words.every(w => text.includes(w));
+                });
+            }
+
+            if (groupOCs.length === 0) {
+                showToast('No hay datos para exportar con los filtros actuales.', 'info');
+                return;
+            }
+
+            groupOCs.sort((a, b) => (parseDateString(a.proxFechaEntrega) || 0) - (parseDateString(b.proxFechaEntrega) || 0));
+
+            const formattedData = groupOCs.map(oc => {
+                const item = items.find(i => i.code === oc.codigo);
+                const cleanItemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
+                return {
+                    'Fecha Entrega': formatDate(oc.proxFechaEntrega),
+                    'Código': oc.codigo,
+                    'Material': cleanItemName,
+                    'Proveedor': cleanProviderDisplay(oc.proveedor),
+                    'O/C': oc.ordenDeCompra,
+                    'Cantidad': oc.cantEntregaSiguiente,
+                    'Status': transformOCStatus(oc.status)
+                };
+            });
+
+            const filename = `Ingresos_Grupo_${ingresosTargetGroup.replace(/[\s/]+/g, '_')}_${getCurrentDateString()}.xlsx`;
+            exportToExcel(formattedData, filename);
+        }
+
+        function handleExportIngresosByProvider() {
+            let providerOCs = ocs.filter(oc => cleanProviderDisplay(oc.proveedor) === ingresosTargetProvider);
+
+            if (ingresosProviderProductSearchTerm) {
+                const words = ingresosProviderProductSearchTerm.split(' ').filter(Boolean);
+                providerOCs = providerOCs.filter(oc => {
+                    const item = items.find(i => i.code === oc.codigo);
+                    const itemName = item ? item.name : oc.denominacion;
+                    const text = `${oc.codigo} ${itemName} ${oc.ordenDeCompra} ${oc.posicion}`.toLowerCase();
+                    return words.every(w => text.includes(w));
+                });
+            }
+
+            if (providerOCs.length === 0) {
+                showToast('No hay datos para exportar con los filtros actuales.', 'info');
+                return;
+            }
+
+            providerOCs.sort((a, b) => (parseDateString(a.proxFechaEntrega) || 0) - (parseDateString(b.proxFechaEntrega) || 0));
+
+            const formattedData = providerOCs.map(oc => {
+                const item = items.find(i => i.code === oc.codigo);
+                const cleanItemName = item ? item.name.replace(new RegExp(`^${item.code}\\s*`), '') : oc.denominacion;
+                return {
+                    'Fecha Entrega': formatDate(oc.proxFechaEntrega),
+                    'Material': cleanItemName,
+                    'Código': oc.codigo,
+                    'O/C': oc.ordenDeCompra,
+                    'Posición': oc.posicion,
+                    'Cantidad': oc.cantEntregaSiguiente,
+                    'Status': transformOCStatus(oc.status)
+                };
+            });
+
+            const filename = `Ingresos_Proveedor_${ingresosTargetProvider.replace(/[\s/]+/g, '_')}_${getCurrentDateString()}.xlsx`;
             exportToExcel(formattedData, filename);
         }
     </script>
