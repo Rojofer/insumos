@@ -4698,40 +4698,114 @@
                 .map(([groupName, items]) => ({ groupName, items }))
                 .sort((a, b) => a.groupName.localeCompare(b.groupName));
 
-            let html = '<div class="space-y-2">';
+            let html = '<div class="space-y-3">';
+            
+            const defaultMonthNames = ["M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12"];
+            const monthLabels = (appSettings.consumptionMonthLabels && appSettings.consumptionMonthLabels.length > 0) 
+                ? appSettings.consumptionMonthLabels 
+                : defaultMonthNames;
+
             sortedGroups.forEach(group => {
                 html += `
                 <div class="border rounded-lg overflow-hidden bg-white shadow-sm">
-                    <div class="p-3 flex items-center justify-between hover:bg-slate-50 cursor-pointer record-consumption-group-header" data-group-name="${group.groupName}">
-                        <div>
+                    <div class="p-3 flex items-center justify-between hover:bg-slate-50 cursor-pointer record-consumption-group-header transition-colors" data-group-name="${group.groupName}">
+                        <div class="flex items-center gap-2">
                             <p class="font-semibold text-indigo-700">${group.groupName}</p>
-                            <p class="text-sm text-slate-500">${group.items.length} insumos con récord</p>
+                            <span class="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold border border-indigo-100">${group.items.length}</span>
                         </div>
-                        <svg class="w-5 h-5 text-slate-400 transition-transform duration-200 record-consumption-chevron" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        <svg class="w-5 h-5 text-slate-400 transition-transform duration-200 record-consumption-chevron" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                     </div>
-                    <div class="hidden record-consumption-item-list" data-group-list="${group.groupName}">
-                        <ul class="divide-y divide-slate-200 border-t">
-                        ${group.items.sort((a, b) => b.consumos[b.consumos.length - 1] - a.consumos[a.consumos.length - 1]).map(item => {
+                    <div class="hidden record-consumption-item-list bg-slate-50/30" data-group-list="${group.groupName}">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left text-slate-500">
+                                <thead class="text-xs text-slate-500 uppercase bg-slate-100 border-y border-slate-200">
+                                    <tr>
+                                        <th scope="col" class="px-4 py-2 font-semibold">Material</th>
+                                        <th scope="col" class="px-4 py-2 text-right font-semibold">Mes Actual</th>
+                                        <th scope="col" class="px-4 py-2 text-right font-semibold">Récord Prev.</th>
+                                        <th scope="col" class="px-4 py-2 text-center font-semibold">Mes Récord</th>
+                                        <th scope="col" class="px-4 py-2 text-right font-semibold">Dif. Cant.</th>
+                                        <th scope="col" class="px-4 py-2 text-right font-semibold">Dif. %</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 bg-white">
+                        `;
+
+                        // Ordenar por Diferencia % descendente
+                        group.items.sort((a, b) => {
+                            const curA = a.consumos[a.consumos.length - 1];
+                            const histA = a.consumos.slice(0, -1);
+                            const peakA = histA.length > 0 ? Math.max(...histA) : 0;
+                            const diffA = curA - peakA;
+                            // Calculamos el % igual que en la visualización para ordenar correctamente
+                            const pctA = peakA > 0 ? (diffA / peakA) * 100 : 100;
+
+                            const curB = b.consumos[b.consumos.length - 1];
+                            const histB = b.consumos.slice(0, -1);
+                            const peakB = histB.length > 0 ? Math.max(...histB) : 0;
+                            const diffB = curB - peakB;
+                            const pctB = peakB > 0 ? (diffB / peakB) * 100 : 100;
+                            
+                            return pctB - pctA;
+                        }).map(item => {
                             const currentMonthConsumption = item.consumos[item.consumos.length - 1];
                             const historicalConsumptions = item.consumos.slice(0, -1);
+                            
                             const peakHistoricalConsumption = historicalConsumptions.length > 0 ? Math.max(...historicalConsumptions) : 0;
-                            const isFav = item.isFavorite ? 'bg-red-50' : '';
-                            return `
-                            <li class="p-4 ${isFav} hover:bg-slate-50 kpi-detail-item-row" data-item-id="${item.id}">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1 min-w-0">
-                                        <p class="font-semibold text-slate-800 truncate">${item.name.replace(new RegExp(`^${item.code}\\s*`), '').toUpperCase()}</p>
-                                        <p class="text-sm text-slate-500">${item.group}</p>
+                            const peakIndex = historicalConsumptions.indexOf(peakHistoricalConsumption);
+                            const peakMonthName = (peakIndex !== -1 && monthLabels[peakIndex]) ? monthLabels[peakIndex] : '-';
+                            
+                            const diffQty = currentMonthConsumption - peakHistoricalConsumption;
+                            const diffPercentValue = peakHistoricalConsumption > 0 ? ((diffQty / peakHistoricalConsumption) * 100) : 100;
+                            const diffPercent = diffPercentValue.toFixed(1) + '%';
+
+                            // Lógica de colores semáforo para el porcentaje
+                            let diffBadgeClass = 'bg-green-100 text-green-700';
+                            if (diffPercentValue > 75) {
+                                diffBadgeClass = 'bg-red-100 text-red-700';
+                            } else if (diffPercentValue > 30) {
+                                diffBadgeClass = 'bg-orange-100 text-orange-800';
+                            }
+
+                            const cleanName = item.name.replace(new RegExp(`^${item.code}\\s*`), '').toUpperCase();
+                            const isFav = item.isFavorite;
+                            const rowBg = isFav ? 'bg-yellow-50/40' : '';
+                            
+                            html += `
+                            <tr class="${rowBg} hover:bg-indigo-50/30 cursor-pointer kpi-detail-item-row transition-colors border-b last:border-0 border-slate-100" data-item-id="${item.id}">
+                                <td class="px-4 py-2.5">
+                                    <div class="flex items-start gap-1">
+                                        ${isFav ? '<svg class="w-3 h-3 text-yellow-500 fill-current flex-shrink-0 mr-1 mt-0.5" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>' : ''}
+                                        <div class="min-w-0">
+                                            <span class="font-bold text-slate-700 text-xs sm:text-sm block leading-tight" title="${cleanName}">${cleanName}</span>
+                                            <div class="text-[10px] text-slate-400 mt-0.5">${item.code}</div>
+                                        </div>
                                     </div>
-                                    <div class="text-right ml-4">
-                                        <p class="font-bold text-xl text-red-600">${formatNumber(Math.round(currentMonthConsumption))}</p>
-                                        <p class="text-xs text-slate-500 -mt-1" title="Pico Histórico: ${formatNumber(Math.round(peakHistoricalConsumption))}">vs ${formatNumber(Math.round(peakHistoricalConsumption))}</p>
-                                    </div>
-                                </div>
-                            </li>
+                                </td>
+                                <td class="px-4 py-2.5 text-right font-bold text-red-600 text-sm tabular-nums tracking-tight">
+                                    ${formatNumber(Math.round(currentMonthConsumption))}
+                                </td>
+                                <td class="px-4 py-2.5 text-right font-medium text-slate-600 text-sm tabular-nums tracking-tight">
+                                    ${formatNumber(Math.round(peakHistoricalConsumption))}
+                                </td>
+                                <td class="px-4 py-2.5 text-center text-xs text-slate-500 font-medium">
+                                    ${peakMonthName}
+                                </td>
+                                <td class="px-4 py-2.5 text-right font-bold text-green-600 text-sm tabular-nums tracking-tight">
+                                    +${formatNumber(Math.round(diffQty))}
+                                </td>
+                                <td class="px-4 py-2.5 text-right">
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold ${diffBadgeClass} tabular-nums">
+                                        +${diffPercent}
+                                    </span>
+                                </td>
+                            </tr>
                             `;
-                        }).join('')}
-                        </ul>
+                        });
+
+                html += `       </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>`;
             });
@@ -7913,15 +7987,32 @@
                 return;
             }
 
+            // Obtener etiquetas de meses
+            const defaultMonthNames = Array.from({length: 12}, (_, i) => `M${i+1}`);
+            const monthLabels = (appSettings.consumptionMonthLabels && appSettings.consumptionMonthLabels.length > 0) 
+                ? appSettings.consumptionMonthLabels 
+                : defaultMonthNames;
+
             const formattedData = recordConsumptionItems.map(item => {
+                const currentMonthConsumption = item.consumos[item.consumos.length - 1];
                 const historicalConsumptions = item.consumos.slice(0, -1);
+                
                 const peakHistoricalConsumption = historicalConsumptions.length > 0 ? Math.max(...historicalConsumptions) : 0;
+                const peakIndex = historicalConsumptions.indexOf(peakHistoricalConsumption);
+                const peakMonthName = (peakIndex !== -1 && monthLabels[peakIndex]) ? monthLabels[peakIndex] : 'N/A';
+                
+                const diffQty = currentMonthConsumption - peakHistoricalConsumption;
+                const diffPercent = peakHistoricalConsumption > 0 ? ((diffQty / peakHistoricalConsumption) * 100).toFixed(1) + '%' : '100%';
+
                 return {
                     'Grupo': item.group,
                     'Código': item.code,
                     'Material': item.name.replace(new RegExp(`^${item.code}\\s*`), ''),
-                    'Consumo Mes Actual': item.consumos[item.consumos.length - 1],
-                    'Pico Histórico': peakHistoricalConsumption,
+                    'Consumo Mes Actual': currentMonthConsumption,
+                    'Récord Histórico Anterior': peakHistoricalConsumption,
+                    'Mes del Récord Anterior': peakMonthName,
+                    'Superado en (Cantidad)': diffQty,
+                    'Superado en (%)': diffPercent,
                     'Favorito': item.isFavorite ? 'Sí' : 'No'
                 };
             });
